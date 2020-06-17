@@ -159,7 +159,8 @@ int32_t CopterSearch::getIndexOfObjectSet()
 	} else {
 		m_flag_recognized = true;
 		m_copterSet = m_d_set[index];
-		mm_xy[index].print();
+		if (true == m_debug)
+			mm_xy[index].print();
 		PRINT_DBG(m_debug, PREF, "is an old object now");
 		m_old_object = mm_xy[index];
 	}
@@ -253,4 +254,83 @@ const std::vector<Ellipse>& CopterSearch::get_ObjParameters() const
 
 	// Get parameters
 	return m_copterSet;
+}
+
+//-------------------------------------------------------------------------------------------------
+#undef PREF
+
+//=================================================================================================
+// class CopterSearchChameleon
+
+//-------------------------------------------------------------------------------------------------
+#include "algorithms/Algorithms.h"
+
+//-------------------------------------------------------------------------------------------------
+#define PREF  "[CopterSearchChameleon]: "
+
+//-------------------------------------------------------------------------------------------------
+CopterSearchChameleon::CopterSearchChameleon(const QString& pathModel_1,
+                                             const QString& pathModel_2,
+                                             const uint32_t modelWidth,
+                                             const uint32_t modelHeight) :
+    m_modelWidth(modelWidth),
+    m_modelHeight(modelHeight)
+{
+	// Load a model image
+	m_modelImage_1 = QImage(pathModel_1);
+	if (m_modelImage_1.isNull() == true) {
+		m_modelData_1 = nullptr;
+		PRINT_ERR(true, PREF, "pathModel_1 is incorrect");
+	} else {
+		// Get an image data
+		m_modelData_1 = m_modelImage_1.bits();
+		PRINT_DBG(m_debug, PREF, "Load from pathModel_1 was successfull");
+	}
+
+	// Load a model image
+	m_modelImage_2 = QImage(pathModel_2);
+	if (m_modelImage_2.isNull() == true) {
+		m_modelData_2 = nullptr;
+		PRINT_ERR(true, PREF, "pathModel_2 is incorrect");
+	} else {
+		// Get an image data
+		m_modelData_2 = m_modelImage_2.bits();
+		PRINT_DBG(m_debug, PREF, "Load from pathModel_2 was successfull");
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+void CopterSearchChameleon::getRecognitionPercents(const QImage& image,
+                                                   double& p_1, double& p_2) const
+{
+	p_1 = p_2 = 0;
+
+	// Check the models data
+	if (nullptr == m_modelData_1 && nullptr == m_modelData_2) {
+		PRINT_ERR(true, PREF, "Images was not loaded");
+		return;
+	}
+
+	// Get a rectangle of area with copter
+	uint32_t x, y, w, h;
+	if (get_ObjParameters(x, y, w, h) != 0) {
+		return;
+	}
+
+	// Cut a area with copter
+	QImage imageCopter = image.copy(x, y, w, h);
+
+	// Get data of this area and convert it
+	uint8_t* data = imageCopter.bits();
+	for (uint32_t i = 0; i < imageCopter.sizeInBytes(); ++i)
+		if (data[i] < 255)
+			data[i] = 0;
+
+	// Scale a cuted area
+	QImage imageCopterScale = imageCopter.scaled(m_modelWidth, m_modelHeight);
+	data = imageCopterScale.bits();
+
+	// Get percents
+	p_1 = correlationCoefficient(data, m_modelData_1, m_modelWidth * m_modelHeight) * 100;
+	p_2 = correlationCoefficient(data, m_modelData_2, m_modelWidth * m_modelHeight) * 100;
 }

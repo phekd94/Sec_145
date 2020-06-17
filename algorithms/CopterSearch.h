@@ -12,7 +12,7 @@ FIXME:
 DANGER: * drawFilterRectangles(): check works incorrect
 NOTE:
 
-Sec_145::CopterSearch class
+Sec_145::CopterSearch, Sec_145::CopterSearchChameleon classes
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
@@ -179,6 +179,44 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 #undef PREF
+
+//-------------------------------------------------------------------------------------------------
+} // namespace Sec_145
+
+//=================================================================================================
+// class CopterSearchChameleon
+
+#include <QImage>
+#include <QString>
+
+//-------------------------------------------------------------------------------------------------
+namespace Sec_145
+{
+
+//-------------------------------------------------------------------------------------------------
+class CopterSearchChameleon : public CopterSearch
+{
+
+public:
+
+	CopterSearchChameleon(const QString& pathModel_1, const QString& pathModel_2,
+	                      const uint32_t modelWidth = 20, const uint32_t modelHeight = 20);
+
+	// Get recognition percents
+	void getRecognitionPercents(const QImage& image, double& p_1, double& p_2) const;
+
+private:
+
+	// Model of copters
+	QImage m_modelImage_1;
+	QImage m_modelImage_2;
+	uint8_t* m_modelData_1;
+	uint8_t* m_modelData_2;
+
+	// Width and height of model
+	uint32_t m_modelWidth;
+	uint32_t m_modelHeight;
+};
 
 //=================================================================================================
 // Test class
