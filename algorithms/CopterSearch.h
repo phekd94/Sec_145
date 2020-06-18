@@ -203,7 +203,15 @@ public:
 	                      const uint32_t modelWidth = 20, const uint32_t modelHeight = 20);
 
 	// Get recognition percents
-	void getRecognitionPercents(const QImage& image, double& p_1, double& p_2) const;
+	int32_t getRecognitionPercents(const QImage& image, double& p_1, double& p_2) const;
+
+	// For learning
+	static int32_t modelLearning(const QString& pathCopterImages,
+	                             const QString& resultPathAndName,
+	                             const bool scale = false,
+	                             const bool black_white = false,
+	                             const uint32_t imagesWidth = 20,
+	                             const uint32_t imagesHeight = 20);
 
 private:
 

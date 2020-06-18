@@ -263,7 +263,8 @@ const std::vector<Ellipse>& CopterSearch::get_ObjParameters() const
 // class CopterSearchChameleon
 
 //-------------------------------------------------------------------------------------------------
-#include "algorithms/Algorithms.h"
+#include "algorithms/Algorithms.h"  // correlationCoefficient()
+#include <QDir>                     // QDir class
 
 //-------------------------------------------------------------------------------------------------
 #define PREF  "[CopterSearchChameleon]: "
@@ -300,21 +301,32 @@ CopterSearchChameleon::CopterSearchChameleon(const QString& pathModel_1,
 }
 
 //-------------------------------------------------------------------------------------------------
-void CopterSearchChameleon::getRecognitionPercents(const QImage& image,
-                                                   double& p_1, double& p_2) const
+int32_t CopterSearchChameleon::getRecognitionPercents(const QImage& image,
+                                                      double& p_1, double& p_2) const
 {
 	p_1 = p_2 = 0;
+
+	// Check the incoming parameter
+	if (image.isNull() == true) {
+		PRINT_ERR(true, PREF, "Incomed image is null");
+		return -1;
+	}
 
 	// Check the models data
 	if (nullptr == m_modelData_1 && nullptr == m_modelData_2) {
 		PRINT_ERR(true, PREF, "Images was not loaded");
-		return;
+		return -1;
 	}
 
 	// Get a rectangle of area with copter
 	uint32_t x, y, w, h;
 	if (get_ObjParameters(x, y, w, h) != 0) {
-		return;
+		return -1;
+	}
+	if (   x + w > static_cast<uint32_t>(image.width())
+	    || y + h > static_cast<uint32_t>(image.height())) {
+		PRINT_ERR(true, PREF, "x + w > image.width() or y + h > image.height()");
+		return -1;
 	}
 
 	// Cut a area with copter
@@ -333,4 +345,93 @@ void CopterSearchChameleon::getRecognitionPercents(const QImage& image,
 	// Get percents
 	p_1 = correlationCoefficient(data, m_modelData_1, m_modelWidth * m_modelHeight) * 100;
 	p_2 = correlationCoefficient(data, m_modelData_2, m_modelWidth * m_modelHeight) * 100;
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t CopterSearchChameleon::modelLearning(const QString& pathCopterImages,
+                                             const QString& resultPathAndName,
+                                             const bool scale,
+                                             const bool black_white,
+                                             const uint32_t imagesWidth,
+                                             const uint32_t imagesHeight)
+{
+	// Create a directory class object and check it exist
+	QDir dir(pathCopterImages);
+	if (dir.exists() == false) {
+		PRINT_ERR(true, PREF, "Directory is not exist");
+		return -1;
+	}
+
+	// Get an images list
+	QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+
+	// Get images
+	std::vector<QImage> images;
+	for (auto file : entries) {
+
+		// Scale (if need image)
+		if (true == scale) {
+			// Get an image
+			QImage image = QImage(file.filePath());
+
+			// Leave only 0 and 255 pixels
+			if (true == black_white) {
+				uint8_t* data = image.bits();
+				for (uint32_t i = 0; i < image.sizeInBytes(); ++i)
+					if (data[i] < 255)
+						data[i] = 0;
+			}
+
+			// Add an image to vector
+			images.push_back(image.scaled(imagesWidth, imagesHeight));
+		} else {
+
+			// Add an image to vector
+			images.push_back(QImage(file.filePath()));
+		}
+
+		// Check the size of image and entrance size
+		if (   static_cast<uint32_t>(images.back().width()) != imagesWidth
+		    || static_cast<uint32_t>(images.back().height()) != imagesHeight) {
+			PRINT_ERR(true, PREF, "Size of the %s image is not correct",
+			                      file.filePath().toStdString().c_str());
+			return -1;
+		}
+	}
+
+	// Get a brightness
+	double b = 255.0 / (imagesWidth * imagesHeight);
+
+	// Result (double)
+	std::vector<double> res_double(imagesWidth * imagesHeight, 0);
+
+	// Get a result (double)
+	// Images loop
+	for (auto image : images) {
+
+		// Pixels loop
+		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+
+			// Get data and process it
+			uint8_t* data = image.bits();
+			if (data[i] == 255) {
+				res_double[i] += b;
+			}
+		}
+	}
+
+	// Get a result (uint8_t)
+	std::vector<uint8_t> res_uint8(imagesWidth * imagesHeight);
+	for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+		res_uint8[i] = res_double[i];
+	}
+
+	// Save result
+	QImage(res_uint8.data(),
+	       imagesWidth, imagesHeight,
+	       QImage::Format_Grayscale8).save(resultPathAndName);
+
+	return 0;
 }
