@@ -5,9 +5,7 @@
 //-------------------------------------------------------------------------------------------------
 /*
 DESCRITION: Template class for represent a disjoint set
-TODO: * test class
-	  * logic() in test
-	  * (*) below
+TODO: * test class (logic() method)
 FIXME:
 DANGER:
 NOTE:
@@ -16,9 +14,9 @@ Sec_145::DisjointSet class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
-|               |    YES(*)  |
+|       NO      |    YES(*)  |
 +---------------+------------+
-(*) -
+(*) - received sets are not valid after clearDisjointSet() is called
 */
 
 //-------------------------------------------------------------------------------------------------
@@ -48,7 +46,7 @@ public:
 	// Clears a disjoint set
 	void clearDisjointSet();
 
-	// Get index of set of set contains object
+	// Get an index of set of set contains object
 	virtual int32_t getIndexOfObjectSet()
 	{ return getIndexOfSetWithMaxSize(); }
 
@@ -257,9 +255,6 @@ int32_t DisjointSet<T>::unionSets(uint32_t index_dest, uint32_t index_src)
 
 //-------------------------------------------------------------------------------------------------
 #undef PREF
-
-//=================================================================================================
-// Test class
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145

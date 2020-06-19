@@ -3,6 +3,15 @@
 #define SEC_145_ALGORITHMS_GEOMETRY_H
 
 //-------------------------------------------------------------------------------------------------
+/*
+DESCRITION: Geometry structs
+TODO:
+FIXME:
+DANGER:
+NOTE:
+*/
+
+//-------------------------------------------------------------------------------------------------
 #include <cstdint>  // integer types
 #include <vector>   // std::vector
 

@@ -5,20 +5,19 @@
 //-------------------------------------------------------------------------------------------------
 /*
 DESCRITION: Class for copter search
-TODO: * test class
-	  * logic() in test
-	  * (*) below
+TODO: * test class (logic() method)
+	  * drawFilterRectangles(): boundaries works incorrect
 FIXME:
-DANGER: * drawFilterRectangles(): check works incorrect
+DANGER: * drawFilterRectangles(): boundaries work incorrect
 NOTE:
 
-Sec_145::CopterSearch, Sec_145::CopterSearchChameleon classes
+Sec_145::CopterSearch
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
-|               |    YES(*)  |
+|      YES(*)   |    YES     |
 +---------------+------------+
-(*) -
+(*) - single parameters for all threads
 */
 
 //-------------------------------------------------------------------------------------------------
@@ -37,7 +36,7 @@ namespace Sec_145
 #define PREF  "[CopterSearch]: "
 
 //-------------------------------------------------------------------------------------------------
-class CopterSearch: public DisjointSet_Ellipses {
+class CopterSearch : public DisjointSet_Ellipses {
 
 public:
 
@@ -58,7 +57,7 @@ public:
 	// Gets object parameters: ellipses in copter set
 	const std::vector<Ellipse>& get_ObjParameters() const;
 
-	// ******************
+	// *******************
 
 	// ***** Setters *****
 
@@ -179,55 +178,6 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 #undef PREF
-
-//-------------------------------------------------------------------------------------------------
-} // namespace Sec_145
-
-//=================================================================================================
-// class CopterSearchChameleon
-
-#include <QImage>
-#include <QString>
-
-//-------------------------------------------------------------------------------------------------
-namespace Sec_145
-{
-
-//-------------------------------------------------------------------------------------------------
-class CopterSearchChameleon : public CopterSearch
-{
-
-public:
-
-	CopterSearchChameleon(const QString& pathModel_1, const QString& pathModel_2,
-	                      const uint32_t modelWidth = 20, const uint32_t modelHeight = 20);
-
-	// Get recognition percents
-	int32_t getRecognitionPercents(const QImage& image, double& p_1, double& p_2) const;
-
-	// For learning
-	static int32_t modelLearning(const QString& pathCopterImages,
-	                             const QString& resultPathAndName,
-	                             const bool scale = false,
-	                             const bool black_white = false,
-	                             const uint32_t imagesWidth = 20,
-	                             const uint32_t imagesHeight = 20);
-
-private:
-
-	// Model of copters
-	QImage m_modelImage_1;
-	QImage m_modelImage_2;
-	uint8_t* m_modelData_1;
-	uint8_t* m_modelData_2;
-
-	// Width and height of model
-	uint32_t m_modelWidth;
-	uint32_t m_modelHeight;
-};
-
-//=================================================================================================
-// Test class
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145

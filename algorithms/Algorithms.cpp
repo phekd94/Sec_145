@@ -1,7 +1,7 @@
 
 #include "Algorithms.h"
 
-#include <cmath>  // std::sqrt(), std::abs()
+#include <cmath>               // std::sqrt(), std::abs()
 
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -18,6 +18,7 @@ double correlationCoefficient(const uint8_t* const d_1, const uint8_t* const d_2
 	double sum_d_1 = 0, sum_d_2 = 0, sum_d_1_d_2 = 0;
 	double squareSum_d_1 = 0, squareSum_d_2 = 0;
 
+	// Check the incoming parameters
 	if (nullptr == d_1 || nullptr == d_2) {
 		PRINT_ERR(true, PREF, "nullptr == d_1 or nullptr == d_2");
 		return 0;
