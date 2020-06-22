@@ -20,10 +20,17 @@ namespace Sec_145
 {
 
 //-------------------------------------------------------------------------------------------------
-// Struct for presenting of point
+// Struct for presenting of point (coordinates - uint32_t)
 struct Point {
 	uint32_t x;
 	uint32_t y;
+};
+
+//-------------------------------------------------------------------------------------------------
+// Struct for presenting of point (coordinates - float)
+struct Point_f {
+	float x;
+	float y;
 };
 
 //-------------------------------------------------------------------------------------------------
