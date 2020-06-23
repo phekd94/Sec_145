@@ -5,7 +5,7 @@
 //-------------------------------------------------------------------------------------------------
 /*
 DESCRITION: Class (and class for test) for justieren of image in chameleon project
-TODO: qDebug
+TODO: * in test method: r == 0
 FIXME:
 DANGER: * width and height of the RECTANGLE must be less than angle_max / 2;
 		  this is NOT verified (it is impossible here)

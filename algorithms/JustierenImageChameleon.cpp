@@ -30,7 +30,8 @@ JustierenImageChameleon::JustierenImageChameleon(
     m_Top_Left{-1, -1},
     m_Top_Right{-1, -1},
     m_Bottom_Left{-1, -1},
-    m_Bottom_Right{-1, -1}
+    m_Bottom_Right{-1, -1},
+    s11(0), s21(0), s12(0), s22(0)
 {
 
 }
@@ -391,7 +392,7 @@ void JustierenImageChameleon::init_x()
 		m_Bottom_Left.x = 0;
 		m_Top_Left.x = r;
 		ret = 31;
-	} else if (r < 0) {
+	} else {
 		// 3.2 x
 		PRINT_DBG(false, PREF, "3.2 x");
 		m_shift_x = ANGLE_MAX - m_Top_Left.x;
@@ -478,7 +479,7 @@ void JustierenImageChameleon::init_y()
 		m_Top_Left.y = 0;
 		m_Top_Right.y = r;
 		ret = 31;
-	} else if (r < 0) {
+	} else {
 		// 3.2 y
 		PRINT_DBG(false, PREF, "3.2 y");
 		m_shift_y = ANGLE_MAX - m_Top_Right.y;

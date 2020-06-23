@@ -122,6 +122,10 @@ public:
 	static int32_t fullTest();
 
 private:
+	DSrv_Hexapod_v2_test() : m_slot_ok(false)
+	{
+	}
+
 	// Flag when values in slot are successful
 	volatile bool m_slot_ok;
 

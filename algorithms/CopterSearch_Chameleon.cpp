@@ -12,14 +12,15 @@ using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
 CopterSearch_Chameleon::CopterSearch_Chameleon(const QString& pathModel_1,
-                                              const QString& pathModel_2,
-                                              const uint32_t modelWidth,
-                                              const uint32_t modelHeight) :
+                                               const QString& pathModel_2,
+                                               const uint32_t modelWidth,
+                                               const uint32_t modelHeight) :
+    m_modelImage_1(pathModel_1),
+    m_modelImage_2(pathModel_2),
     m_modelWidth(modelWidth),
     m_modelHeight(modelHeight)
 {
-	// Load a model image
-	m_modelImage_1 = QImage(pathModel_1);
+	// Check a loaded model image
 	if (m_modelImage_1.isNull() == true) {
 		m_modelData_1 = nullptr;
 		PRINT_ERR(true, PREF, "pathModel_1 is incorrect");
@@ -29,8 +30,7 @@ CopterSearch_Chameleon::CopterSearch_Chameleon(const QString& pathModel_1,
 		PRINT_DBG(m_debug, PREF, "Load from pathModel_1 was successfull");
 	}
 
-	// Load a model image
-	m_modelImage_2 = QImage(pathModel_2);
+	// Check a loaded model image
 	if (m_modelImage_2.isNull() == true) {
 		m_modelData_2 = nullptr;
 		PRINT_ERR(true, PREF, "pathModel_2 is incorrect");

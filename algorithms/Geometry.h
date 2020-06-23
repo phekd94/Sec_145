@@ -38,7 +38,8 @@ struct Point_f {
 struct Ellipse {
 	Ellipse() : id(0)
 	{
-
+		p_1.x = p_2.x = 0;
+		p_1.y = p_2.y = 0;
 	}
 
 	// The points belong to this ellipse

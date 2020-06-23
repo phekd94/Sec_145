@@ -46,7 +46,7 @@ namespace Sec_145 {
 class ImageNode : public QSGGeometryNode, private QSGGeometry
 {
 public:
-	ImageNode(const uint32_t verticesCount);
+	explicit ImageNode(const uint32_t verticesCount);
 	virtual ~ImageNode();
 
 	// Sets an image
