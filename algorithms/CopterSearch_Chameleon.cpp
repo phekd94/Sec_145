@@ -3,6 +3,7 @@
 
 #include "algorithms/Algorithms.h"  // correlationCoefficient()
 #include <QDir>                     // QDir class
+#include <cmath>                    // std::fabs()
 
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;
@@ -180,11 +181,13 @@ const std::vector<uint8_t> CopterSearch_Chameleon::simpleLearning(
 	// Images loop
 	for (auto image : images) {
 
+		// Get image bits
+		uint8_t* data = image.bits();
+
 		// Pixels loop
 		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
 
-			// Get data and process it
-			uint8_t* data = image.bits();
+			// Process data
 			if (data[i] == 255) {
 				res_double[i] += b;
 			}
@@ -211,10 +214,52 @@ const std::vector<uint8_t> CopterSearch_Chameleon::simpleLearning(
 }
 
 //-------------------------------------------------------------------------------------------------
+#include <QDebug>
 const std::vector<uint8_t> CopterSearch_Chameleon::neuralLearning(
                                                  const std::vector<QImage>& images,
                                                  const uint32_t imagesWidth,
                                                  const uint32_t imagesHeight)
 {
-	return std::vector<uint8_t>();
+	double goal_pred = 0.8;
+
+	std::vector<double> weigths(imagesWidth * imagesHeight, 0);
+	double pred;
+
+	for (auto image : images) {
+
+		// Get data and process it
+		uint8_t* data = image.bits();
+
+		// Pixels loop
+		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+
+			pred = data[i] * weigths[i];
+			double delta = pred - goal_pred;
+			double weigth_delta = delta * data[i];
+			weigths[i] -= (weigth_delta * 0.0000320); // alpha
+			qDebug() << i << weigths[i] << weigth_delta;
+		}
+
+	}
+
+	// Get a result (uint8_t)
+	std::vector<uint8_t> res_uint8(imagesWidth * imagesHeight);
+	for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+
+		weigths[i] = std::fabs(weigths[i]);
+
+		if (weigths[i] > 1) {
+			weigths[i] = 1;
+			PRINT_ERR(true, PREF, "%d", i);
+		}
+
+		res_uint8[i] = weigths[i] * 255;
+
+		//PRINT_DBG(true, PREF, "%f", weigths[i]);
+
+	}
+
+	//PRINT_DBG(true, PREF, "%f", weigths[0]);
+
+	return res_uint8;
 }
