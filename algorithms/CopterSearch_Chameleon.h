@@ -33,15 +33,22 @@ class CopterSearch_Chameleon : public CopterSearch
 
 public:
 
+	// Learning type enumeration
+	enum class LearningType {
+		Simple,
+		Neural
+	};
+
 	CopterSearch_Chameleon(const QString& pathModel_1, const QString& pathModel_2,
 	                       const uint32_t modelWidth = 20, const uint32_t modelHeight = 20);
 
-	// Get recognition percents
+	// Gets recognition percents
 	int32_t getRecognitionPercents(const QImage& image, double& p_1, double& p_2) const;
 
-	// For learning
+	// Learning; gets a model
 	static int32_t modelLearning(const QString& pathCopterImages,
 	                             const QString& resultPathAndName,
+	                             const LearningType type,
 	                             const bool scale = false,
 	                             const bool brightness = false,
 	                             const uint32_t imagesWidth = 20,
@@ -62,6 +69,11 @@ private:
 	// Simple learning
 	static const std::vector<uint8_t> simpleLearning(const std::vector<QImage>& images,
 	                                                 const bool brightness,
+	                                                 const uint32_t imagesWidth,
+	                                                 const uint32_t imagesHeight);
+
+	// Neural learning
+	static const std::vector<uint8_t> neuralLearning(const std::vector<QImage>& images,
 	                                                 const uint32_t imagesWidth,
 	                                                 const uint32_t imagesHeight);
 

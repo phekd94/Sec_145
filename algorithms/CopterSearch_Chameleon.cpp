@@ -93,6 +93,7 @@ int32_t CopterSearch_Chameleon::getRecognitionPercents(const QImage& image,
 //-------------------------------------------------------------------------------------------------
 int32_t CopterSearch_Chameleon::modelLearning(const QString& pathCopterImages,
                                               const QString& resultPathAndName,
+                                              const LearningType type,
                                               const bool scale,
                                               const bool brightness,
                                               const uint32_t imagesWidth,
@@ -140,13 +141,23 @@ int32_t CopterSearch_Chameleon::modelLearning(const QString& pathCopterImages,
 		}
 	}
 
-	// Apply a simple learning method to the vector with images
-	const std::vector<uint8_t> res = simpleLearning(images, brightness,
-	                                                imagesWidth, imagesHeight);
+	// Apply a learning method to the vector with images; get a result
+	std::vector<uint8_t> res;
+	switch (type) {
+	case LearningType::Simple:
+		res = simpleLearning(images, brightness, imagesWidth, imagesHeight);
+		break;
+	case LearningType::Neural:
+		res = neuralLearning(images, imagesWidth, imagesHeight);
+		break;
+	default:
+		PRINT_ERR(true, PREF, "Unknown learning type");
+		return -1;
+		break;
+	}
 
 	// Save a result
-	QImage(res.data(),
-	       imagesWidth, imagesHeight,
+	QImage(res.data(), imagesWidth, imagesHeight,
 	       QImage::Format_Grayscale8).save(resultPathAndName);
 
 	return 0;
@@ -154,10 +165,10 @@ int32_t CopterSearch_Chameleon::modelLearning(const QString& pathCopterImages,
 
 //-------------------------------------------------------------------------------------------------
 const std::vector<uint8_t> CopterSearch_Chameleon::simpleLearning(
-                                          const std::vector<QImage>& images,
-                                          const bool brightness,
-                                          const uint32_t imagesWidth,
-                                          const uint32_t imagesHeight)
+                                                 const std::vector<QImage>& images,
+                                                 const bool brightness,
+                                                 const uint32_t imagesWidth,
+                                                 const uint32_t imagesHeight)
 {
 	// Get a brightness
 	double b = 255.0 / (imagesWidth * imagesHeight);
@@ -197,4 +208,13 @@ const std::vector<uint8_t> CopterSearch_Chameleon::simpleLearning(
 	}
 
 	return res_uint8;
+}
+
+//-------------------------------------------------------------------------------------------------
+const std::vector<uint8_t> CopterSearch_Chameleon::neuralLearning(
+                                                 const std::vector<QImage>& images,
+                                                 const uint32_t imagesWidth,
+                                                 const uint32_t imagesHeight)
+{
+	return std::vector<uint8_t>();
 }

@@ -13,9 +13,9 @@ CopterSearch::CopterSearch() : m_wihtout_recognize(0), m_wihtout_recognize_num(1
                                m_max_delta_x(350), m_min_delta_x(100),
                                m_max_delta_y(300), m_min_delta_y(50),
                                m_delta_old_object(50),
-                               m_flag_set_size(true),
-                               m_flag_size(true),
-                               m_flag_old_object(true),
+                               m_flag_set_size(false),
+                               m_flag_size(false),
+                               m_flag_old_object(false),
                                m_flag_recognized(false),
                                m_copterSet()
 {
