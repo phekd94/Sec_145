@@ -140,6 +140,25 @@ int32_t CopterSearch_Chameleon::modelLearning(const QString& pathCopterImages,
 		}
 	}
 
+	// Apply a simple learning method to the vector with images
+	const std::vector<uint8_t> res = simpleLearning(images, brightness,
+	                                                imagesWidth, imagesHeight);
+
+	// Save a result
+	QImage(res.data(),
+	       imagesWidth, imagesHeight,
+	       QImage::Format_Grayscale8).save(resultPathAndName);
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+const std::vector<uint8_t> CopterSearch_Chameleon::simpleLearning(
+                                          const std::vector<QImage>& images,
+                                          const bool brightness,
+                                          const uint32_t imagesWidth,
+                                          const uint32_t imagesHeight)
+{
 	// Get a brightness
 	double b = 255.0 / (imagesWidth * imagesHeight);
 
@@ -177,10 +196,5 @@ int32_t CopterSearch_Chameleon::modelLearning(const QString& pathCopterImages,
 		}
 	}
 
-	// Save a result
-	QImage(res_uint8.data(),
-	       imagesWidth, imagesHeight,
-	       QImage::Format_Grayscale8).save(resultPathAndName);
-
-	return 0;
+	return res_uint8;
 }

@@ -58,6 +58,13 @@ private:
 	// Width and height of model
 	uint32_t m_modelWidth;
 	uint32_t m_modelHeight;
+
+	// Simple learning
+	static const std::vector<uint8_t> simpleLearning(const std::vector<QImage>& images,
+	                                                 const bool brightness,
+	                                                 const uint32_t imagesWidth,
+	                                                 const uint32_t imagesHeight);
+
 };
 
 //-------------------------------------------------------------------------------------------------
