@@ -8,7 +8,30 @@ DESCRITION: Functions with algoritms
 TODO: * test class (logic() method)
 FIXME:
 DANGER:
-NOTE:
+NOTE: * Python code for print a histogram:
+"
+	// Import module
+	import matplotlib.pyplot as plt
+	import seaborn as sns
+
+	// Read file content
+	with open("C:/Users/ekd/Desktop/p_1.txt", 'r') as f:
+		content_1 = f.readlines()
+	content_1 = [int(x.strip()) for x in content_1]
+
+	// Read file content
+	with open("C:/Users/ekd/Desktop/p_6.txt", 'r') as f:
+		content_2 = f.readlines()
+	content_2 = [int(x.strip()) for x in content_2]
+
+	// One histogram
+	ax = sns.distplot(content_1, bins=20) #, rug=False, hist=False)
+	// Two histograms
+	#plt.hist([content_1, content_2], color=['r','y'], histtype = 'bar') #alpha=0.5)
+
+	// Show histogram
+	plt.show()
+"
 
 +---------------+------------+
 | thread safety | reentrance |

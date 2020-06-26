@@ -13,42 +13,46 @@ using namespace Sec_145;
 #define PREF  "[CopterSearch_Chameleon]: "
 
 //-------------------------------------------------------------------------------------------------
-CopterSearch_Chameleon::CopterSearch_Chameleon(const QString& pathModel_1,
-                                               const QString& pathModel_2,
+CopterSearch_Chameleon::CopterSearch_Chameleon(const std::vector<QString>& pathModels,
                                                const uint32_t modelWidth,
                                                const uint32_t modelHeight) :
-    m_modelImage_1(pathModel_1),
-    m_modelImage_2(pathModel_2),
     m_modelWidth(modelWidth),
     m_modelHeight(modelHeight)
 {
-	// Check a loaded model image
-	if (m_modelImage_1.isNull() == true) {
-		m_modelData_1 = nullptr;
-		PRINT_ERR(true, PREF, "pathModel_1 is incorrect");
-	} else {
-		// Get an image data
-		m_modelData_1 = m_modelImage_1.bits();
-		PRINT_DBG(m_debug, PREF, "Load from pathModel_1 was successfull");
+	m_number = pathModels.size();
+	m_modelsName.resize(m_number);
+	m_modelsImage.resize(m_number);
+	m_modelsData.resize(m_number, nullptr);
+
+	for (uint32_t i = 0; i < m_number; ++i) {
+
+		// Get a model name
+		m_modelsName[i] = QString("c_") + i + ".txt";
+
+		// Get a model image
+		m_modelsImage[i] = QImage(pathModels[i]);
+
+		// Check a loaded model image
+		if (m_modelsImage[i].isNull() == true) {
+			PRINT_ERR(true, PREF, "pathModels content is incorrect");
+			return;
+		} else {
+			// Get an image data
+			m_modelsData[i] = m_modelsImage[i].bits();
+		}
 	}
 
-	// Check a loaded model image
-	if (m_modelImage_2.isNull() == true) {
-		m_modelData_2 = nullptr;
-		PRINT_ERR(true, PREF, "pathModel_2 is incorrect");
-	} else {
-		// Get an image data
-		m_modelData_2 = m_modelImage_2.bits();
-		PRINT_DBG(m_debug, PREF, "Load from pathModel_2 was successfull");
-	}
+	PRINT_DBG(m_debug, PREF, "Load from pathModels was successfull");
 }
 
 //-------------------------------------------------------------------------------------------------
 int32_t CopterSearch_Chameleon::getRecognitionPercents(const QImage& image,
-                                                       double& p_1, double& p_2,
+                                                       std::vector<double>& percents,
                                                        const QString& pathForSave) const
 {
-	p_1 = p_2 = 0;
+	static std::vector<double> res;
+	res.resize(m_number, 0);
+	percents = res;
 
 	// Check the incoming parameter
 	if (image.isNull() == true) {
@@ -57,9 +61,11 @@ int32_t CopterSearch_Chameleon::getRecognitionPercents(const QImage& image,
 	}
 
 	// Check the models data
-	if (nullptr == m_modelData_1 && nullptr == m_modelData_2) {
-		PRINT_ERR(true, PREF, "Images was not loaded");
-		return -1;
+	for (auto modelData : m_modelsData) {
+		if (nullptr == modelData) {
+			PRINT_ERR(true, PREF, "Model images was not loaded");
+			return -1;
+		}
 	}
 
 	// Get a rectangle of area with copter
@@ -87,26 +93,28 @@ int32_t CopterSearch_Chameleon::getRecognitionPercents(const QImage& image,
 	data = imageCopterScale.bits();
 
 	// Get percents
-	p_1 = correlationCoefficient(data, m_modelData_1, m_modelWidth * m_modelHeight) * 100;
-	p_2 = correlationCoefficient(data, m_modelData_2, m_modelWidth * m_modelHeight) * 100;
+	for (uint32_t i = 0; i < m_number; ++i) {
+		percents[i] = correlationCoefficient(data, m_modelsData[i],
+		                                     m_modelWidth * m_modelHeight) * 100;
+	}
 
 	// Save result (if need)
-	//static bool flag_open = false;
 	if (pathForSave.isNull() == false) {
-		QFile f_p_1(pathForSave + "/p_1.txt");
-		QFile f_p_2(pathForSave + "/p_2.txt");
+		// For all model
+		for (uint32_t i = 0; i < m_number; ++i) {
 
-		// Open files
-		if (   f_p_1.open(QIODevice::WriteOnly | QIODevice::Append) == false
-		    || f_p_2.open(QIODevice::WriteOnly | QIODevice::Append) == false) {
-			PRINT_ERR(true, PREF, "Can't open one of the files in WriteOnly mode");
-		} else {
-			// Write data
-			f_p_1.write(QByteArray::number(static_cast<int>(p_1)) + QByteArray("\n"));
-			f_p_2.write(QByteArray::number(static_cast<int>(p_2)) + QByteArray("\n"));
-			// Close files
-			f_p_1.close();
-			f_p_2.close();
+			// Open file
+			QFile f_p(pathForSave + "/" + m_modelsName[i]);
+			if (f_p.open(QIODevice::WriteOnly | QIODevice::Append) == false) {
+				PRINT_ERR(true, PREF, "Can't open one of the files in WriteOnly mode");
+				return -1;
+			} else {
+				// Write data
+				f_p.write(QByteArray::number(static_cast<int>(percents[i])) + QByteArray("\n"));
+				// Close file
+				f_p.close();
+			}
+
 		}
 	}
 

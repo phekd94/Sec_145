@@ -32,22 +32,22 @@ class CopterSearch_Chameleon : public CopterSearch
 {
 
 public:
-	CopterSearch_Chameleon(const QString& pathModel_1, const QString& pathModel_2,
+	CopterSearch_Chameleon(const std::vector<QString>& pathModels,
 	                       const uint32_t modelWidth = 20, const uint32_t modelHeight = 20);
 
 	// Gets recognition percents
-	int32_t getRecognitionPercents(const QImage& image, double& p_1, double& p_2,
+	int32_t getRecognitionPercents(const QImage& image, std::vector<double>& percents,
 	                               const QString& pathForSave = QString()) const;
 
 private:
 
-	// Model of copters
-	QImage m_modelImage_1;
-	QImage m_modelImage_2;
-	uint8_t* m_modelData_1;
-	uint8_t* m_modelData_2;
+	// Name, image, data and number of copters models
+	std::vector<QString> m_modelsName;
+	std::vector<QImage> m_modelsImage;
+	std::vector<uint8_t*> m_modelsData;
+	uint32_t m_number;
 
-	// Width and height of model
+	// Width and height of models
 	uint32_t m_modelWidth;
 	uint32_t m_modelHeight;
 };
