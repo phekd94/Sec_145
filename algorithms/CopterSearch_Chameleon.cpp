@@ -2,7 +2,8 @@
 #include "CopterSearch_Chameleon.h"
 
 #include "algorithms/Algorithms.h"  // correlationCoefficient()
-#include <QDir>                     // QDir class
+#include <QFile>                    // QFile class
+#include <QByteArray>               // QByteArray class
 #include <cmath>                    // std::fabs()
 
 //-------------------------------------------------------------------------------------------------
@@ -44,7 +45,8 @@ CopterSearch_Chameleon::CopterSearch_Chameleon(const QString& pathModel_1,
 
 //-------------------------------------------------------------------------------------------------
 int32_t CopterSearch_Chameleon::getRecognitionPercents(const QImage& image,
-                                                       double& p_1, double& p_2) const
+                                                       double& p_1, double& p_2,
+                                                       const QString& pathForSave) const
 {
 	p_1 = p_2 = 0;
 
@@ -88,178 +90,25 @@ int32_t CopterSearch_Chameleon::getRecognitionPercents(const QImage& image,
 	p_1 = correlationCoefficient(data, m_modelData_1, m_modelWidth * m_modelHeight) * 100;
 	p_2 = correlationCoefficient(data, m_modelData_2, m_modelWidth * m_modelHeight) * 100;
 
-	return 0;
-}
+	// Save result (if need)
+	//static bool flag_open = false;
+	if (pathForSave.isNull() == false) {
+		QFile f_p_1(pathForSave + "/p_1.txt");
+		QFile f_p_2(pathForSave + "/p_2.txt");
 
-//-------------------------------------------------------------------------------------------------
-int32_t CopterSearch_Chameleon::modelLearning(const QString& pathCopterImages,
-                                              const QString& resultPathAndName,
-                                              const LearningType type,
-                                              const bool scale,
-                                              const bool brightness,
-                                              const uint32_t imagesWidth,
-                                              const uint32_t imagesHeight)
-{
-	// Create a directory class object and check it exist
-	QDir dir(pathCopterImages);
-	if (dir.exists() == false) {
-		PRINT_ERR(true, PREF, "Directory is not exist");
-		return -1;
-	}
-
-	// Get an images list
-	QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
-
-	// Get images
-	std::vector<QImage> images;
-	for (auto file : entries) {
-
-		// Scale an inmage (if need)
-		if (true == scale) {
-			// Get an image
-			QImage image = QImage(file.filePath());
-
-			// Leave only 0 and 255 pixels
-			uint8_t* data = image.bits();
-			for (uint32_t i = 0; i < image.sizeInBytes(); ++i)
-				if (data[i] < 255)
-					data[i] = 0;
-
-			// Add an image to vector
-			images.push_back(image.scaled(imagesWidth, imagesHeight));
+		// Open files
+		if (   f_p_1.open(QIODevice::WriteOnly | QIODevice::Append) == false
+		    || f_p_2.open(QIODevice::WriteOnly | QIODevice::Append) == false) {
+			PRINT_ERR(true, PREF, "Can't open one of the files in WriteOnly mode");
 		} else {
-
-			// Add an image to vector
-			images.push_back(QImage(file.filePath()));
-		}
-
-		// Check the size of image and entrance size
-		if (   static_cast<uint32_t>(images.back().width()) != imagesWidth
-		    || static_cast<uint32_t>(images.back().height()) != imagesHeight) {
-			PRINT_ERR(true, PREF, "Size of the %s image is not correct",
-			                      file.filePath().toStdString().c_str());
-			return -1;
+			// Write data
+			f_p_1.write(QByteArray::number(static_cast<int>(p_1)) + QByteArray("\n"));
+			f_p_2.write(QByteArray::number(static_cast<int>(p_2)) + QByteArray("\n"));
+			// Close files
+			f_p_1.close();
+			f_p_2.close();
 		}
 	}
-
-	// Apply a learning method to the vector with images; get a result
-	std::vector<uint8_t> res;
-	switch (type) {
-	case LearningType::Simple:
-		res = simpleLearning(images, brightness, imagesWidth, imagesHeight);
-		break;
-	case LearningType::Neural:
-		res = neuralLearning(images, imagesWidth, imagesHeight);
-		break;
-	default:
-		PRINT_ERR(true, PREF, "Unknown learning type");
-		return -1;
-		break;
-	}
-
-	// Save a result
-	QImage(res.data(), imagesWidth, imagesHeight,
-	       QImage::Format_Grayscale8).save(resultPathAndName);
 
 	return 0;
-}
-
-//-------------------------------------------------------------------------------------------------
-const std::vector<uint8_t> CopterSearch_Chameleon::simpleLearning(
-                                                 const std::vector<QImage>& images,
-                                                 const bool brightness,
-                                                 const uint32_t imagesWidth,
-                                                 const uint32_t imagesHeight)
-{
-	// Get a brightness
-	double b = 255.0 / (imagesWidth * imagesHeight);
-
-	// Result (double)
-	std::vector<double> res_double(imagesWidth * imagesHeight, 0);
-
-	// Get a result (double)
-	// Images loop
-	for (auto image : images) {
-
-		// Get image bits
-		uint8_t* data = image.bits();
-
-		// Pixels loop
-		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-
-			// Process data
-			if (data[i] == 255) {
-				res_double[i] += b;
-			}
-		}
-	}
-
-	// Get a result (uint8_t)
-	std::vector<uint8_t> res_uint8(imagesWidth * imagesHeight);
-	for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-		res_uint8[i] = res_double[i];
-	}
-
-	// Increase a brightness (if need)
-	if (true == brightness) {
-		uint8_t max_value = *std::max_element(res_uint8.begin(), res_uint8.end());
-		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-			if (res_uint8[i] != 0) {
-				res_uint8[i] += (255 - max_value);
-			}
-		}
-	}
-
-	return res_uint8;
-}
-
-//-------------------------------------------------------------------------------------------------
-#include <QDebug>
-const std::vector<uint8_t> CopterSearch_Chameleon::neuralLearning(
-                                                 const std::vector<QImage>& images,
-                                                 const uint32_t imagesWidth,
-                                                 const uint32_t imagesHeight)
-{
-	double goal_pred = 0.8;
-
-	std::vector<double> weigths(imagesWidth * imagesHeight, 0);
-	double pred;
-
-	for (auto image : images) {
-
-		// Get data and process it
-		uint8_t* data = image.bits();
-
-		// Pixels loop
-		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-
-			pred = data[i] * weigths[i];
-			double delta = pred - goal_pred;
-			double weigth_delta = delta * data[i];
-			weigths[i] -= (weigth_delta * 0.0000320); // alpha
-			qDebug() << i << weigths[i] << weigth_delta;
-		}
-
-	}
-
-	// Get a result (uint8_t)
-	std::vector<uint8_t> res_uint8(imagesWidth * imagesHeight);
-	for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-
-		weigths[i] = std::fabs(weigths[i]);
-
-		if (weigths[i] > 1) {
-			weigths[i] = 1;
-			PRINT_ERR(true, PREF, "%d", i);
-		}
-
-		res_uint8[i] = weigths[i] * 255;
-
-		//PRINT_DBG(true, PREF, "%f", weigths[i]);
-
-	}
-
-	//PRINT_DBG(true, PREF, "%f", weigths[0]);
-
-	return res_uint8;
 }

@@ -18,13 +18,32 @@ NOTE:
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <cstdint> // integer types
+#include <cstdint>  // integer types
+#include <QString>  // QString class
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
 {
 
 //-------------------------------------------------------------------------------------------------
+// Learning type enumeration
+enum class LearningType {
+	Simple,
+	Neural
+};
+
+//-------------------------------------------------------------------------------------------------
+// Learning a model
+int32_t modelLearning(const QString& pathCopterImages,
+                      const QString& resultPathAndName,
+                      const LearningType type,
+                      const bool scale = false,
+                      const bool brightness = false,
+                      const uint32_t imagesWidth = 20,
+                      const uint32_t imagesHeight = 20);
+
+//-------------------------------------------------------------------------------------------------
+// Calculates a correlation coefficient
 double correlationCoefficient(const uint8_t* const d_1, const uint8_t* const d_2,
                               const uint32_t n);
 
