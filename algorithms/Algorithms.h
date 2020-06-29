@@ -24,10 +24,16 @@ NOTE: * Python code for print a histogram:
 		content_2 = f.readlines()
 	content_2 = [int(x.strip()) for x in content_2]
 
+	// Median
+	print(median(content))
+
 	// One histogram
 	ax = sns.distplot(content_1, bins=20) #, rug=False, hist=False)
 	// Two histograms
 	#plt.hist([content_1, content_2], color=['r','y'], histtype = 'bar') #alpha=0.5)
+	// Percents
+	ax = sns.distplot(content, kde=False)
+	ax.yaxis.set_major_formatter(PercentFormatter(xmax=len(content)))
 
 	// Show histogram
 	plt.show()

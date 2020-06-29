@@ -67,7 +67,14 @@ const std::vector<uint8_t> neuralLearning(const std::vector<QImage>& images,
                                           const uint32_t imagesWidth,
                                           const uint32_t imagesHeight)
 {
-	double goal_pred = 0.8;
+	double goal_pred = 0.99;
+	double alpha = 0.00003105;
+
+	// double goal_pred = 0.95;
+	// double alpha = 0.00003106;
+
+	// double goal_pred = 0.8;
+	// double alpha = 0.00003200;
 
 	std::vector<double> weigths(imagesWidth * imagesHeight, 0);
 	double pred;
@@ -83,7 +90,7 @@ const std::vector<uint8_t> neuralLearning(const std::vector<QImage>& images,
 			pred = data[i] * weigths[i];
 			double delta = pred - goal_pred;
 			double weigth_delta = delta * data[i];
-			weigths[i] -= (weigth_delta * 0.0000320); // alpha
+			weigths[i] -= (weigth_delta * alpha);
 		}
 
 	}
