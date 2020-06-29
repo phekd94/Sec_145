@@ -24,18 +24,25 @@ CopterSearch_Chameleon::CopterSearch_Chameleon(const std::vector<QString>& pathM
 	m_modelsImage.resize(m_number);
 	m_modelsData.resize(m_number, nullptr);
 
+	// Loop for all model
 	for (uint32_t i = 0; i < m_number; ++i) {
 
 		// Get a model name
-		m_modelsName[i] = QString("c_") + i + ".txt";
+		m_modelsName[i] = QString("c_") + QString::number(i) + ".txt";
 
 		// Get a model image
 		m_modelsImage[i] = QImage(pathModels[i]);
 
 		// Check a loaded model image
 		if (m_modelsImage[i].isNull() == true) {
-			PRINT_ERR(true, PREF, "pathModels content is incorrect");
-			return;
+			PRINT_ERR(true, PREF, "pathModel[%lu] content is incorrect",
+			          static_cast<unsigned long>(i));
+			continue;
+		} else if (   static_cast<uint32_t>(m_modelsImage[i].width()) != m_modelWidth
+		           || static_cast<uint32_t>(m_modelsImage[i].height()) != m_modelHeight) {
+			PRINT_ERR(true, PREF, "Size of model image %lu is incorrect",
+			          static_cast<unsigned long>(i));
+			continue;
 		} else {
 			// Get an image data
 			m_modelsData[i] = m_modelsImage[i].bits();
@@ -50,9 +57,8 @@ int32_t CopterSearch_Chameleon::getRecognitionPercents(const QImage& image,
                                                        std::vector<double>& percents,
                                                        const QString& pathForSave) const
 {
-	static std::vector<double> res;
-	res.resize(m_number, 0);
-	percents = res;
+	// Initialization a vector with models images
+	percents.resize(m_number, 0.0);
 
 	// Check the incoming parameter
 	if (image.isNull() == true) {
@@ -100,6 +106,7 @@ int32_t CopterSearch_Chameleon::getRecognitionPercents(const QImage& image,
 
 	// Save result (if need)
 	if (pathForSave.isNull() == false) {
+
 		// For all model
 		for (uint32_t i = 0; i < m_number; ++i) {
 
