@@ -1,10 +1,11 @@
 
 #include "Algorithms.h"
 
-#include <cmath>   // std::sqrt(), std::abs()
+#include <cmath>   // std::sqrt(), std::abs(), std::pow()
 #include <vector>  // std::vector template class
 #include <QImage>  // QImage class
 #include <QDir>    // QDir class
+#include <QFile>   // QFile class
 
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -12,13 +13,31 @@
 namespace Sec_145 {
 
 //-------------------------------------------------------------------------------------------------
+// Simple learning
+int32_t simpleLearning(const std::vector<QImage>& images,
+                       const bool brightness,
+                       const uint32_t imagesWidth,
+                       const uint32_t imagesHeight,
+                       const QString& resultPath,
+                       const QString& resultName);
+
+// Neural network learning
+int32_t neuralLearning(const std::vector<QImage>& images,
+                       const uint32_t imagesWidth,
+                       const uint32_t imagesHeight,
+                       const QString& resultPath,
+                       const QString& resultName);
+
+//-------------------------------------------------------------------------------------------------
 #define PREF  "[Algorithms]: "
 
 //-------------------------------------------------------------------------------------------------
-const std::vector<uint8_t> simpleLearning(const std::vector<QImage>& images,
-                                          const bool brightness,
-                                          const uint32_t imagesWidth,
-                                          const uint32_t imagesHeight)
+int32_t simpleLearning(const std::vector<QImage>& images,
+                       const bool brightness,
+                       const uint32_t imagesWidth,
+                       const uint32_t imagesHeight,
+                       const QString& resultPath,
+                       const QString& resultName)
 {
 	// Get a brightness
 	double b = 255.0 / (imagesWidth * imagesHeight);
@@ -59,67 +78,100 @@ const std::vector<uint8_t> simpleLearning(const std::vector<QImage>& images,
 		}
 	}
 
-	return res_uint8;
+	// Save a result
+	QImage(res_uint8.data(), imagesWidth, imagesHeight,
+	       QImage::Format_Grayscale8).save(resultPath + "/" + resultName);
+
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------------------
-const std::vector<uint8_t> neuralLearning(const std::vector<QImage>& images,
-                                          const uint32_t imagesWidth,
-                                          const uint32_t imagesHeight)
+int32_t neuralLearning(const std::vector<QImage>& images,
+                       const uint32_t imagesWidth,
+                       const uint32_t imagesHeight,
+                       const QString& resultPath,
+                       const QString& resultName)
 {
-	double goal_pred = 0.99;
-	double alpha = 0.00003105;
+  #define MAX_WEIGHT  1000
 
-	// double goal_pred = 0.95;
-	// double alpha = 0.00003106;
+	// Goal prediction
+	double goal_prediction = 1;
 
-	// double goal_pred = 0.8;
-	// double alpha = 0.00003200;
+	// Alpha coefficient
+	double alpha = 0.01;
 
-	std::vector<double> weigths(imagesWidth * imagesHeight, 0);
-	double pred;
+	// Weights (result)
+	std::vector<double> weights(imagesWidth * imagesHeight, 0);
 
+	// Create and open files
+	QFile f_w(resultPath + "/" + resultName + ".txt");
+	QFile f_p(resultPath + "/" + resultName + "_p.txt");
+	QFile f_e(resultPath + "/" + resultName + "_e.txt");
+	if (   f_w.open(QIODevice::WriteOnly) == false
+	    || f_p.open(QIODevice::WriteOnly) == false
+	    || f_e.open(QIODevice::WriteOnly) == false) {
+		PRINT_ERR(true, PREF, "Can't open one of the files in WriteOnly mode");
+		return -1;
+	}
+
+	// Loop for all images
 	for (auto image : images) {
 
-		// Get data and process it
+		// Get an image data
 		uint8_t* data = image.bits();
 
-		// Pixels loop
+		// Converse an image data in input data
+		std::vector<double> input(&data[0], &data[imagesWidth * imagesHeight]);
+		for (auto & pixel : input)
+			pixel /= 255;
+
+		// Get a prediction and save it in file
+		double prediction = dotProduct(input.data(), weights.data(), imagesWidth * imagesHeight);
+		if (f_p.write(QByteArray::number(prediction) + "\n") == -1) {
+			PRINT_ERR(true, PREF, "f_p.write() error");
+			return -1;
+		}
+
+		// Calculate a delta
+		double delta = prediction - goal_prediction;
+
+		// Calculate an error and save it in file
+		double error = std::pow(goal_prediction - prediction, 2);
+		if (f_e.write(QByteArray::number(error) + "\n") == -1) {
+			PRINT_ERR(true, PREF, "f_e.write() error");
+			return -1;
+		}
+
+		// Weights corrections
 		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
 
-			pred = data[i] * weigths[i];
-			double delta = pred - goal_pred;
-			double weigth_delta = delta * data[i];
-			weigths[i] -= (weigth_delta * alpha);
-		}
+			// Weight correction
+			weights[i] -= alpha * delta * input[i];
 
+			if (std::fabs(weights[i]) > MAX_WEIGHT) {
+				PRINT_ERR(true, PREF, "divergence");
+				return -1;
+			}
+		}
 	}
 
-	// Get a result (uint8_t)
-	std::vector<uint8_t> res_uint8(imagesWidth * imagesHeight);
-	for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-
-		weigths[i] = std::fabs(weigths[i]);
-
-		if (weigths[i] > 1) {
-			weigths[i] = 1;
-			PRINT_ERR(true, PREF, "%d", i);
+	// Save weights (result)
+	for (auto weight : weights) {
+		if (f_w.write(QByteArray::number(weight) + "\n") == -1) {
+			PRINT_ERR(true, PREF, "f_w.write() error");
+			return -1;
 		}
-
-		res_uint8[i] = weigths[i] * 255;
-
-		// PRINT_DBG(true, PREF, "%f", weigths[i]);
-
 	}
 
-	// PRINT_DBG(true, PREF, "%f", weigths[0]);
+	return 0;
 
-	return res_uint8;
+  #undef MAX_WEIGHT
 }
 
 //-------------------------------------------------------------------------------------------------
 int32_t modelLearning(const QString& pathCopterImages,
-                      const QString& resultPathAndName,
+                      const QString& resultPath,
+                      const QString& resultName,
                       const LearningType type,
                       const bool scale,
                       const bool brightness,
@@ -169,13 +221,24 @@ int32_t modelLearning(const QString& pathCopterImages,
 	}
 
 	// Apply a learning method to the vector with images; get a result
-	std::vector<uint8_t> res;
 	switch (type) {
 	case LearningType::Simple:
-		res = simpleLearning(images, brightness, imagesWidth, imagesHeight);
+		if (simpleLearning(images, brightness,
+		                   imagesWidth, imagesHeight,
+		                   resultPath, resultName) != 0) {
+			PRINT_ERR(true, PREF, "simpleLearning() is not successful");
+			return -1;
+		} else {
+			PRINT_DBG(true, PREF, "simpleLearning() is successful");
+		}
 		break;
 	case LearningType::Neural:
-		res = neuralLearning(images, imagesWidth, imagesHeight);
+		if (neuralLearning(images, imagesWidth, imagesHeight, resultPath, resultName) != 0) {
+			PRINT_ERR(true, PREF, "neuralLearning() is not successful");
+			return -1;
+		} else {
+			PRINT_DBG(true, PREF, "neuralLearning() is successful");
+		}
 		break;
 	default:
 		PRINT_ERR(true, PREF, "Unknown learning type");
@@ -183,11 +246,24 @@ int32_t modelLearning(const QString& pathCopterImages,
 		break;
 	}
 
-	// Save a result
-	QImage(res.data(), imagesWidth, imagesHeight,
-	       QImage::Format_Grayscale8).save(resultPathAndName);
-
 	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+double dotProduct(const double* const d_1, const double* const d_2, const uint32_t n)
+{
+	// Check the incoming parameters
+	if (nullptr == d_1 || nullptr == d_2) {
+		PRINT_ERR(true, PREF, "nullptr == d_1 or nullptr == d_2");
+		return 0;
+	}
+
+	// Calculate a dot product
+	double output = 0;
+	for (uint32_t i = 0; i < n; ++i) {
+		output += d_1[i] * d_2[i];
+	}
+	return output;
 }
 
 //-------------------------------------------------------------------------------------------------

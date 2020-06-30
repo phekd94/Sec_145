@@ -10,32 +10,48 @@ FIXME:
 DANGER:
 NOTE: * Python code for print a histogram:
 "
-	// Import module
+	# Import modules
 	import matplotlib.pyplot as plt
 	import seaborn as sns
 
-	// Read file content
+	# Read a file content
 	with open("C:/Users/ekd/Desktop/p_1.txt", 'r') as f:
 		content_1 = f.readlines()
 	content_1 = [int(x.strip()) for x in content_1]
 
-	// Read file content
+	# Read a file content
 	with open("C:/Users/ekd/Desktop/p_6.txt", 'r') as f:
 		content_2 = f.readlines()
 	content_2 = [int(x.strip()) for x in content_2]
 
-	// Median
+	# Median
 	print(median(content))
 
-	// One histogram
+	# One histogram
 	ax = sns.distplot(content_1, bins=20) #, rug=False, hist=False)
-	// Two histograms
+	# Two histograms
 	#plt.hist([content_1, content_2], color=['r','y'], histtype = 'bar') #alpha=0.5)
-	// Percents
+	# Percents
 	ax = sns.distplot(content, kde=False)
 	ax.yaxis.set_major_formatter(PercentFormatter(xmax=len(content)))
 
-	// Show histogram
+	# Show histogram
+	plt.show()
+"
+	  * Python code for print a plot:
+"
+	# Import a module
+	import matplotlib.pyplot as plt
+
+	# Read a file content
+	with open("C:/Users/ekd/Documents/deep_learning/models/inspire_e.txt", 'r') as f:
+		content = f.readlines()
+	content = [float(x.strip()) for x in content]
+
+	# Assign data to plot
+	plt.plot(content)
+
+	# Show a plot
 	plt.show()
 "
 
@@ -64,12 +80,17 @@ enum class LearningType {
 //-------------------------------------------------------------------------------------------------
 // Learning a model
 int32_t modelLearning(const QString& pathCopterImages,
-                      const QString& resultPathAndName,
+                      const QString& resultPath,
+                      const QString& resultName,
                       const LearningType type,
                       const bool scale = false,
                       const bool brightness = false,
                       const uint32_t imagesWidth = 20,
                       const uint32_t imagesHeight = 20);
+
+//-------------------------------------------------------------------------------------------------
+// Calculates a dot product
+double dotProduct(const double* const d_1, const double* const d_2, const uint32_t n);
 
 //-------------------------------------------------------------------------------------------------
 // Calculates a correlation coefficient
