@@ -80,7 +80,7 @@ int32_t simpleLearning(const std::vector<QImage>& images,
 
 	// Save a result
 	QImage(res_uint8.data(), imagesWidth, imagesHeight,
-	       QImage::Format_Grayscale8).save(resultPath + "/" + resultName);
+	       QImage::Format_Grayscale8).save(resultPath + "/" + resultName + ".bmp");
 
 	return 0;
 }
@@ -92,13 +92,14 @@ int32_t neuralLearning(const std::vector<QImage>& images,
                        const QString& resultPath,
                        const QString& resultName)
 {
-  #define MAX_WEIGHT  1000
-
 	// Goal prediction
-	double goal_prediction = 1;
+	const double goal_prediction = 1;
 
 	// Alpha coefficient
-	double alpha = 0.01;
+	const double alpha = 0.01;
+
+	// Max weight for catch a divergence
+	const double max_weight = 1000;
 
 	// Weights (result)
 	std::vector<double> weights(imagesWidth * imagesHeight, 0);
@@ -148,7 +149,8 @@ int32_t neuralLearning(const std::vector<QImage>& images,
 			// Weight correction
 			weights[i] -= alpha * delta * input[i];
 
-			if (std::fabs(weights[i]) > MAX_WEIGHT) {
+			// Check weights for divergence
+			if (std::fabs(weights[i]) > max_weight) {
 				PRINT_ERR(true, PREF, "divergence");
 				return -1;
 			}
@@ -164,8 +166,6 @@ int32_t neuralLearning(const std::vector<QImage>& images,
 	}
 
 	return 0;
-
-  #undef MAX_WEIGHT
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -192,7 +192,7 @@ int32_t modelLearning(const QString& pathCopterImages,
 	std::vector<QImage> images;
 	for (auto file : entries) {
 
-		// Scale an inmage (if need)
+		// Scale an image (if need)
 		if (true == scale) {
 			// Get an image
 			QImage image = QImage(file.filePath());
@@ -267,6 +267,17 @@ double dotProduct(const double* const d_1, const double* const d_2, const uint32
 }
 
 //-------------------------------------------------------------------------------------------------
+double dotProduct(const std::vector<double>& d_1, const std::vector<double>& d_2)
+{
+	if (d_1.size() != d_2.size()) {
+		PRINT_ERR(true, PREF, "Container sizes do not match");
+		return 0;
+	} else {
+		return dotProduct(d_1.data(), d_2.data(), d_1.size());
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
 double correlationCoefficient(const uint8_t* const d_1, const uint8_t* const d_2,
                               const uint32_t n)
 {
@@ -302,6 +313,17 @@ double correlationCoefficient(const uint8_t* const d_1, const uint8_t* const d_2
 
 	// Return an absolute value
 	return std::abs(res);
+}
+
+//-------------------------------------------------------------------------------------------------
+double correlationCoefficient(const std::vector<uint8_t>& d_1, const std::vector<uint8_t>& d_2)
+{
+	if (d_1.size() != d_2.size()) {
+		PRINT_ERR(true, PREF, "Container sizes do not match");
+		return 0;
+	} else {
+		return correlationCoefficient(d_1.data(), d_2.data(), d_1.size());
+	}
 }
 
 //-------------------------------------------------------------------------------------------------

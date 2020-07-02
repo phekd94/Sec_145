@@ -114,7 +114,7 @@ template <typename T>
 DisjointSet<T>::DisjointSet(const uint32_t metric) : m_metric(metric),
                                                      m_debug(true)
 {
-	PRINT_DBG(true, PREF, "");
+	PRINT_DBG(m_debug, PREF, "");
 }
 
 //-------------------------------------------------------------------------------------------------

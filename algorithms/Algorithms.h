@@ -38,6 +38,7 @@ NOTE: * Python code for print a histogram:
 	# Show histogram
 	plt.show()
 "
+
 	  * Python code for print a plot:
 "
 	# Import a module
@@ -65,6 +66,7 @@ NOTE: * Python code for print a histogram:
 //-------------------------------------------------------------------------------------------------
 #include <cstdint>  // integer types
 #include <QString>  // QString class
+#include <vector>   // std::vector template class
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -91,11 +93,13 @@ int32_t modelLearning(const QString& pathCopterImages,
 //-------------------------------------------------------------------------------------------------
 // Calculates a dot product
 double dotProduct(const double* const d_1, const double* const d_2, const uint32_t n);
+double dotProduct(const std::vector<double>& d_1, const std::vector<double>& d_2);
 
 //-------------------------------------------------------------------------------------------------
 // Calculates a correlation coefficient
 double correlationCoefficient(const uint8_t* const d_1, const uint8_t* const d_2,
                               const uint32_t n);
+double correlationCoefficient(const std::vector<uint8_t>& d_1, const std::vector<uint8_t>& d_2);
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145

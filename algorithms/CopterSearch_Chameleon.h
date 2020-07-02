@@ -23,7 +23,8 @@ Sec_145::CopterSearch_Chameleon
 #include <QImage>                   // QImage class
 #include <QString>                  // QString class
 #include "algorithms/Algorithms.h"  // LearningType enum
-#include <variant>                  // std::variant template class; std::get function
+#include <variant>                  // std::variant template class; std::get() function
+#include <QFile>                    // QFile class
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -34,20 +35,22 @@ class CopterSearch_Chameleon : public CopterSearch
 {
 
 public:
-	CopterSearch_Chameleon(const std::vector<QString>& pathModels, const LearningType modelsType,
-	                       const uint32_t modelWidth = 20, const uint32_t modelHeight = 20);
+	CopterSearch_Chameleon(const std::vector<QString>& pathModels,
+	                       const LearningType modelsType,
+	                       const QString& resultPath = QString(),
+	                       const uint32_t modelWidth = 20,
+	                       const uint32_t modelHeight = 20);
+	~CopterSearch_Chameleon();
 
 	// Gets recognition percents
-	int32_t getRecognitionPercents(const QImage& image, std::vector<double>& percents,
-	                               const QString& pathForSave = QString()) const;
+	int32_t getRecognitionResult(const QImage& image, std::vector<double>& results);
 
 private:
 
 	// Type of models
 	LearningType m_modelsType;
 
-	// Name and number of copters models
-	std::vector<QString> m_modelsName;
+	// Number of copters models
 	uint32_t m_number;
 
 	// Data of copters models
@@ -55,6 +58,9 @@ private:
 	typedef std::vector<std::vector<double>>   double_Data;
 
 	std::variant<uint8_Data, double_Data> m_modelsData;
+
+	// Files for results
+	std::vector<QFile> m_f;
 
 	// Width and height of models
 	uint32_t m_modelWidth;

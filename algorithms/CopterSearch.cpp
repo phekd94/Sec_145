@@ -19,7 +19,7 @@ CopterSearch::CopterSearch() : m_wihtout_recognize(0), m_wihtout_recognize_num(1
                                m_flag_recognized(false),
                                m_copterSet()
 {
-	PRINT_DBG(true, PREF, "");
+	PRINT_DBG(m_debug, PREF, "");
 }
 
 //-------------------------------------------------------------------------------------------------
