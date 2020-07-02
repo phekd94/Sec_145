@@ -92,7 +92,7 @@ private:
 	int32_t stop();
 
 	// Parser of the accepted data (override method)
-	int32_t dataParser(uint8_t* data, uint32_t size);
+	int32_t dataParser(uint8_t* data, uint32_t size) override final;
 
 public slots:
 	// Handles error occured signal
