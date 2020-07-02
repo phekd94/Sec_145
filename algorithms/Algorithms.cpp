@@ -1,11 +1,12 @@
 
 #include "Algorithms.h"
 
-#include <cmath>   // std::sqrt(), std::abs(), std::pow()
-#include <vector>  // std::vector template class
-#include <QImage>  // QImage class
-#include <QDir>    // QDir class
-#include <QFile>   // QFile class
+#include <cmath>      // std::sqrt(), std::abs(), std::pow()
+#include <vector>     // std::vector template class
+#include <QImage>     // QImage class
+#include <QDir>       // QDir class
+#include <QFile>      // QFile class
+#include <algorithm>  // std::transform() template function
 
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -123,8 +124,7 @@ int32_t neuralLearning(const std::vector<QImage>& images,
 
 		// Converse an image data in input data
 		std::vector<double> input(&data[0], &data[imagesWidth * imagesHeight]);
-		for (auto & pixel : input)
-			pixel /= 255;
+		std::transform(input.begin(), input.end(), input.begin(), convertPixelLimits);
 
 		// Get a prediction and save it in file
 		double prediction = dotProduct(input.data(), weights.data(), imagesWidth * imagesHeight);

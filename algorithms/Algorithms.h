@@ -8,7 +8,9 @@ DESCRITION: Functions with algoritms
 TODO: * test class (logic() method)
 FIXME:
 DANGER:
-NOTE: * Python code for print a histogram:
+NOTE: * "const" in lambda function definition: "const" makes the linkage internal by default,
+		 which means it is only accessible in one translation unit, thereby avoiding the problem.
+	  * Python code for print a histogram:
 "
 	# Import modules
 	import matplotlib.pyplot as plt
@@ -71,6 +73,10 @@ NOTE: * Python code for print a histogram:
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
 {
+
+//-------------------------------------------------------------------------------------------------
+// Converts pixel limits from [0, 255] to [0, 1]
+const auto convertPixelLimits = [](double pixel){ return pixel /= 255; };
 
 //-------------------------------------------------------------------------------------------------
 // Learning type enumeration

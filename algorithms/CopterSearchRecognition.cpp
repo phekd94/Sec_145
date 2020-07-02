@@ -4,6 +4,8 @@
 #include "algorithms/Algorithms.h"  // correlationCoefficient(), dotProduct()
 #include <QByteArray>               // QByteArray class
 #include <cmath>                    // std::fabs()
+#include <algorithm>                // std::transform() template function
+
 
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;
@@ -171,8 +173,8 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image,
 			std::vector<double> data_vec(&data[0], &data[m_modelWidth * m_modelHeight]);
 
 			// Conversion to the next limits: [0, 1]
-			for (auto & pixel : data_vec)
-				pixel /= 255;
+			std::transform(data_vec.begin(), data_vec.end(), data_vec.begin(),
+			               convertPixelLimits);
 
 			// Get a result
 			results[i] = dotProduct(data_vec, std::get<double_Data>(m_modelsData)[i]);
