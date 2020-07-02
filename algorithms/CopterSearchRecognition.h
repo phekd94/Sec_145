@@ -1,6 +1,6 @@
 
-#ifndef SEC_145_ALGORITHMS_COPTER_SEARCH_CHAMELEON_H
-#define SEC_145_ALGORITHMS_COPTER_SEARCH_CHAMELEON_H
+#ifndef SEC_145_ALGORITHMS_COPTER_SEARCH_RECOGNITION_H
+#define SEC_145_ALGORITHMS_COPTER_SEARCH_RECOGNITION_H
 
 //-------------------------------------------------------------------------------------------------
 /*
@@ -10,7 +10,7 @@ FIXME:
 DANGER:
 NOTE:
 
-Sec_145::CopterSearch_Chameleon
+Sec_145::CopterSearchRecognition
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
@@ -25,22 +25,23 @@ Sec_145::CopterSearch_Chameleon
 #include "algorithms/Algorithms.h"  // LearningType enum
 #include <variant>                  // std::variant template class; std::get() function
 #include <QFile>                    // QFile class
+#include <vector>                   // std::vector template class
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
 {
 
 //-------------------------------------------------------------------------------------------------
-class CopterSearch_Chameleon : public CopterSearch
+class CopterSearchRecognition : public CopterSearch
 {
 
 public:
-	CopterSearch_Chameleon(const std::vector<QString>& pathModels,
-	                       const LearningType modelsType,
-	                       const QString& resultPath = QString(),
-	                       const uint32_t modelWidth = 20,
-	                       const uint32_t modelHeight = 20);
-	~CopterSearch_Chameleon();
+	CopterSearchRecognition(const std::vector<QString>& pathModels,
+	                        const LearningType modelsType,
+	                        const QString& resultPath = QString(),
+	                        const uint32_t modelWidth = 20,
+	                        const uint32_t modelHeight = 20);
+	~CopterSearchRecognition();
 
 	// Gets recognition percents
 	int32_t getRecognitionResult(const QImage& image, std::vector<double>& results);
@@ -71,4 +72,4 @@ private:
 } // namespace Sec_145
 
 //-------------------------------------------------------------------------------------------------
-#endif // SEC_145_ALGORITHMS_COPTER_SEARCH_CHAMELEON_H
+#endif // SEC_145_ALGORITHMS_COPTER_SEARCH_RECOGNITION_H

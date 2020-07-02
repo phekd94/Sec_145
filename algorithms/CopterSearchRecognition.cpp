@@ -1,5 +1,5 @@
 
-#include "CopterSearch_Chameleon.h"
+#include "CopterSearchRecognition.h"
 
 #include "algorithms/Algorithms.h"  // correlationCoefficient(), dotProduct()
 #include <QByteArray>               // QByteArray class
@@ -9,14 +9,14 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-#define PREF  "[CopterSearch_Chameleon]: "
+#define PREF  "[CopterSearchRecognition]: "
 
 //-------------------------------------------------------------------------------------------------
-CopterSearch_Chameleon::CopterSearch_Chameleon(const std::vector<QString>& pathModels,
-                                               const LearningType modelsType,
-                                               const QString& resultPath,
-                                               const uint32_t modelWidth,
-                                               const uint32_t modelHeight) :
+CopterSearchRecognition::CopterSearchRecognition(const std::vector<QString>& pathModels,
+                                                 const LearningType modelsType,
+                                                 const QString& resultPath,
+                                                 const uint32_t modelWidth,
+                                                 const uint32_t modelHeight) :
     m_modelsType(modelsType),
     m_modelWidth(modelWidth),
     m_modelHeight(modelHeight)
@@ -108,11 +108,11 @@ CopterSearch_Chameleon::CopterSearch_Chameleon(const std::vector<QString>& pathM
 		}
 	}
 
-	PRINT_DBG(m_debug, PREF, "Load from pathModels was successfull");
+	PRINT_DBG(m_debug, PREF, "Load models was successfull");
 }
 
 //-------------------------------------------------------------------------------------------------
-CopterSearch_Chameleon::~CopterSearch_Chameleon()
+CopterSearchRecognition::~CopterSearchRecognition()
 {
 	// Close files for write results
 	for (auto & file : m_f) {
@@ -121,8 +121,8 @@ CopterSearch_Chameleon::~CopterSearch_Chameleon()
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t CopterSearch_Chameleon::getRecognitionResult(const QImage& image,
-                                                     std::vector<double>& results)
+int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image,
+                                                      std::vector<double>& results)
 {
 	// Initialization a vector with models images
 	results.resize(m_number, 0);

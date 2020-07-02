@@ -273,7 +273,7 @@ double dotProduct(const std::vector<double>& d_1, const std::vector<double>& d_2
 		PRINT_ERR(true, PREF, "Container sizes do not match");
 		return 0;
 	} else {
-		return dotProduct(d_1.data(), d_2.data(), d_1.size());
+		return dotProduct(d_1.data(), d_2.data(), static_cast<uint32_t>(d_1.size()));
 	}
 }
 
@@ -322,7 +322,7 @@ double correlationCoefficient(const std::vector<uint8_t>& d_1, const std::vector
 		PRINT_ERR(true, PREF, "Container sizes do not match");
 		return 0;
 	} else {
-		return correlationCoefficient(d_1.data(), d_2.data(), d_1.size());
+		return correlationCoefficient(d_1.data(), d_2.data(), static_cast<uint32_t>(d_1.size()));
 	}
 }
 

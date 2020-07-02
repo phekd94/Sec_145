@@ -218,7 +218,7 @@ int32_t DisjointSet<T>::getIndexOfSetWithMaxSize() const
 	for (uint32_t i = 0; i < m_d_set.size(); ++i) {
 		if (m_d_set[i].size() > max_size) {
 			index = i;
-			max_size = m_d_set[i].size();
+			max_size = static_cast<uint32_t>(m_d_set[i].size());
 		}
 	}
 
