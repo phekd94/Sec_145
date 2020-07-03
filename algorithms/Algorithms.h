@@ -1,6 +1,5 @@
 
-#ifndef SEC_145_ALGORITHMS_ALGORITHMS_H
-#define SEC_145_ALGORITHMS_ALGORITHMS_H
+#pragma once
 
 //-------------------------------------------------------------------------------------------------
 /*
@@ -109,6 +108,3 @@ double correlationCoefficient(const std::vector<uint8_t>& d_1, const std::vector
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
-
-//-------------------------------------------------------------------------------------------------
-#endif // SEC_145_ALGORITHMS_ALGORITHMS_H

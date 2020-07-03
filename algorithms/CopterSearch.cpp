@@ -5,7 +5,7 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-#define PREF  "[CopterSearch]: "
+const char* CopterSearch::PREF = "[CopterSearch]: ";
 
 //-------------------------------------------------------------------------------------------------
 CopterSearch::CopterSearch() : m_wihtout_recognize(0), m_wihtout_recognize_num(1),
@@ -174,7 +174,7 @@ int32_t CopterSearch::getIndexOfObjectSet()
 void CopterSearch::drawFilterRectangles(uint8_t* const data,
                                         const uint32_t width, const uint32_t height) const
 {
-  #define OFFSET  20
+	const uint32_t OFFSET = 20;
 
 	// Check the size of image
 	if (   OFFSET + m_max_delta_y + 2 * m_delta_old_object > height
@@ -222,8 +222,6 @@ void CopterSearch::drawFilterRectangles(uint8_t* const data,
 		data[(OFFSET + m_delta_old_object) + m_min_delta_x + width * (i + OFFSET +
 		                                                              m_delta_old_object)] = 170;
 	}
-
-  #undef OFFSET
 }
 
 //-------------------------------------------------------------------------------------------------

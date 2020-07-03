@@ -1,6 +1,5 @@
 
-#ifndef SEC_145_ALGORITHMS_COPTER_SEARCH_RECOGNITION_H
-#define SEC_145_ALGORITHMS_COPTER_SEARCH_RECOGNITION_H
+#pragma once
 
 //-------------------------------------------------------------------------------------------------
 /*
@@ -48,6 +47,9 @@ public:
 
 private:
 
+	// Preface in debug message
+	static const char* PREF;
+
 	// Type of models
 	LearningType m_modelsType;
 
@@ -71,6 +73,3 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
-
-//-------------------------------------------------------------------------------------------------
-#endif // SEC_145_ALGORITHMS_COPTER_SEARCH_RECOGNITION_H

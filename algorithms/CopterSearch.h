@@ -1,6 +1,5 @@
 
-#ifndef SEC_145_ALGORITHMS_COPTER_SEARCH_H
-#define SEC_145_ALGORITHMS_COPTER_SEARCH_H
+#pragma once
 
 //-------------------------------------------------------------------------------------------------
 /*
@@ -26,14 +25,6 @@ Sec_145::CopterSearch
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
 {
-
-//-------------------------------------------------------------------------------------------------
-#define DEF_MAX_X  1024
-#define DEF_MAX_Y  768
-#define DEF_MIN_X  0
-#define DEF_MIN_Y  0
-
-#define PREF  "[CopterSearch]: "
 
 //-------------------------------------------------------------------------------------------------
 class CopterSearch : public DisjointSet_Ellipses {
@@ -95,8 +86,18 @@ public:
 
 private:
 
+	// Preface in debug message
+	static const char* PREF;
+
 	// Struct with coordinates and some parameters of member
 	struct MinMax_XY {
+
+		// Constants
+		uint32_t DEF_MAX_X = 1024;
+		uint32_t DEF_MAX_Y = 768;
+		uint32_t DEF_MIN_X = 0;
+		uint32_t DEF_MIN_Y = 0;
+
 		MinMax_XY() : i(0),
 		              max_x(DEF_MIN_X),
 		              max_y(DEF_MIN_Y),
@@ -177,10 +178,4 @@ private:
 };
 
 //-------------------------------------------------------------------------------------------------
-#undef PREF
-
-//-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
-
-//-------------------------------------------------------------------------------------------------
-#endif // SEC_145_ALGORITHMS_COPTER_SEARCH_H
