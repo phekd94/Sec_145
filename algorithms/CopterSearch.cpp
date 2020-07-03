@@ -54,7 +54,7 @@ int32_t CopterSearch::getIndexOfObjectSet()
 				if (m_d_set[i][j].points[k].x > mm_xy[i].max_x)
 					mm_xy[i].max_x = m_d_set[i][j].points[k].x;
 				// min
-				else if (m_d_set[i][j].points[k].x < mm_xy[i].min_x)
+				if (m_d_set[i][j].points[k].x < mm_xy[i].min_x)
 					mm_xy[i].min_x = m_d_set[i][j].points[k].x;
 
 				// y
@@ -62,7 +62,7 @@ int32_t CopterSearch::getIndexOfObjectSet()
 				if (m_d_set[i][j].points[k].y > mm_xy[i].max_y)
 					mm_xy[i].max_y = m_d_set[i][j].points[k].y;
 				// min
-				else if (m_d_set[i][j].points[k].y < mm_xy[i].min_y)
+				if (m_d_set[i][j].points[k].y < mm_xy[i].min_y)
 					mm_xy[i].min_y = m_d_set[i][j].points[k].y;
 			}
 
