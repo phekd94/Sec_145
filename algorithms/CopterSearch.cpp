@@ -76,7 +76,7 @@ int32_t CopterSearch::getIndexOfObjectSet()
 	// Print a content of the vector member with maximum, minimum values
 	// and other parameters
 	if (true == m_debug) {
-		for (auto el : mm_xy) {
+		for (const auto & el : mm_xy) {
 			if (false == el.valid)
 				continue;
 			el.print();

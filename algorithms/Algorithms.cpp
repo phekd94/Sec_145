@@ -48,10 +48,10 @@ int32_t simpleLearning(const std::vector<QImage>& images,
 
 	// Get a result (double)
 	// Images loop
-	for (auto image : images) {
+	for (const auto & image : images) {
 
 		// Get image bits
-		uint8_t* data = image.bits();
+		uint8_t* data = const_cast<uint8_t*>(image.bits());
 
 		// Pixels loop
 		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
@@ -117,10 +117,10 @@ int32_t neuralLearning(const std::vector<QImage>& images,
 	}
 
 	// Loop for all images
-	for (auto image : images) {
+	for (const auto & image : images) {
 
 		// Get an image data
-		uint8_t* data = image.bits();
+		uint8_t* data = const_cast<uint8_t*>(image.bits());
 
 		// Converse an image data in input data
 		std::vector<double> input(&data[0], &data[imagesWidth * imagesHeight]);
@@ -190,7 +190,7 @@ int32_t modelLearning(const QString& pathCopterImages,
 
 	// Get images
 	std::vector<QImage> images;
-	for (auto file : entries) {
+	for (const auto & file : entries) {
 
 		// Scale an image (if need)
 		if (true == scale) {

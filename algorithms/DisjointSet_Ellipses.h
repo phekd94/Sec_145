@@ -35,7 +35,7 @@ class DisjointSet_Ellipses : public DisjointSet<Ellipse> {
 private:
 
 	// Compares ellipses
-	virtual bool compareMembers(const Ellipse& m_1, const Ellipse& m_2) const final
+	virtual bool compareMembers(const Ellipse& m_1, const Ellipse& m_2) const override final
 	{
 		// Compare a member in set and a new member
 		for (uint32_t i = 0; i < m_1.points.size(); ++i) {

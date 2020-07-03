@@ -41,7 +41,7 @@ public:
 	                        const QString& resultPath = QString(),
 	                        const uint32_t modelWidth = 20,
 	                        const uint32_t modelHeight = 20);
-	~CopterSearchRecognition();
+	virtual ~CopterSearchRecognition();
 
 	// Gets recognition percents
 	int32_t getRecognitionResult(const QImage& image, std::vector<double>& results);
@@ -54,10 +54,11 @@ private:
 	// Number of copters models
 	uint32_t m_number;
 
-	// Data of copters models
+	// typedefs for data of copters models
 	typedef std::vector<std::vector<uint8_t>>  uint8_Data;
 	typedef std::vector<std::vector<double>>   double_Data;
 
+	// Data of copters models
 	std::variant<uint8_Data, double_Data> m_modelsData;
 
 	// Files for results

@@ -43,7 +43,7 @@ public:
 	CopterSearch();
 
 	// Get index of set of set contains object
-	virtual int32_t getIndexOfObjectSet() final;
+	virtual int32_t getIndexOfObjectSet() override final;
 
 	// Draws a rectangles for filter
 	void drawFilterRectangles(uint8_t* const data,
@@ -109,7 +109,7 @@ private:
 		{  }
 
 		// Prints members of the struct
-		void print()
+		void print() const
 		{
 			PRINT_DBG(true, PREF,
 			          "i = %lu, delta x = %lu, delta y = %lu, set_size = %lu,  "

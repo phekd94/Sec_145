@@ -120,6 +120,7 @@ CopterSearchRecognition::~CopterSearchRecognition()
 	for (auto & file : m_f) {
 		file.close();
 	}
+	PRINT_DBG(m_debug, PREF, "Files were closed");
 }
 
 //-------------------------------------------------------------------------------------------------
