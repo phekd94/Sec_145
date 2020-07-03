@@ -46,7 +46,7 @@ NOTE: * "const" in lambda function definition: "const" makes the linkage interna
 	import matplotlib.pyplot as plt
 
 	# Read a file content
-	with open("C:/Users/ekd/Documents/deep_learning/models/inspire_e.txt", 'r') as f:
+	with open("C:/Users/ekd/Documents/deep_learning/models/neural/inspire_e.txt", 'r') as f:
 		content = f.readlines()
 	content = [float(x.strip()) for x in content]
 
@@ -91,6 +91,7 @@ int32_t modelLearning(const QString& pathCopterImages,
                       const QString& resultName,
                       const LearningType type,
                       const bool scale = false,
+                      const uint32_t numCycle = 1,
                       const bool brightness = false,
                       const uint32_t imagesWidth = 20,
                       const uint32_t imagesHeight = 20);

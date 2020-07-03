@@ -31,7 +31,7 @@ namespace Sec_145 {
 	} while(0)
 
 //-------------------------------------------------------------------------------------------------
-void printDebug(const char* pref, const char* func, bool err, const char* format, ...);
+void printDebug(const char* pref, const char* func, const bool err, const char* format, ...);
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145

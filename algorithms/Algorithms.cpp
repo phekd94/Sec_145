@@ -27,7 +27,8 @@ int32_t neuralLearning(const std::vector<QImage>& images,
                        const uint32_t imagesWidth,
                        const uint32_t imagesHeight,
                        const QString& resultPath,
-                       const QString& resultName);
+                       const QString& resultName,
+                       const uint32_t numCycle);
 
 //-------------------------------------------------------------------------------------------------
 // Preface in debug message
@@ -92,7 +93,8 @@ int32_t neuralLearning(const std::vector<QImage>& images,
                        const uint32_t imagesWidth,
                        const uint32_t imagesHeight,
                        const QString& resultPath,
-                       const QString& resultName)
+                       const QString& resultName,
+                       const uint32_t numCycle)
 {
 	// Goal prediction
 	const double goal_prediction = 1;
@@ -117,6 +119,9 @@ int32_t neuralLearning(const std::vector<QImage>& images,
 		return -1;
 	}
 
+	// Cycle with iterations of learning
+	for (uint32_t i = 0; i < numCycle; ++i) {
+
 	// Loop for all images
 	for (const auto & image : images) {
 
@@ -128,7 +133,7 @@ int32_t neuralLearning(const std::vector<QImage>& images,
 		std::transform(input.begin(), input.end(), input.begin(), convertPixelLimits);
 
 		// Get a prediction and save it in file
-		double prediction = dotProduct(input.data(), weights.data(), imagesWidth * imagesHeight);
+		double prediction = dotProduct(input, weights);
 		if (f_p.write(QByteArray::number(prediction) + "\n") == -1) {
 			PRINT_ERR(true, PREF, "f_p.write() error");
 			return -1;
@@ -145,18 +150,23 @@ int32_t neuralLearning(const std::vector<QImage>& images,
 		}
 
 		// Weights corrections
-		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+		for (uint32_t j = 0; j < imagesWidth * imagesHeight; ++j) {
 
 			// Weight correction
-			weights[i] -= alpha * delta * input[i];
+			weights[j] -= alpha * delta * input[j];
 
 			// Check weights for divergence
-			if (std::fabs(weights[i]) > max_weight) {
+			if (std::fabs(weights[j]) > max_weight) {
 				PRINT_ERR(true, PREF, "divergence");
 				return -1;
 			}
 		}
-	}
+
+	} // Loop for all images
+
+	PRINT_DBG(true, PREF, "End of %lu iteration", static_cast<unsigned long>(i + 1));
+
+	} // Cycle with iterations of learning
 
 	// Save weights (result)
 	for (auto weight : weights) {
@@ -175,6 +185,7 @@ int32_t modelLearning(const QString& pathCopterImages,
                       const QString& resultName,
                       const LearningType type,
                       const bool scale,
+                      const uint32_t numCycle,
                       const bool brightness,
                       const uint32_t imagesWidth,
                       const uint32_t imagesHeight)
@@ -234,7 +245,10 @@ int32_t modelLearning(const QString& pathCopterImages,
 		}
 		break;
 	case LearningType::Neural:
-		if (neuralLearning(images, imagesWidth, imagesHeight, resultPath, resultName) != 0) {
+		if (neuralLearning(images,
+		                   imagesWidth, imagesHeight,
+		                   resultPath, resultName,
+		                   numCycle) != 0) {
 			PRINT_ERR(true, PREF, "neuralLearning() is not successful");
 			return -1;
 		} else {

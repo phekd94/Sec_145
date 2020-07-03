@@ -149,6 +149,12 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image,
 
 	// Cut an area with copter
 	QImage imageCopter = image.copy(x, y, w, h);
+	if (imageCopter.isNull() == true) {
+		PRINT_ERR(true, PREF, "Copy image is null; x = %lu, y = %lu, w = %lu, h = %lu",
+		          static_cast<unsigned long>(x), static_cast<unsigned long>(y),
+		          static_cast<unsigned long>(w), static_cast<unsigned long>(h));
+		return -1;
+	}
 
 	// Get data of this area and convert it
 	uint8_t* data = imageCopter.bits();
@@ -159,6 +165,10 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image,
 
 	// Scale a cuted area
 	QImage imageCopterScale = imageCopter.scaled(m_modelWidth, m_modelHeight);
+	if (imageCopterScale.isNull() == true) {
+		PRINT_ERR(true, PREF, "Scaled image is null");
+		return -1;
+	}
 	data = imageCopterScale.bits();
 
 	// Get a results

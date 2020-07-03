@@ -12,7 +12,10 @@
 static const char* PREF = "[Sec_145]: ";
 
 //-------------------------------------------------------------------------------------------------
-bool CHECK_PRINTF_ERROR(const int ret, const char* pref, const char* func, const char* format)
+bool CHECK_PRINTF_ERROR(const int ret,
+                        const char* const pref,
+                        const char* const func,
+                        const char* const format)
 {
 	if (ret < 0) {
 		const uint32_t BUF_SIZE = 100;
@@ -31,7 +34,8 @@ bool CHECK_PRINTF_ERROR(const int ret, const char* pref, const char* func, const
 }
 
 //-------------------------------------------------------------------------------------------------
-void Sec_145::printDebug(const char* pref, const char* func, bool err, const char* format, ...)
+void Sec_145::printDebug(const char* pref, const char* func,
+                         const bool err, const char* format, ...)
 {
 	const uint32_t BUF_SIZE = 100;
 
