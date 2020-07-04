@@ -80,7 +80,7 @@ const auto convertPixelLimits = [](double pixel){ return pixel /= 255; };
 //-------------------------------------------------------------------------------------------------
 // Learning type enumeration
 enum class LearningType {
-	Simple,
+	Simple [[deprecated("This learning method gives inaccurate results")]],
 	Neural
 };
 

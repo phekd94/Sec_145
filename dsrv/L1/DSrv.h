@@ -1,6 +1,5 @@
 
-#ifndef SEC_145_DSRV_H
-#define SEC_145_DSRV_H
+#pragma once
 
 //-------------------------------------------------------------------------------------------------
 /*
@@ -33,12 +32,14 @@ class DSrv : protected DSrv_Storage
 	friend class DSrv_test;
 
 public:
+
 	// Enable/disable a debug output via printDebug.cpp/.h
 	// (probably the method will be called from another thread)
 	void setDebug(const bool d, const bool d_storage)
 	{ m_debug = d; DSrv_Storage::setDebug(d_storage); }
 
 protected:
+
 	DSrv();
 	virtual ~DSrv();
 
@@ -59,6 +60,11 @@ protected:
 	// Parser of the accepted data (pure virtual function)
 	// (concrete class should realize this function)
 	virtual int32_t dataParser(uint8_t* data, uint32_t size) = 0;
+
+private:
+
+	// Preface in debug message
+	static const char* PREF;
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -77,15 +83,18 @@ class DSrv_for_test : public DSrv
 class DSrv_test
 {
 public:
+
 	// Tests a work with data
 	static int32_t data(DSrv_for_test& obj);
 
 	// Runs all tests
 	static int32_t fullTest();
+
+private:
+
+	// Preface in debug message
+	static const char* PREF;
 };
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
-
-//-------------------------------------------------------------------------------------------------
-#endif // SEC_145_DSRV_H

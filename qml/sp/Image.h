@@ -1,6 +1,5 @@
 
-#ifndef SEC_145_QML_IMAGE_H
-#define SEC_145_QML_IMAGE_H
+#pragma once
 
 //-------------------------------------------------------------------------------------------------
 /*
@@ -57,6 +56,7 @@ class Image: public QQuickItem, private ImageNode
 	Q_OBJECT
 
 public:
+
 	Image(QQuickItem* parent = nullptr);
 	virtual ~Image();
 
@@ -69,6 +69,10 @@ public:
 	Q_INVOKABLE void setEmptyImage();
 
 private:
+
+	// Preface in debug message
+	static const char* PREF;
+
 	// Reaction on QQuickItem::update() method or on another event
 	virtual QSGNode* updatePaintNode(QSGNode* oldNode,
 	                                 UpdatePaintNodeData* updatePaintNodeData) override final;
@@ -85,6 +89,3 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
-
-//-------------------------------------------------------------------------------------------------
-#endif // SEC_145_QML_IMAGE_H

@@ -8,10 +8,11 @@
 #include "other/printDebug.h"         // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
-#define PREF  "[DSrv_Storage]: "
+using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-using namespace Sec_145;
+const char* DSrv_Storage::PREF      = "[DSrv_Storage]: ";
+const char* DSrv_Storage_test::PREF = "[DSrv_Storage_test]: ";
 
 //-------------------------------------------------------------------------------------------------
 DSrv_Storage::DSrv_Storage() : m_completeData(nullptr),
@@ -168,10 +169,6 @@ int32_t DSrv_Storage::completeData()
 }
 
 //=================================================================================================
-#undef PREF
-#define PREF  "[DSrv_Storage_test]: "
-
-//-------------------------------------------------------------------------------------------------
 int32_t DSrv_Storage_test::pNull(DSrv_Storage& obj)
 {
 	uint8_t* data;

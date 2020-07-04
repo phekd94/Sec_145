@@ -1,6 +1,8 @@
 
 #include "CopterSearch.h"
 
+#include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
+
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;
 

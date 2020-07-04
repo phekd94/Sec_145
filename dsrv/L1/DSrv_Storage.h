@@ -1,6 +1,5 @@
 
-#ifndef SEC_145_DSRV_STORAGE_H
-#define SEC_145_DSRV_STORAGE_H
+#pragma once
 
 //-------------------------------------------------------------------------------------------------
 /*
@@ -33,6 +32,7 @@ class DSrv_Storage
 	friend class DSrv_Storage_test;
 
 protected:
+
 	DSrv_Storage();
 	~DSrv_Storage();
 
@@ -58,6 +58,10 @@ protected:
 	{ return 2; }
 
 private:
+
+	// Preface in debug message
+	static const char* PREF;
+
 	// Pointers to the data
 	uint8_t* m_completeData;
 	uint8_t* m_fillingData;
@@ -79,6 +83,7 @@ private:
 class DSrv_Storage_test
 {
 public:
+
 	// Tests methods which utilize pointers
 	static int32_t pNull(DSrv_Storage& obj);
 
@@ -87,10 +92,12 @@ public:
 
 	// Runs all tests
 	static int32_t fullTest();
+
+private:
+
+	// Preface in debug message
+	static const char* PREF;
 };
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
-
-//-------------------------------------------------------------------------------------------------
-#endif // SEC_145_DSRV_STORAGE_H

@@ -1,12 +1,11 @@
 
-#ifndef SEC_145_DSRV_DEFINES_H
-#define SEC_145_DSRV_DEFINES_H
+#pragma once
 
-//-----------------------------------------------------------------------------
-#define MAX_DATA_SIZE     (1920 * 1080)
+//-------------------------------------------------------------------------------------------------
+#include <cstdint>  // integer types
 
-#define MAX_ADDRESS_SIZE  16
-#define MAX_UDP_PCK_SIZE  1432
+//-------------------------------------------------------------------------------------------------
+const uint32_t MAX_DATA_SIZE = 1920 * 1080;
 
-//-----------------------------------------------------------------------------
-#endif // SEC_145_DSRV_DEFINES_H
+const uint32_t MAX_ADDRESS_SIZE = 16;
+const uint32_t MAX_UDP_PCK_SIZE = 1432;

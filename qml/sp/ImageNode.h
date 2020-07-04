@@ -1,6 +1,5 @@
 
-#ifndef SEC_145_QML_IMAGENODE_H
-#define SEC_145_QML_IMAGENODE_H
+#pragma once
 
 //-------------------------------------------------------------------------------------------------
 /*
@@ -37,8 +36,6 @@ Sec_145::ImageNode class
 #include <QImage>           // QImage class
 #include <cstdint>          // integer types
 
-#include <QSGImageNode>
-
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145 {
 
@@ -46,15 +43,18 @@ namespace Sec_145 {
 class ImageNode : public QSGGeometryNode, private QSGGeometry
 {
 public:
+
 	explicit ImageNode(const uint32_t verticesCount);
 	virtual ~ImageNode();
 
 	// Sets an image
 	void setImage(const QImage& image);
+
+private:
+
+	// Preface in debug message
+	static const char* PREF;
 };
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
-
-//-------------------------------------------------------------------------------------------------
-#endif // SEC_145_QML_IMAGENODE_H

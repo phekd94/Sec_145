@@ -4,10 +4,11 @@
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
-#define PREF  "[DSrv_USART_QT]: "
+using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-using namespace Sec_145;
+const char* DSrv_USART_QT::PREF      = "[DSrv_USART_QT]: ";
+const char* DSrv_USART_QT_test::PREF = "[DSrv_USART_QT_test]: ";
 
 //-------------------------------------------------------------------------------------------------
 DSrv_USART_QT::DSrv_USART_QT() : m_serialPort(nullptr)
@@ -186,10 +187,6 @@ void DSrv_USART_QT::onReadyRead()
 }
 
 //=================================================================================================
-#undef PREF
-#define PREF  "[DSrv_USART_QT_test]: "
-
-//-------------------------------------------------------------------------------------------------
 int32_t DSrv_USART_QT_test::pNull(DSrv_USART_QT_for_test& obj)
 {
 	QSerialPort* serialPort = obj.m_serialPort;

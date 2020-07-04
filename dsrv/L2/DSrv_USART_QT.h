@@ -1,6 +1,5 @@
 
-#ifndef SEC_145_DSRV_USART_QT_H
-#define SEC_145_DSRV_USART_QT_H
+#pragma once
 
 //-------------------------------------------------------------------------------------------------
 /*
@@ -40,6 +39,7 @@ class DSrv_USART_QT : public QObject, public DSrv
 	friend class DSrv_USART_QT_test;
 
 protected:
+
 	DSrv_USART_QT();
 	virtual ~DSrv_USART_QT();
 
@@ -60,6 +60,10 @@ protected:
 	{ return m_serialPort; }
 
 private:
+
+	// Preface in debug message
+	static const char* PREF;
+
 	// Serial port
 	QSerialPort* m_serialPort;
 
@@ -67,6 +71,7 @@ private:
 	std::mutex m_mutex;
 
 private slots:
+
 	// Handles ready read signal
 	void onReadyRead();
 };
@@ -81,15 +86,18 @@ class DSrv_USART_QT_for_test : public DSrv_USART_QT
 class DSrv_USART_QT_test
 {
 public:
+
 	// Tests methods which utilize pointers
 	static int32_t pNull(DSrv_USART_QT_for_test& obj);
 
 	// Runs all tests
 	static int32_t fullTest();
+
+private:
+
+	// Preface in debug message
+	static const char* PREF;
 };
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
-
-//-------------------------------------------------------------------------------------------------
-#endif // SEC_145_DSRV_USART_QT_H

@@ -4,10 +4,11 @@
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
-#define PREF  "[Dsrv_Hexapod_v2]: "
+using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-using namespace Sec_145;
+const char* DSrv_Hexapod_v2::PREF      = "[DSrv_Hexapod_v2]: ";
+const char* DSrv_Hexapod_v2_test::PREF = "[DSrv_Hexapod_v2_test]: ";
 
 //-------------------------------------------------------------------------------------------------
 DSrv_Hexapod_v2::DSrv_Hexapod_v2() : m_stop_ok(false),
@@ -88,7 +89,7 @@ int32_t DSrv_Hexapod_v2::dataParser(uint8_t* data, uint32_t size)
 			if (-1 == m_motor_id) {
 				// First byte
 				m_motor_id = *data;
-				if (m_motor_id >= HEXAPOD_NUM_OF_MOTORS) {
+				if (static_cast<uint32_t>(m_motor_id) >= HEXAPOD_NUM_OF_MOTORS) {
 					PRINT_ERR(true, PREF, "Bad motor id");
 					return -1;
 				}
@@ -211,10 +212,6 @@ void DSrv_Hexapod_v2::onSendCommand(const uint32_t cmd, const uint32_t* data, co
 }
 
 //=================================================================================================
-#undef PREF
-#define PREF  "[DSrv_Hexapod_v2_test]: "
-
-//-------------------------------------------------------------------------------------------------
 void DSrv_Hexapod_v2_test::onStateChanged(const uint32_t motor,
                                           const uint32_t state,
                                           const uint32_t value)
