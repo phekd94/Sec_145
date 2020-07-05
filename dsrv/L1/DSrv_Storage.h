@@ -34,7 +34,11 @@ class DSrv_Storage
 protected:
 
 	DSrv_Storage();
-	~DSrv_Storage();
+	virtual ~DSrv_Storage();
+
+	// Without copy constructor and override an assignment operator
+	DSrv_Storage(DSrv_Storage&) = delete;
+	DSrv_Storage& operator=(const DSrv_Storage&) = delete;
 
 	// Sets data in the storage
 	int32_t setData(const uint8_t* const data, const uint32_t size, const bool add);
