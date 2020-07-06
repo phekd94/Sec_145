@@ -32,7 +32,7 @@ int32_t neuralLearning(const std::vector<QImage>& images,
 
 //-------------------------------------------------------------------------------------------------
 // Preface in debug message
-static const char* PREF = "[Algorithms]: ";
+const char* PREF = "[Algorithms]: ";
 
 //-------------------------------------------------------------------------------------------------
 int32_t simpleLearning(const std::vector<QImage>& images,
