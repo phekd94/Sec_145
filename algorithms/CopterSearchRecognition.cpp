@@ -12,7 +12,7 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-const char* CopterSearchRecognition::PREF = "[CopterSearchRecognition]: ";
+const char* const CopterSearchRecognition::PREF = "[CopterSearchRecognition]: ";
 
 //-------------------------------------------------------------------------------------------------
 CopterSearchRecognition::CopterSearchRecognition(const std::vector<QString>& pathModels,

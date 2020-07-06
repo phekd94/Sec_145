@@ -87,7 +87,7 @@ public:
 private:
 
 	// Preface in debug message
-	static const char* PREF;
+	static const char* const PREF;
 
 	// Struct with coordinates and some parameters of member
 	struct MinMax_XY {

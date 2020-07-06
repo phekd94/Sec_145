@@ -7,7 +7,7 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-const char* CopterSearch::PREF = "[CopterSearch]: ";
+const char* const CopterSearch::PREF = "[CopterSearch]: ";
 
 //-------------------------------------------------------------------------------------------------
 CopterSearch::CopterSearch() : m_wihtout_recognize(0), m_wihtout_recognize_num(1),

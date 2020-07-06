@@ -18,13 +18,13 @@ Sec_145::CopterSearchRecognition
 */
 
 //-------------------------------------------------------------------------------------------------
-#include "CopterSearch.h"           // CopterSearch class (for inheritance)
-#include <QImage>                   // QImage class
-#include <QString>                  // QString class
-#include "algorithms/Algorithms.h"  // LearningType enum
-#include <variant>                  // std::variant template class; std::get() function
-#include <QFile>                    // QFile class
-#include <vector>                   // std::vector template class
+#include "CopterSearch.h"         // CopterSearch class (for inheritance)
+#include <QImage>                 // QImage class
+#include <QString>                // QString class
+#include "algorithms/Learning.h"  // LearningType enum
+#include <variant>                // std::variant template class; std::get() function
+#include <QFile>                  // QFile class
+#include <vector>                 // std::vector template class
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -48,7 +48,7 @@ public:
 private:
 
 	// Preface in debug message
-	static const char* PREF;
+	static const char* const PREF;
 
 	// Type of models
 	LearningType m_modelsType;

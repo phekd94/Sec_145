@@ -95,7 +95,7 @@ protected:
 private:
 
 	// Preface in debug message
-	static const char* PREF;
+	static const char* const PREF;
 
 	// Empty set
 	const std::vector<T> empty_set;
@@ -111,7 +111,7 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
-const char* DisjointSet<T>::PREF = "[DisjointSet]: ";
+const char* const DisjointSet<T>::PREF = "[DisjointSet]: ";
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
