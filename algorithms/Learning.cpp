@@ -11,6 +11,10 @@
 
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
+
+#include <QThread>
+
+
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145 {
 
@@ -33,6 +37,7 @@ int32_t neuralLearning_1_layer(const std::vector<QImage>& images,
 
 // Neural network learning (2 layer)
 int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
+                               const std::vector<bool>& labels,
                                const uint32_t imagesWidth,
                                const uint32_t imagesHeight,
                                const QString& resultPath,
@@ -190,6 +195,7 @@ int32_t neuralLearning_1_layer(const std::vector<QImage>& images,
 
 //-------------------------------------------------------------------------------------------------
 int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
+                               const std::vector<bool>& labels,
                                const uint32_t imagesWidth,
                                const uint32_t imagesHeight,
                                const QString& resultPath,
@@ -239,6 +245,19 @@ int32_t modelLearning(const QString& pathCopterImages,
 	// Get an images list
 	QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
 
+//	for (auto file : entries)
+//		qDebug() << file.fileName();
+//	return 0;
+
+
+	std::vector<bool> labels(entries.size(), true);
+	for (int i = 0; i < labels.size(); ++i) {
+		if (i % 2 == 0)
+			labels[i] = false;
+		//qDebug() << labels[i];
+	}
+
+
 	// Get images
 	std::vector<QImage> images;
 	for (const auto & file : entries) {
@@ -248,11 +267,13 @@ int32_t modelLearning(const QString& pathCopterImages,
 			// Get an image
 			QImage image = QImage(file.filePath());
 
+			image.convertTo(QImage::Format_Grayscale8);
+
 			// Leave only 0 and 255 pixels
-			uint8_t* data = image.bits();
+			/*uint8_t* data = image.bits();
 			for (uint32_t i = 0; i < image.sizeInBytes(); ++i)
 				if (data[i] < 255)
-					data[i] = 0;
+					data[i] = 0;*/
 
 			// Add an image to vector
 			images.push_back(image.scaled(imagesWidth, imagesHeight));
@@ -271,6 +292,9 @@ int32_t modelLearning(const QString& pathCopterImages,
 		}
 	}
 
+	//images[5].save("C:/Users/ekd/Desktop/222.bmp");
+
+
 	// Apply a learning method to the vector with images; get a result
 	switch (type) {
 	case LearningType::Simple:
@@ -284,7 +308,7 @@ int32_t modelLearning(const QString& pathCopterImages,
 		}
 		break;
 	case LearningType::Neural:
-		if (/*neuralLearning_1_layer*/neuralLearning_2_layer(images,
+		if (/*neuralLearning_1_layer*/neuralLearning_2_layer(images, labels,
 		                           imagesWidth, imagesHeight,
 		                           resultPath, resultName,
 		                           numCycle) != 0) {
