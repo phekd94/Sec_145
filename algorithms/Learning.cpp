@@ -8,12 +8,11 @@
 #include <QFile>         // QFile class
 #include <algorithm>     // std::transform() template function
 #include "Algorithms.h"  // convertPixelLimits lambda function, dotProduct() function
+#include "Eigen/Dense"   // Eigen::MatrixXd class
+#include <random>        // PRNG
+#include <ctime>         // time() function
 
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
-
-
-#include <QThread>
-
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145 {
@@ -37,12 +36,34 @@ int32_t neuralLearning_1_layer(const std::vector<QImage>& images,
 
 // Neural network learning (2 layer)
 int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
-                               const std::vector<bool>& labels,
+                               const std::vector<std::vector<uint32_t>>& labels,
                                const uint32_t imagesWidth,
                                const uint32_t imagesHeight,
                                const QString& resultPath,
                                const QString& resultName,
-                               const uint32_t numCycle);
+                               uint32_t numCycle);
+
+// ReLU activation function
+// auto ReLU = [](double node){ return (node > 0) * node; };
+//double ReLU(double node) { return 5;/*(node > 0) * node;*/ }
+
+template <typename Array>
+void ReLU(Array* const array, uint32_t size)
+{
+	for (uint32_t i = 0; i < size; ++i) {
+		Array& element = array[i];
+		element = (element > 0) * element;
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+template <typename Array>
+void ReLU_derivative(Array* const array, uint32_t size)
+{
+	for (uint32_t i = 0; i < size; ++i) {
+		array[i] = array[i] > 0;
+	}
+}
 
 //-------------------------------------------------------------------------------------------------
 // Preface in debug message
@@ -195,31 +216,138 @@ int32_t neuralLearning_1_layer(const std::vector<QImage>& images,
 
 //-------------------------------------------------------------------------------------------------
 int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
-                               const std::vector<bool>& labels,
+                               const std::vector<std::vector<uint32_t>>& labels,
                                const uint32_t imagesWidth,
                                const uint32_t imagesHeight,
                                const QString& resultPath,
                                const QString& resultName,
-                               const uint32_t numCycle)
+                               uint32_t numCycle)
 {
-	// Goal prediction
-	const double goal_prediction = 1;
-
 	// Alpha coefficient
-	const double alpha = 0.01;
+	const double alpha = 0.00005;
 
 	// Max weight for catch a divergence
 	const double max_weight = 1000;
 
 	// Number of intermediate layers
-	const uint32_t num_of_intermediate_layers = 3;
+	const uint32_t hidden_size = 40;
+
+	// Number of labels
+	const uint32_t num_labels = labels[0].size();
+
+
 
 	// Weights
-	std::vector<std::vector<double>> weights_0_1(
-	            num_of_intermediate_layers,
-	            std::vector<double>(imagesWidth * imagesHeight, 0.5)); // 0.5 -> random
+	Eigen::MatrixXd w_0_1(imagesWidth * imagesHeight, hidden_size);
+	Eigen::MatrixXd w_1_2(hidden_size, num_labels);
 
-	std::vector<double> weights_1_2(num_of_intermediate_layers, 0.5); // 0.5 -> random
+	// Fill ...
+	std::mt19937 gen(time(0));
+	std::uniform_int_distribution<int> uid(0, 1000);
+	auto data_w_0_1 = w_0_1.data(); // access only across '*' or '[]'
+	for (uint32_t i = 0; i < w_0_1.size(); ++i) {
+		data_w_0_1[i] = 0.2 * uid(gen) / 1000.0 - 0.1;
+	}
+	auto data_w_1_2 = w_1_2.data(); // access only across '*' or '[]'
+	for (uint32_t i = 0; i < w_1_2.size(); ++i) {
+		data_w_1_2[i] = 0.2 * uid(gen) / 1000.0 - 0.1;
+	}
+
+	qDebug() << w_0_1(5, 5) << w_1_2(0, 0);
+	qDebug() << w_0_1.rows() << w_0_1.cols() << w_0_1.size();
+	qDebug() << w_1_2.rows() << w_1_2.cols();
+
+	Eigen::MatrixXd l_0(1, imagesWidth * imagesHeight);
+	Eigen::MatrixXd l_1(1, hidden_size);
+	Eigen::MatrixXd l_2(1, num_labels);
+	Eigen::MatrixXd l_2_delta(1, num_labels);
+	Eigen::MatrixXd l_1_delta(1, hidden_size);
+
+	double error = 0;
+
+
+	// ... iterations loop ...
+	while (numCycle-- > 0) {
+
+	error = 0;
+
+	// ... image loop  ...
+	for (auto image : images) {
+	//const QImage& image = images[0];
+
+	// if (image.isnull and image.size
+	auto l_0_data = l_0.data(); // access only across '*' or '[]'
+	auto image_data = image.bits();
+	for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+		l_0_data[i] = image_data[i] / 255.0;
+	}
+
+
+	l_1 = l_0 * w_0_1;
+	//qDebug() << "*";
+
+	ReLU(l_1.data(), l_1.size());
+	//qDebug() << "ReLU";
+
+	/*auto data_l_1 = l_1.data();
+	for (uint32_t i = 0; i < l_1.size(); ++i) {
+		qDebug() << data_l_1[i];
+	}*/
+
+	l_2 = l_1 * w_1_2;
+	//qDebug() << "*";
+
+	/*auto data_l_2 = l_2.data();
+	for (uint32_t i = 0; i < l_2.size(); ++i) {
+		qDebug() << data_l_2[i];
+	}*/
+
+	Eigen::MatrixXd label(1, num_labels);
+	for (uint32_t i = 0; i < l_2.size(); ++i) {
+		label(0, i) = labels[0][i];   ///////////     0000000000
+		//qDebug() << label(0, i);
+	}
+	error += ((label - l_2) * (label - l_2).transpose()).sum();
+	//qDebug() << error;
+
+	// correct
+	// ...
+
+	l_2_delta = label - l_2;
+	//qDebug() << "delta 2";
+
+	/*auto data_l_2_delta = l_2_delta.data();
+	for (uint32_t i = 0; i < l_2_delta.size(); ++i) {
+		qDebug() << data_l_2_delta[i];
+	}*/
+
+	l_1_delta = l_2_delta * w_1_2.transpose();
+	//qDebug() << "delta 1";
+
+	ReLU_derivative(l_1_delta.data(), l_1_delta.size());
+
+	/*auto data_l_1_delta = l_1_delta.data();
+	for (uint32_t i = 0; i < l_1_delta.size(); ++i) {
+		qDebug() << data_l_1_delta[i];
+	}*/
+
+	w_1_2 += alpha * l_1.transpose() * l_2_delta;
+
+	/*auto w_1_2_delta = w_1_2.data();
+	for (uint32_t i = 0; i < w_1_2.size(); ++i) {
+		qDebug() << w_1_2_delta[i];
+	}*/
+
+	w_0_1 += alpha * l_0.transpose() * l_1_delta;
+
+	/*auto w_0_1_delta = w_0_1.data();
+	for (uint32_t i = 0; i < w_0_1.size(); ++i) {
+		qDebug() << w_0_1_delta[i];
+	}*/
+
+	}
+	qDebug() << error;
+	}
 
 	return 0;
 }
@@ -250,11 +378,14 @@ int32_t modelLearning(const QString& pathCopterImages,
 //	return 0;
 
 
-	std::vector<bool> labels(entries.size(), true);
-	for (int i = 0; i < labels.size(); ++i) {
-		if (i % 2 == 0)
-			labels[i] = false;
-		//qDebug() << labels[i];
+	std::vector<std::vector<uint32_t>> labels(entries.size(), std::vector<uint32_t>(2, 0));
+	for (uint32_t i = 0; i < labels.size(); ++i) {
+		if (i % 2 == 0) {
+			labels[i][0] = 1;
+		} else {
+			labels[i][1] = 1;
+		}
+		//qDebug() << labels[i][0] << labels[i][1];
 	}
 
 
