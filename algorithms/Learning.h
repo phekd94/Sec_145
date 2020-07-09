@@ -74,7 +74,8 @@ namespace Sec_145
 // Learning type enumeration
 enum class LearningType {
 	Simple [[deprecated("This learning method gives inaccurate results")]],
-	Neural
+	Neural_1_layer,
+	Neural_2_layer,
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -85,6 +86,7 @@ int32_t modelLearning(const QString& pathCopterImages,
                       const LearningType type,
                       const bool scale = false,
                       const uint32_t numCycle = 1,
+                      const uint32_t numCopters = 1,
                       const bool brightness = false,
                       const uint32_t imagesWidth = 20,
                       const uint32_t imagesHeight = 20);

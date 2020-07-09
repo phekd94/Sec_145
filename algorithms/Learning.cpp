@@ -43,26 +43,54 @@ int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
                                const QString& resultName,
                                uint32_t numCycle);
 
+//-------------------------------------------------------------------------------------------------
 // ReLU activation function
-// auto ReLU = [](double node){ return (node > 0) * node; };
-//double ReLU(double node) { return 5;/*(node > 0) * node;*/ }
-
-template <typename Array>
-void ReLU(Array* const array, uint32_t size)
+template <typename DataType>
+void ReLU(DataType* const data, uint32_t size)
 {
 	for (uint32_t i = 0; i < size; ++i) {
-		Array& element = array[i];
+		DataType& element = data[i];
 		element = (element > 0) * element;
 	}
 }
 
 //-------------------------------------------------------------------------------------------------
-template <typename Array>
-void ReLU_derivative(Array* const array, uint32_t size)
+// Derivative of ReLU activation function
+template <typename DataType>
+void ReLU_derivative(DataType* const data, uint32_t size)
 {
 	for (uint32_t i = 0; i < size; ++i) {
-		array[i] = array[i] > 0;
+		data[i] = data[i] > 0;
 	}
+}
+
+//-------------------------------------------------------------------------------------------------
+// Maximum matrix element
+template <typename Array>
+double maxMatrixElement(Array* const array, uint32_t size)
+{
+	double res = 0;
+	for (uint32_t i = 0; i < size; ++i) {
+		if (array[i] > res)
+			res = array[i];
+	}
+	return res;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Index of maximum matrix element
+template <typename Array>
+uint32_t maxMatrixElementIndex(Array* const array, uint32_t size)
+{
+	double max = 0;
+	uint32_t res = 0;
+	for (uint32_t i = 0; i < size; ++i) {
+		if (array[i] > res) {
+			res = array[i];
+			res = i;
+		}
+	}
+	return res;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -224,10 +252,11 @@ int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
                                uint32_t numCycle)
 {
 	// Alpha coefficient
-	const double alpha = 0.00005;
+	const double alpha = 0.00001;
 
 	// Max weight for catch a divergence
 	const double max_weight = 1000;
+	const double max_error = 100;
 
 	// Number of intermediate layers
 	const uint32_t hidden_size = 40;
@@ -235,7 +264,10 @@ int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
 	// Number of labels
 	const uint32_t num_labels = labels[0].size();
 
-
+	// Bernoulli distribution
+	//std::random_device rd;
+	//std::mt19937 gen(rd());
+	std::bernoulli_distribution d(0.5);
 
 	// Weights
 	Eigen::MatrixXd w_0_1(imagesWidth * imagesHeight, hidden_size);
@@ -272,6 +304,7 @@ int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
 	error = 0;
 
 	// ... image loop  ...
+	int kkk = 0;
 	for (auto image : images) {
 	//const QImage& image = images[0];
 
@@ -286,6 +319,15 @@ int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
 	l_1 = l_0 * w_0_1;
 	//qDebug() << "*";
 
+	// Bernullli
+	std::vector<bool> dropout_mask(l_1.size());
+	auto data_l_1 = l_1.data();
+	for (uint32_t i = 0; i < l_1.size(); ++i) {
+		dropout_mask[i] = d(gen);
+		data_l_1[i] *= dropout_mask[i] * 2;
+	}
+
+
 	ReLU(l_1.data(), l_1.size());
 	//qDebug() << "ReLU";
 
@@ -297,6 +339,11 @@ int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
 	l_2 = l_1 * w_1_2;
 	//qDebug() << "*";
 
+//	if (numCycle == 5)
+//		qDebug() << l_2(0, 0) << l_2(0, 1);
+	    //qDebug() << maxMatrixElementIndex(l_2.data(), l_2.size()) << ":"
+	    //         << maxMatrixElement(l_2.data(), l_2.size());
+
 	/*auto data_l_2 = l_2.data();
 	for (uint32_t i = 0; i < l_2.size(); ++i) {
 		qDebug() << data_l_2[i];
@@ -304,13 +351,18 @@ int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
 
 	Eigen::MatrixXd label(1, num_labels);
 	for (uint32_t i = 0; i < l_2.size(); ++i) {
-		label(0, i) = labels[0][i];   ///////////     0000000000
+		label(0, i) = labels[kkk][i];
 		//qDebug() << label(0, i);
 	}
+	++kkk;
+
+//	if (numCycle == 5)
+//	    qDebug() << label(0, 0) << label(0, 1);
+
 	error += ((label - l_2) * (label - l_2).transpose()).sum();
 	//qDebug() << error;
 
-	// correct
+	// correct_cnt
 	// ...
 
 	l_2_delta = label - l_2;
@@ -323,6 +375,12 @@ int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
 
 	l_1_delta = l_2_delta * w_1_2.transpose();
 	//qDebug() << "delta 1";
+
+	// Bernulli
+	auto data_l_1_delta = l_1_delta.data();
+	for (uint32_t i = 0; i < l_1_delta.size(); ++i) {
+		data_l_1_delta[i] *= dropout_mask[i];
+	}
 
 	ReLU_derivative(l_1_delta.data(), l_1_delta.size());
 
@@ -345,9 +403,28 @@ int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
 		qDebug() << w_0_1_delta[i];
 	}*/
 
+	} ///
+
+	static int jjj;
+	if (++jjj % 10 == 0) {
+		qDebug() << jjj << error / images.size();
+
+		// Test
+		QImage image_ = QImage("C:/Users/ekd/Documents/deep_learning/images/test/background/2.PNG");
+		image_.convertTo(QImage::Format_Grayscale8);
+		QImage image_t = image_.scaled(imagesWidth, imagesHeight);
+		auto l_0_data = l_0.data(); // access only across '*' or '[]'
+		auto image_data = image_t.bits();
+		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+			l_0_data[i] = image_data[i] / 255.0;
+		}
+		l_1 = l_0 * w_0_1;
+		ReLU(l_1.data(), l_1.size());
+		l_2 = l_1 * w_1_2;
+		qDebug() << l_2(0, 0) << l_2(0, 1);
 	}
-	qDebug() << error;
-	}
+
+	} ///
 
 	return 0;
 }
@@ -359,6 +436,7 @@ int32_t modelLearning(const QString& pathCopterImages,
                       const LearningType type,
                       const bool scale,
                       const uint32_t numCycle,
+                      const uint32_t numCopters,
                       const bool brightness,
                       const uint32_t imagesWidth,
                       const uint32_t imagesHeight)
@@ -370,15 +448,25 @@ int32_t modelLearning(const QString& pathCopterImages,
 		return -1;
 	}
 
-	// Get an images list
-	QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+	// Get an folder list and check it
+	QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs);
+	if (static_cast<uint32_t>(entries.size()) != numCopters) {
+		PRINT_ERR(true, PREF, "Number of folders is not equal to number of copters");
+		return -1;
+	}
 
-//	for (auto file : entries)
-//		qDebug() << file.fileName();
-//	return 0;
+	// Get image files lists
 
 
-	std::vector<std::vector<uint32_t>> labels(entries.size(), std::vector<uint32_t>(2, 0));
+	for (auto folder : entries) {
+		qDebug() << folder.fileName() << folder.isDir() << folder.size();
+	}
+
+
+	// return 0;
+
+
+	std::vector<std::vector<uint32_t>> labels(entries.size(), std::vector<uint32_t>(numCopters, 0));
 	for (uint32_t i = 0; i < labels.size(); ++i) {
 		if (i % 2 == 0) {
 			labels[i][0] = 1;
