@@ -28,12 +28,6 @@ CopterSearchRecognition::CopterSearchRecognition(const std::vector<QString>& pat
 	m_f = std::vector<QFile>(m_number);
 
 	switch (m_modelsType) {
-	case LearningType::Simple:
-		m_modelsData = uint8_Data();
-		break;
-	case LearningType::Neural:
-		m_modelsData = double_Data();
-		break;
 	default:
 		m_number = 0;
 		PRINT_ERR(true, PREF, "Unknown learning type");
@@ -55,57 +49,8 @@ CopterSearchRecognition::CopterSearchRecognition(const std::vector<QString>& pat
 
 		// Get a model
 		switch (m_modelsType) {
-		case LearningType::Simple:
+		case LearningType::Neural_2_layer:
 		{
-			// Vector with model
-			std::vector<uint8_t> modelData;
-
-			// Get a model image
-			QImage modelImage = QImage(pathModels[i]);
-
-			// Check a loaded model image
-			if (modelImage.isNull() == true) {
-				PRINT_ERR(true, PREF, "pathModel[%lu] content is incorrect",
-				          static_cast<unsigned long>(i));
-			} else if (   static_cast<uint32_t>(modelImage.width()) != m_modelWidth
-			           || static_cast<uint32_t>(modelImage.height()) != m_modelHeight) {
-				PRINT_ERR(true, PREF, "Size of model image %lu is incorrect",
-				          static_cast<unsigned long>(i));
-			} else {
-				modelData = std::vector<uint8_t>(&modelImage.bits()[0],
-				                                 &modelImage.bits()[modelImage.sizeInBytes()]);
-			}
-
-			// Add a model
-			std::get<uint8_Data>(m_modelsData).push_back(modelData);
-
-			break;
-		}
-		case LearningType::Neural:
-		{
-			// Vector with model
-			std::vector<double> modelData;
-
-			// Open file with model
-			QFile f_m(pathModels[i]);
-			if (f_m.open(QIODevice::ReadOnly) == false) {
-				PRINT_ERR(true, PREF, "Can't open %lu files in ReadOnly mode",
-				          static_cast<unsigned long>(i));
-			} else {
-				// Get a data
-				for (uint32_t j = 0; j < m_modelWidth * m_modelHeight; ++j) {
-					QByteArray qba = f_m.readLine();
-					if (qba.isEmpty() == true) {
-						modelData = std::vector<double>();
-						break;
-					}
-					modelData.push_back(qba.toDouble());
-				}
-			}
-
-			// Add a model
-			std::get<double_Data>(m_modelsData).push_back(modelData);
-
 			break;
 		}
 		}
@@ -175,21 +120,9 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image,
 	// Get a results
 	for (uint32_t i = 0; i < m_number; ++i) {
 		switch (m_modelsType) {
-		case LearningType::Simple:
-			results[i] = correlationCoefficient(data,
-			                                    std::get<uint8_Data>(m_modelsData)[i].data(),
-			                                    m_modelWidth * m_modelHeight) * 100;
-			break;
-		case LearningType::Neural:
+		case LearningType::Neural_2_layer:
 		{
-			std::vector<double> data_vec(&data[0], &data[m_modelWidth * m_modelHeight]);
 
-			// Conversion to the next limits: [0, 1]
-			std::transform(data_vec.begin(), data_vec.end(), data_vec.begin(),
-			               convertPixelLimits);
-
-			// Get a result
-			results[i] = dotProduct(data_vec, std::get<double_Data>(m_modelsData)[i]);
 			break;
 		}
 		default:

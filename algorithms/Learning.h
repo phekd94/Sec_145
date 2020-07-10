@@ -7,7 +7,8 @@ DESCRITION: Functions for learning
 TODO: * test class (logic() method)
 FIXME:
 DANGER:
-NOTE: * Python code for print a histogram:
+NOTE: * Access only across '*' or '[]' to data received from Eigen::MatrixXd::data() method
+	  * Python code for print a histogram:
 "
 	# Import modules
 	import matplotlib.pyplot as plt
@@ -74,22 +75,21 @@ namespace Sec_145
 // Learning type enumeration
 enum class LearningType {
 	Simple [[deprecated("This learning method gives inaccurate results")]],
-	Neural_1_layer,
+	Neural_1_layer [[deprecated("This learning method gives inaccurate results")]],
 	Neural_2_layer,
 };
 
 //-------------------------------------------------------------------------------------------------
 // Learning a model
-int32_t modelLearning(const QString& pathCopterImages,
+int32_t modelLearning(const QString& pathToImages,
+                      const QString& pathToImagesTest,
                       const QString& resultPath,
                       const QString& resultName,
                       const LearningType type,
-                      const bool scale = false,
-                      const uint32_t numCycle = 1,
-                      const uint32_t numCopters = 1,
-                      const bool brightness = false,
-                      const uint32_t imagesWidth = 20,
-                      const uint32_t imagesHeight = 20);
+                      const uint32_t numIterations,
+                      const uint32_t numCopters,
+                      const uint32_t imagesWidth,
+                      const uint32_t imagesHeight);
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145

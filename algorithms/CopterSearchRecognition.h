@@ -22,7 +22,6 @@ Sec_145::CopterSearchRecognition
 #include <QImage>                 // QImage class
 #include <QString>                // QString class
 #include "algorithms/Learning.h"  // LearningType enum
-#include <variant>                // std::variant template class; std::get() function
 #include <QFile>                  // QFile class
 #include <vector>                 // std::vector template class
 
@@ -55,13 +54,6 @@ private:
 
 	// Number of copters models
 	uint32_t m_number;
-
-	// typedefs for data of copters models
-	typedef std::vector<std::vector<uint8_t>>  uint8_Data;
-	typedef std::vector<std::vector<double>>   double_Data;
-
-	// Data of copters models
-	std::variant<uint8_Data, double_Data> m_modelsData;
 
 	// Files for results
 	std::vector<QFile> m_f;

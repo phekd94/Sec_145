@@ -1,16 +1,18 @@
 
 #include "Learning.h"
 
-#include <cmath>         // std::abs(), std::pow()
-#include <vector>        // std::vector template class
+#include <cmath>         // std::abs(), std::pow(); std::tanh(); std::exp()
+#include <vector>        // std::vector<> class
 #include <QImage>        // QImage class
 #include <QDir>          // QDir class
 #include <QFile>         // QFile class
-#include <algorithm>     // std::transform() template function
-#include "Algorithms.h"  // convertPixelLimits lambda function, dotProduct() function
+#include <algorithm>     // std::transform<>()
+#include "Algorithms.h"  // convertPixelLimits[](), dotProduct(), sumArrayExpElements<>()
 #include "Eigen/Dense"   // Eigen::MatrixXd class
 #include <random>        // PRNG
-#include <ctime>         // time() function
+#include <ctime>         // time()
+#include <utility>       // std::pair<>
+#include <float.h>       // DBL_MIN
 
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -19,6 +21,7 @@ namespace Sec_145 {
 
 //-------------------------------------------------------------------------------------------------
 // Simple learning
+[[deprecated("This learning method gives inaccurate results")]]
 int32_t simpleLearning(const std::vector<QImage>& images,
                        const bool brightness,
                        const uint32_t imagesWidth,
@@ -26,7 +29,9 @@ int32_t simpleLearning(const std::vector<QImage>& images,
                        const QString& resultPath,
                        const QString& resultName);
 
+//-------------------------------------------------------------------------------------------------
 // Neural network learning (1 layer)
+[[deprecated("This learning method gives inaccurate results")]]
 int32_t neuralLearning_1_layer(const std::vector<QImage>& images,
                                const uint32_t imagesWidth,
                                const uint32_t imagesHeight,
@@ -34,14 +39,24 @@ int32_t neuralLearning_1_layer(const std::vector<QImage>& images,
                                const QString& resultName,
                                const uint32_t numCycle);
 
+//-------------------------------------------------------------------------------------------------
 // Neural network learning (2 layer)
-int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
-                               const std::vector<std::vector<uint32_t>>& labels,
-                               const uint32_t imagesWidth,
-                               const uint32_t imagesHeight,
-                               const QString& resultPath,
-                               const QString& resultName,
-                               uint32_t numCycle);
+int32_t neuralLearning_2_layer(
+              const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels,
+              const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels_test,
+              const uint32_t imagesWidth,
+              const uint32_t imagesHeight,
+              const QString& resultPath,
+              const QString& resultName,
+              const uint32_t numIterations);
+
+//-------------------------------------------------------------------------------------------------
+// Get images and labels from specified path
+int32_t getImagesAndLabels(std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels,
+                           const QString& pathToImages,
+                           const uint32_t numCopters,
+                           const uint32_t imagesWidth,
+                           const uint32_t imagesHeight);
 
 //-------------------------------------------------------------------------------------------------
 // ReLU activation function
@@ -65,32 +80,34 @@ void ReLU_derivative(DataType* const data, uint32_t size)
 }
 
 //-------------------------------------------------------------------------------------------------
-// Maximum matrix element
-template <typename Array>
-double maxMatrixElement(Array* const array, uint32_t size)
+// Hyperbolic tangent activation function
+template <typename DataType>
+void tanh(DataType* const data, uint32_t size)
 {
-	double res = 0;
 	for (uint32_t i = 0; i < size; ++i) {
-		if (array[i] > res)
-			res = array[i];
+		data[i] = std::tanh(data[i]);
 	}
-	return res;
 }
 
 //-------------------------------------------------------------------------------------------------
-// Index of maximum matrix element
-template <typename Array>
-uint32_t maxMatrixElementIndex(Array* const array, uint32_t size)
+// Derivative of hyperbolic tangent activation function
+template <typename DataType>
+void tanh_derivative(DataType* const data, uint32_t size)
 {
-	double max = 0;
-	uint32_t res = 0;
 	for (uint32_t i = 0; i < size; ++i) {
-		if (array[i] > res) {
-			res = array[i];
-			res = i;
-		}
+		data[i] = 1 - data[i] * data[i];
 	}
-	return res;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Softmax activation function
+template <typename DataType>
+void softmax(DataType* const data, uint32_t size)
+{
+	double sum = sumArrayExpElements(data, size);
+	for (uint32_t i = 0; i < size; ++i) {
+		data[i] = std::exp(data[i]) / sum;
+	}
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -243,298 +260,284 @@ int32_t neuralLearning_1_layer(const std::vector<QImage>& images,
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t neuralLearning_2_layer(const std::vector<QImage>& images,
-                               const std::vector<std::vector<uint32_t>>& labels,
-                               const uint32_t imagesWidth,
-                               const uint32_t imagesHeight,
-                               const QString& resultPath,
-                               const QString& resultName,
-                               uint32_t numCycle)
+int32_t neuralLearning_2_layer(
+        const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels,
+        const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels_test,
+        const uint32_t imagesWidth,
+        const uint32_t imagesHeight,
+        const QString& resultPath,
+        const QString& resultName,
+        const uint32_t numIterations)
 {
 	// Alpha coefficient
-	const double alpha = 0.00001;
+	const double alpha = 0.0002;
 
-	// Max weight for catch a divergence
+	// Max weight and error for catch a divergence
 	const double max_weight = 1000;
-	const double max_error = 100;
+	const double max_error = 1000;
 
 	// Number of intermediate layers
-	const uint32_t hidden_size = 40;
+	const uint32_t hidden_size = 100;
 
 	// Number of labels
-	const uint32_t num_labels = labels[0].size();
+	const uint32_t num_labels = static_cast<uint32_t>(images_labels.front().second.size());
+
+	// Random number engine
+	std::mt19937 gen(time(0));
 
 	// Bernoulli distribution
-	//std::random_device rd;
-	//std::mt19937 gen(rd());
-	std::bernoulli_distribution d(0.5);
+	std::bernoulli_distribution b_d(0.5);
 
 	// Weights
 	Eigen::MatrixXd w_0_1(imagesWidth * imagesHeight, hidden_size);
 	Eigen::MatrixXd w_1_2(hidden_size, num_labels);
 
-	// Fill ...
-	std::mt19937 gen(time(0));
+	// Fill the matrix with weights of random numbers
 	std::uniform_int_distribution<int> uid(0, 1000);
-	auto data_w_0_1 = w_0_1.data(); // access only across '*' or '[]'
+	auto data_w_0_1 = w_0_1.data();
 	for (uint32_t i = 0; i < w_0_1.size(); ++i) {
 		data_w_0_1[i] = 0.2 * uid(gen) / 1000.0 - 0.1;
 	}
-	auto data_w_1_2 = w_1_2.data(); // access only across '*' or '[]'
+	auto data_w_1_2 = w_1_2.data();
 	for (uint32_t i = 0; i < w_1_2.size(); ++i) {
 		data_w_1_2[i] = 0.2 * uid(gen) / 1000.0 - 0.1;
 	}
 
-	qDebug() << w_0_1(5, 5) << w_1_2(0, 0);
-	qDebug() << w_0_1.rows() << w_0_1.cols() << w_0_1.size();
-	qDebug() << w_1_2.rows() << w_1_2.cols();
-
+	// Layers and deltas for layers
 	Eigen::MatrixXd l_0(1, imagesWidth * imagesHeight);
 	Eigen::MatrixXd l_1(1, hidden_size);
 	Eigen::MatrixXd l_2(1, num_labels);
 	Eigen::MatrixXd l_2_delta(1, num_labels);
 	Eigen::MatrixXd l_1_delta(1, hidden_size);
 
-	double error = 0;
+	// Error
+	double error;
 
+	// Iterations loop
+	for (uint32_t it = 0; it < numIterations; ++it) {
 
-	// ... iterations loop ...
-	while (numCycle-- > 0) {
+		// Set error to 0
+		error = 0;
 
-	error = 0;
+		// Images loop
+		for (const auto& image_label : images_labels) {
 
-	// ... image loop  ...
-	int kkk = 0;
-	for (auto image : images) {
-	//const QImage& image = images[0];
+			// Check image
+			if (   image_label.first.isNull() == true
+			    || image_label.first.sizeInBytes() != imagesWidth * imagesHeight) {
+				PRINT_ERR(true, PREF, "Bad image");
+				return -1;
+			}
 
-	// if (image.isnull and image.size
-	auto l_0_data = l_0.data(); // access only across '*' or '[]'
-	auto image_data = image.bits();
-	for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-		l_0_data[i] = image_data[i] / 255.0;
-	}
+			// Get image (layer 0)
+			auto image_data = image_label.first.bits();
+			for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+				l_0(0, i) = image_data[i] / 255.0;
+			}
 
+			// Calculate an layer 1
+			l_1 = l_0 * w_0_1;
 
-	l_1 = l_0 * w_0_1;
-	//qDebug() << "*";
+			// Dropout a some neurons in layer 1
+			std::vector<bool> dropout_mask(l_1.size());
+			for (uint32_t i = 0; i < l_1.size(); ++i) {
+				dropout_mask[i] = b_d(gen);
+				l_1(0, i) *= dropout_mask[i] * 2;
+			}
 
-	// Bernullli
-	std::vector<bool> dropout_mask(l_1.size());
-	auto data_l_1 = l_1.data();
-	for (uint32_t i = 0; i < l_1.size(); ++i) {
-		dropout_mask[i] = d(gen);
-		data_l_1[i] *= dropout_mask[i] * 2;
-	}
+			// Apply activation function to the layer 1 (hidden layer)
+			// ReLU
+			// ReLU(l_1.data(), l_1.size());
+			// Hyperbolic tangent
+			tanh(l_1.data(), l_1.size());
 
+			// Calculate an layer 2
+			l_2 = l_1 * w_1_2;
 
-	ReLU(l_1.data(), l_1.size());
-	//qDebug() << "ReLU";
+			// Apply activation function to the layer 2 (output layer)
+			softmax(l_2.data(), l_2.size());
 
-	/*auto data_l_1 = l_1.data();
-	for (uint32_t i = 0; i < l_1.size(); ++i) {
-		qDebug() << data_l_1[i];
-	}*/
+			// Get a label
+			Eigen::MatrixXd label(1, num_labels);
+			for (uint32_t i = 0; i < num_labels; ++i) {
+				label(0, i) = image_label.second[i];
+			}
 
-	l_2 = l_1 * w_1_2;
-	//qDebug() << "*";
+			// Calculate an error
+			error += ((label - l_2) * (label - l_2).transpose()).sum();
 
-//	if (numCycle == 5)
-//		qDebug() << l_2(0, 0) << l_2(0, 1);
-	    //qDebug() << maxMatrixElementIndex(l_2.data(), l_2.size()) << ":"
-	    //         << maxMatrixElement(l_2.data(), l_2.size());
+			// Calculate a delta for layer 2
+			l_2_delta = label - l_2;
 
-	/*auto data_l_2 = l_2.data();
-	for (uint32_t i = 0; i < l_2.size(); ++i) {
-		qDebug() << data_l_2[i];
-	}*/
+			// Calculate a delta for layer 1
+			l_1_delta = l_2_delta * w_1_2.transpose();
 
-	Eigen::MatrixXd label(1, num_labels);
-	for (uint32_t i = 0; i < l_2.size(); ++i) {
-		label(0, i) = labels[kkk][i];
-		//qDebug() << label(0, i);
-	}
-	++kkk;
+			// Dropout the same neurons as in layer 1
+			for (uint32_t i = 0; i < l_1_delta.size(); ++i) {
+				l_1_delta(0, i) *= dropout_mask[i];
+			}
 
-//	if (numCycle == 5)
-//	    qDebug() << label(0, 0) << label(0, 1);
+			// Apply derivative of activation function
+			// ReLU
+			// ReLU_derivative(l_1_delta.data(), l_1_delta.size());
+			// Hyperbolic tangent
+			tanh_derivative(l_1_delta.data(), l_1_delta.size());
 
-	error += ((label - l_2) * (label - l_2).transpose()).sum();
-	//qDebug() << error;
+			// Correct weights
+			w_1_2 += alpha * l_1.transpose() * l_2_delta;
+			w_0_1 += alpha * l_0.transpose() * l_1_delta;
 
-	// correct_cnt
-	// ...
+			if (   error > max_error
+			    || maxArrayElement(w_1_2.data(), w_1_2.size()) > max_weight
+			    || maxArrayElement(w_0_1.data(), w_0_1.size()) > max_weight) {
+				PRINT_ERR(true, PREF, "divergence");
+				return -1;
+			}
 
-	l_2_delta = label - l_2;
-	//qDebug() << "delta 2";
-
-	/*auto data_l_2_delta = l_2_delta.data();
-	for (uint32_t i = 0; i < l_2_delta.size(); ++i) {
-		qDebug() << data_l_2_delta[i];
-	}*/
-
-	l_1_delta = l_2_delta * w_1_2.transpose();
-	//qDebug() << "delta 1";
-
-	// Bernulli
-	auto data_l_1_delta = l_1_delta.data();
-	for (uint32_t i = 0; i < l_1_delta.size(); ++i) {
-		data_l_1_delta[i] *= dropout_mask[i];
-	}
-
-	ReLU_derivative(l_1_delta.data(), l_1_delta.size());
-
-	/*auto data_l_1_delta = l_1_delta.data();
-	for (uint32_t i = 0; i < l_1_delta.size(); ++i) {
-		qDebug() << data_l_1_delta[i];
-	}*/
-
-	w_1_2 += alpha * l_1.transpose() * l_2_delta;
-
-	/*auto w_1_2_delta = w_1_2.data();
-	for (uint32_t i = 0; i < w_1_2.size(); ++i) {
-		qDebug() << w_1_2_delta[i];
-	}*/
-
-	w_0_1 += alpha * l_0.transpose() * l_1_delta;
-
-	/*auto w_0_1_delta = w_0_1.data();
-	for (uint32_t i = 0; i < w_0_1.size(); ++i) {
-		qDebug() << w_0_1_delta[i];
-	}*/
-
-	} ///
-
-	static int jjj;
-	if (++jjj % 10 == 0) {
-		qDebug() << jjj << error / images.size();
+		} // Images loop
 
 		// Test
-		QImage image_ = QImage("C:/Users/ekd/Documents/deep_learning/images/test/background/2.PNG");
-		image_.convertTo(QImage::Format_Grayscale8);
-		QImage image_t = image_.scaled(imagesWidth, imagesHeight);
-		auto l_0_data = l_0.data(); // access only across '*' or '[]'
-		auto image_data = image_t.bits();
-		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-			l_0_data[i] = image_data[i] / 255.0;
-		}
-		l_1 = l_0 * w_0_1;
-		ReLU(l_1.data(), l_1.size());
-		l_2 = l_1 * w_1_2;
-		qDebug() << l_2(0, 0) << l_2(0, 1);
-	}
+		if (it % 1 == 0) {
+			PRINT_DBG(true, PREF, "Iteration: %lu;  Training error: %f",
+			          static_cast<unsigned long>(it), error / images_labels.size());
 
-	} ///
+			// Test images loop
+			for (const auto& image_label : images_labels_test) {
+
+				// Check image
+				if (   image_label.first.isNull() == true
+				    || image_label.first.sizeInBytes() != imagesWidth * imagesHeight) {
+					PRINT_ERR(true, PREF, "Bad image");
+					return -1;
+				}
+
+				// Get image (layer 0)
+				auto image_data = image_label.first.bits();
+				for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+					l_0(0, i) = image_data[i] / 255.0;
+				}
+
+				// Calculate an layer 1
+				l_1 = l_0 * w_0_1;
+
+				// Apply activation function to the layer 1 (hidden layer)
+				// ReLU
+				// ReLU(l_1.data(), l_1.size());
+				// Hyperbolic tangent
+				tanh(l_1.data(), l_1.size());
+
+				// Calculate an layer 2
+				l_2 = l_1 * w_1_2;
+
+				qDebug() << "\t" << l_2(0, 0) << l_2(0, 1);
+
+			} // Test images loop
+
+		} // Test
+
+	} // Iterations loop
 
 	return 0;
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t modelLearning(const QString& pathCopterImages,
-                      const QString& resultPath,
-                      const QString& resultName,
-                      const LearningType type,
-                      const bool scale,
-                      const uint32_t numCycle,
-                      const uint32_t numCopters,
-                      const bool brightness,
-                      const uint32_t imagesWidth,
-                      const uint32_t imagesHeight)
+int32_t getImagesAndLabels(std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels,
+                           const QString& pathToImages,
+                           const uint32_t numCopters,
+                           const uint32_t imagesWidth,
+                           const uint32_t imagesHeight)
 {
 	// Create a directory class object and check it exist
-	QDir dir(pathCopterImages);
+	QDir dir(pathToImages);
 	if (dir.exists() == false) {
 		PRINT_ERR(true, PREF, "Directory is not exist");
 		return -1;
 	}
 
 	// Get an folder list and check it
-	QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs);
-	if (static_cast<uint32_t>(entries.size()) != numCopters) {
+	QFileInfoList folders_list = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs);
+	if (static_cast<uint32_t>(folders_list.size()) != numCopters) {
 		PRINT_ERR(true, PREF, "Number of folders is not equal to number of copters");
 		return -1;
 	}
 
 	// Get image files lists
-
-
-	for (auto folder : entries) {
-		qDebug() << folder.fileName() << folder.isDir() << folder.size();
-	}
-
-
-	// return 0;
-
-
-	std::vector<std::vector<uint32_t>> labels(entries.size(), std::vector<uint32_t>(numCopters, 0));
-	for (uint32_t i = 0; i < labels.size(); ++i) {
-		if (i % 2 == 0) {
-			labels[i][0] = 1;
-		} else {
-			labels[i][1] = 1;
+	std::vector<QFileInfoList> files_lists(numCopters);
+	for (uint32_t i = 0; i < numCopters; ++i) {
+		QDir dir(folders_list[i].filePath());
+		files_lists[i] = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+		if (files_lists[i].size() != files_lists.front().size()) {
+			PRINT_ERR(true, PREF, "Different number of files with copters");
+			return -1;
 		}
-		//qDebug() << labels[i][0] << labels[i][1];
 	}
 
+	// Get images and labels
+	for (uint32_t i = 0; i < static_cast<uint32_t>(files_lists.front().size()); ++i) {
 
-	// Get images
-	std::vector<QImage> images;
-	for (const auto & file : entries) {
+		// Get an image from each folder
+		for (uint32_t j = 0; j < numCopters; ++j) {
 
-		// Scale an image (if need)
-		if (true == scale) {
-			// Get an image
-			QImage image = QImage(file.filePath());
-
+			// Get an image and covert it
+			QImage image = QImage(files_lists[j][i].filePath());
 			image.convertTo(QImage::Format_Grayscale8);
 
-			// Leave only 0 and 255 pixels
-			/*uint8_t* data = image.bits();
-			for (uint32_t i = 0; i < image.sizeInBytes(); ++i)
-				if (data[i] < 255)
-					data[i] = 0;*/
+			// Create a label
+			std::vector<uint32_t> label(numCopters, 0);
+			label[j] = 1;
 
-			// Add an image to vector
-			images.push_back(image.scaled(imagesWidth, imagesHeight));
-		} else {
-
-			// Add an image to vector
-			images.push_back(QImage(file.filePath()));
-		}
-
-		// Check the size of image and entrance size
-		if (   static_cast<uint32_t>(images.back().width()) != imagesWidth
-		    || static_cast<uint32_t>(images.back().height()) != imagesHeight) {
-			PRINT_ERR(true, PREF, "Size of the %s image is not correct",
-			                      file.filePath().toStdString().c_str());
-			return -1;
+			// Add image and label
+			images_labels.push_back(
+			            std::pair<QImage, std::vector<uint32_t>>(
+			                image.scaled(imagesWidth, imagesHeight), label));
 		}
 	}
+	if (images_labels.size() == 0) {
+		PRINT_ERR(true, PREF, "Container for images and labels is empty");
+		return -1;
+	}
 
-	//images[5].save("C:/Users/ekd/Desktop/222.bmp");
+	return 0;
+}
 
+//-------------------------------------------------------------------------------------------------
+int32_t modelLearning(const QString& pathToImages,
+                      const QString& pathToImagesTest,
+                      const QString& resultPath,
+                      const QString& resultName,
+                      const LearningType type,
+                      const uint32_t numIterations,
+                      const uint32_t numCopters,
+                      const uint32_t imagesWidth,
+                      const uint32_t imagesHeight)
+{
+	// Containers for images, labels and test
+	std::vector<std::pair<QImage, std::vector<uint32_t>>> images_labels;
+	std::vector<std::pair<QImage, std::vector<uint32_t>>> images_labels_test;
 
-	// Apply a learning method to the vector with images; get a result
+	// Get containers
+	if (getImagesAndLabels(images_labels, pathToImages, numCopters,
+	                       imagesWidth, imagesHeight) != 0) {
+		PRINT_ERR(true, PREF, "getImagesAndLabels(images_labels)");
+		return -1;
+	}
+	if (getImagesAndLabels(images_labels_test, pathToImagesTest, numCopters,
+	                       imagesWidth, imagesHeight) != 0) {
+		PRINT_ERR(true, PREF, "getImagesAndLabels(images_labels_test)");
+		return -1;
+	}
+
+	// Apply a learning method
 	switch (type) {
-	case LearningType::Simple:
-		if (simpleLearning(images, brightness,
-		                   imagesWidth, imagesHeight,
-		                   resultPath, resultName) != 0) {
-			PRINT_ERR(true, PREF, "simpleLearning() is not successful");
-			return -1;
-		} else {
-			PRINT_DBG(true, PREF, "simpleLearning() is successful");
-		}
-		break;
-	case LearningType::Neural:
-		if (/*neuralLearning_1_layer*/neuralLearning_2_layer(images, labels,
+	case LearningType::Neural_2_layer:
+		if (neuralLearning_2_layer(images_labels, images_labels_test,
 		                           imagesWidth, imagesHeight,
 		                           resultPath, resultName,
-		                           numCycle) != 0) {
-			PRINT_ERR(true, PREF, "neuralLearning() is not successful");
+		                           numIterations) != 0) {
+			PRINT_ERR(true, PREF, "neuralLearning_2_layer() is not successful");
 			return -1;
 		} else {
-			PRINT_DBG(true, PREF, "neuralLearning() is successful");
+			PRINT_DBG(true, PREF, "neuralLearning_2_layer() is successful");
 		}
 		break;
 	default:
