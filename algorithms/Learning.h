@@ -89,7 +89,8 @@ int32_t modelLearning(const QString& pathToImages,
                       const uint32_t numIterations,
                       const uint32_t numCopters,
                       const uint32_t imagesWidth,
-                      const uint32_t imagesHeight);
+                      const uint32_t imagesHeight,
+                      const bool test);
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145

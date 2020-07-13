@@ -14,6 +14,9 @@
 #include <utility>       // std::pair<>
 #include <float.h>       // DBL_MIN
 
+
+#include <QThread>
+
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
@@ -48,7 +51,20 @@ int32_t neuralLearning_2_layer(
               const uint32_t imagesHeight,
               const QString& resultPath,
               const QString& resultName,
-              const uint32_t numIterations);
+              const uint32_t numIterations,
+              const bool test);
+
+//-------------------------------------------------------------------------------------------------
+// Fills the matrix with weights of random numbers
+//  test == false: result = a * random + b
+//  test == true : result = from file
+int32_t fillWeights(Eigen::MatrixXd& matrix,
+                    const double a, const double b,
+                    const bool test = false, const QString& name = "");
+
+//-------------------------------------------------------------------------------------------------
+// Gets a bernoulli distribution vector
+int32_t getB_D(std::vector<bool>& vector, double p, const bool test = false);
 
 //-------------------------------------------------------------------------------------------------
 // Get images and labels from specified path
@@ -267,7 +283,8 @@ int32_t neuralLearning_2_layer(
         const uint32_t imagesHeight,
         const QString& resultPath,
         const QString& resultName,
-        const uint32_t numIterations)
+        const uint32_t numIterations,
+        const bool test)
 {
 	// Alpha coefficient
 	const double alpha = 0.0002;
@@ -282,25 +299,21 @@ int32_t neuralLearning_2_layer(
 	// Number of labels
 	const uint32_t num_labels = static_cast<uint32_t>(images_labels.front().second.size());
 
-	// Random number engine
-	std::mt19937 gen(time(0));
-
-	// Bernoulli distribution
-	std::bernoulli_distribution b_d(0.5);
+	// Batch size
+	const uint32_t batch_size = 10;
 
 	// Weights
 	Eigen::MatrixXd w_0_1(imagesWidth * imagesHeight, hidden_size);
 	Eigen::MatrixXd w_1_2(hidden_size, num_labels);
 
 	// Fill the matrix with weights of random numbers
-	std::uniform_int_distribution<int> uid(0, 1000);
-	auto data_w_0_1 = w_0_1.data();
-	for (uint32_t i = 0; i < w_0_1.size(); ++i) {
-		data_w_0_1[i] = 0.2 * uid(gen) / 1000.0 - 0.1;
+	if (fillWeights(w_0_1, 0.02, 0.01, test, "w_0_1") != 0) {
+		PRINT_ERR(true, PREF, "Can't fill w_0_1");
+		return -1;
 	}
-	auto data_w_1_2 = w_1_2.data();
-	for (uint32_t i = 0; i < w_1_2.size(); ++i) {
-		data_w_1_2[i] = 0.2 * uid(gen) / 1000.0 - 0.1;
+	if (fillWeights(w_1_2, 0.2, 0.1, test, "w_1_2") != 0) {
+		PRINT_ERR(true, PREF, "Can't fill w_1_2");
+		return -1;
 	}
 
 	// Layers and deltas for layers
@@ -335,21 +348,32 @@ int32_t neuralLearning_2_layer(
 				l_0(0, i) = image_data[i] / 255.0;
 			}
 
+
+			double s = 0;
+			for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+				qDebug() << l_0(0, i) * w_0_1(i, 0);
+				s += l_0(0, i) * w_0_1(i, 0);
+			}
+			qDebug() << s;
+
 			// Calculate an layer 1
 			l_1 = l_0 * w_0_1;
-
-			// Dropout a some neurons in layer 1
-			std::vector<bool> dropout_mask(l_1.size());
-			for (uint32_t i = 0; i < l_1.size(); ++i) {
-				dropout_mask[i] = b_d(gen);
-				l_1(0, i) *= dropout_mask[i] * 2;
-			}
 
 			// Apply activation function to the layer 1 (hidden layer)
 			// ReLU
 			// ReLU(l_1.data(), l_1.size());
 			// Hyperbolic tangent
 			tanh(l_1.data(), l_1.size());
+
+			// Dropout a some neurons in layer 1
+			std::vector<bool> dropout_mask(l_1.size());
+			if (getB_D(dropout_mask, 0.5, test) != 0) {
+				PRINT_ERR(true, PREF, "Can't get bernoulli distribution vector");
+				return -1;
+			}
+			for (uint32_t i = 0; i < l_1.size(); ++i) {
+				l_1(0, i) *= dropout_mask[i] * 2;
+			}
 
 			// Calculate an layer 2
 			l_2 = l_1 * w_1_2;
@@ -372,16 +396,16 @@ int32_t neuralLearning_2_layer(
 			// Calculate a delta for layer 1
 			l_1_delta = l_2_delta * w_1_2.transpose();
 
-			// Dropout the same neurons as in layer 1
-			for (uint32_t i = 0; i < l_1_delta.size(); ++i) {
-				l_1_delta(0, i) *= dropout_mask[i];
-			}
-
 			// Apply derivative of activation function
 			// ReLU
 			// ReLU_derivative(l_1_delta.data(), l_1_delta.size());
 			// Hyperbolic tangent
 			tanh_derivative(l_1_delta.data(), l_1_delta.size());
+
+			// Dropout the same neurons as in layer 1
+			for (uint32_t i = 0; i < l_1_delta.size(); ++i) {
+				l_1_delta(0, i) *= dropout_mask[i];
+			}
 
 			// Correct weights
 			w_1_2 += alpha * l_1.transpose() * l_2_delta;
@@ -407,7 +431,7 @@ int32_t neuralLearning_2_layer(
 				// Check image
 				if (   image_label.first.isNull() == true
 				    || image_label.first.sizeInBytes() != imagesWidth * imagesHeight) {
-					PRINT_ERR(true, PREF, "Bad image");
+					PRINT_ERR(true, PREF, "Bad test image");
 					return -1;
 				}
 
@@ -429,13 +453,89 @@ int32_t neuralLearning_2_layer(
 				// Calculate an layer 2
 				l_2 = l_1 * w_1_2;
 
-				qDebug() << "\t" << l_2(0, 0) << l_2(0, 1);
+				qDebug() << "\t" << l_2(0, 0); // << l_2(0, 1);
 
 			} // Test images loop
 
 		} // Test
 
 	} // Iterations loop
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t fillWeights(Eigen::MatrixXd& matrix,
+                    const double a, const double b,
+                    const bool test, const QString& name)
+{
+	if (test == true) {
+		QFile file("C:/Users/ekd/Documents/deep_learning/images/learn/random_n/" + name + ".txt");
+		if (file.open(QIODevice::ReadOnly) == false) {
+			PRINT_ERR(true, PREF, "Can't open file %s",
+			          file.fileName().toStdString().c_str());
+			return -1;
+		}
+		auto data_matrix = matrix.data();
+		for (uint32_t i = 0; i < matrix.size(); ++i) {
+			QByteArray ar = file.readLine();
+			if (ar.isEmpty() == true) {
+				PRINT_ERR(true, PREF, "File %s is small",
+				          file.fileName().toStdString().c_str());
+				return -1;
+			}
+			bool ok;
+			data_matrix[i] = ar.toDouble(&ok);
+			if (ok == false) {
+				PRINT_ERR(true, PREF, "Bad content of file %s",
+				          file.fileName().toStdString().c_str());
+				return -1;
+			}
+		}
+	} else {
+		std::mt19937 gen(time(0));
+		std::uniform_int_distribution<int> uid(0, 10000);
+		auto data_matrix = matrix.data();
+		for (uint32_t i = 0; i < matrix.size(); ++i) {
+			data_matrix[i] = a * uid(gen) / 10000.0 - b;
+		}
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t getB_D(std::vector<bool>& vector, double p, const bool test)
+{
+	if (test == true) {
+		QFile file("C:/Users/ekd/Documents/deep_learning/images/learn/random_n/b_d.txt");
+		if (file.open(QIODevice::ReadOnly) == false) {
+			PRINT_ERR(true, PREF, "Can't open file %s",
+			          file.fileName().toStdString().c_str());
+			return -1;
+		}
+		for (uint32_t i = 0; i < vector.size(); ++i) {
+			QByteArray ar = file.readLine();
+			if (ar.isEmpty() == true) {
+				PRINT_ERR(true, PREF, "File %s is small",
+				          file.fileName().toStdString().c_str());
+				return -1;
+			}
+			bool ok;
+			vector[i] = ar.toUInt(&ok);
+			if (ok == false) {
+				PRINT_ERR(true, PREF, "Bad content of file %s",
+				          file.fileName().toStdString().c_str());
+				return -1;
+			}
+		}
+	} else {
+		std::mt19937 gen(time(0));
+		std::bernoulli_distribution b_d(p);
+		for (uint32_t i = 0; i < vector.size(); ++i) {
+			vector[i] = b_d(gen);
+		}
+	}
 
 	return 0;
 }
@@ -497,6 +597,10 @@ int32_t getImagesAndLabels(std::vector<std::pair<QImage, std::vector<uint32_t>>>
 		return -1;
 	}
 
+	PRINT_DBG(true, PREF, "%lu images from %lu folders were loaded",
+	          static_cast<unsigned long>(files_lists.front().size()),
+	          static_cast<unsigned long>(numCopters));
+
 	return 0;
 }
 
@@ -509,7 +613,8 @@ int32_t modelLearning(const QString& pathToImages,
                       const uint32_t numIterations,
                       const uint32_t numCopters,
                       const uint32_t imagesWidth,
-                      const uint32_t imagesHeight)
+                      const uint32_t imagesHeight,
+                      const bool test)
 {
 	// Containers for images, labels and test
 	std::vector<std::pair<QImage, std::vector<uint32_t>>> images_labels;
@@ -533,7 +638,8 @@ int32_t modelLearning(const QString& pathToImages,
 		if (neuralLearning_2_layer(images_labels, images_labels_test,
 		                           imagesWidth, imagesHeight,
 		                           resultPath, resultName,
-		                           numIterations) != 0) {
+		                           numIterations,
+		                           test) != 0) {
 			PRINT_ERR(true, PREF, "neuralLearning_2_layer() is not successful");
 			return -1;
 		} else {
