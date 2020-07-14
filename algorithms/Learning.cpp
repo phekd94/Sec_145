@@ -13,6 +13,7 @@
 #include <ctime>         // time()
 #include <utility>       // std::pair<>
 #include <float.h>       // DBL_MIN
+#include <QByteArray>    // QByteArray class
 
 
 #include <QThread>
@@ -348,14 +349,6 @@ int32_t neuralLearning_2_layer(
 				l_0(0, i) = image_data[i] / 255.0;
 			}
 
-
-			double s = 0;
-			for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-				qDebug() << l_0(0, i) * w_0_1(i, 0);
-				s += l_0(0, i) * w_0_1(i, 0);
-			}
-			qDebug() << s;
-
 			// Calculate an layer 1
 			l_1 = l_0 * w_0_1;
 
@@ -400,7 +393,10 @@ int32_t neuralLearning_2_layer(
 			// ReLU
 			// ReLU_derivative(l_1_delta.data(), l_1_delta.size());
 			// Hyperbolic tangent
-			tanh_derivative(l_1_delta.data(), l_1_delta.size());
+			tanh_derivative(l_1.data(), l_1.size());
+			for (uint32_t i = 0; i < l_1.size(); ++i) {
+				l_1_delta(0, i) *= l_1(0, i);
+			}
 
 			// Dropout the same neurons as in layer 1
 			for (uint32_t i = 0; i < l_1_delta.size(); ++i) {
@@ -421,7 +417,7 @@ int32_t neuralLearning_2_layer(
 		} // Images loop
 
 		// Test
-		if (it % 1 == 0) {
+		if (it % 3 == 0) {
 			PRINT_DBG(true, PREF, "Iteration: %lu;  Training error: %f",
 			          static_cast<unsigned long>(it), error / images_labels.size());
 
@@ -453,7 +449,7 @@ int32_t neuralLearning_2_layer(
 				// Calculate an layer 2
 				l_2 = l_1 * w_1_2;
 
-				qDebug() << "\t" << l_2(0, 0); // << l_2(0, 1);
+				qDebug() << "\t" << l_2(0, 0) << l_2(0, 1) << l_2(0, 2);
 
 			} // Test images loop
 
@@ -476,20 +472,21 @@ int32_t fillWeights(Eigen::MatrixXd& matrix,
 			          file.fileName().toStdString().c_str());
 			return -1;
 		}
-		auto data_matrix = matrix.data();
-		for (uint32_t i = 0; i < matrix.size(); ++i) {
-			QByteArray ar = file.readLine();
-			if (ar.isEmpty() == true) {
-				PRINT_ERR(true, PREF, "File %s is small",
-				          file.fileName().toStdString().c_str());
-				return -1;
-			}
-			bool ok;
-			data_matrix[i] = ar.toDouble(&ok);
-			if (ok == false) {
-				PRINT_ERR(true, PREF, "Bad content of file %s",
-				          file.fileName().toStdString().c_str());
-				return -1;
+		for (uint32_t i = 0; i < matrix.rows(); ++i) {
+			for (uint32_t j = 0; j < matrix.cols(); ++j) {
+				QByteArray ar = file.readLine();
+				if (ar.isEmpty() == true) {
+					PRINT_ERR(true, PREF, "File %s is small",
+					          file.fileName().toStdString().c_str());
+					return -1;
+				}
+				bool ok;
+				matrix(i, j) = ar.toDouble(&ok);
+				if (ok == false) {
+					PRINT_ERR(true, PREF, "Bad content of file %s",
+					          file.fileName().toStdString().c_str());
+					return -1;
+				}
 			}
 		}
 	} else {
