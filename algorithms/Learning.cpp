@@ -287,8 +287,11 @@ int32_t neuralLearning_2_layer(
         const uint32_t numIterations,
         const bool test)
 {
+	// Debug frequency multiplier
+	const uint32_t debug_f_mul = 1;
+
 	// Alpha coefficient
-	const double alpha = 0.0002;
+	const double alpha = 0.00025;
 
 	// Max weight and error for catch a divergence
 	const double max_weight = 1000;
@@ -301,7 +304,7 @@ int32_t neuralLearning_2_layer(
 	const uint32_t num_labels = static_cast<uint32_t>(images_labels.front().second.size());
 
 	// Batch size
-	const uint32_t batch_size = 10;
+	const uint32_t batch_size = 15; // 4
 
 	// Weights
 	Eigen::MatrixXd w_0_1(imagesWidth * imagesHeight, hidden_size);
@@ -327,11 +330,14 @@ int32_t neuralLearning_2_layer(
 	// Error
 	double error;
 
+	// Correct counter
+	uint32_t correct_cnt;
+
 	// Iterations loop
 	for (uint32_t it = 0; it < numIterations; ++it) {
 
-		// Set error to 0
-		error = 0;
+		// Set error and correct counter to 0
+		error = correct_cnt = 0;
 
 		// Images loop
 		for (const auto& image_label : images_labels) {
@@ -383,6 +389,12 @@ int32_t neuralLearning_2_layer(
 			// Calculate an error
 			error += ((label - l_2) * (label - l_2).transpose()).sum();
 
+			// Add to correct counter
+			if (   maxArrayElementIndex(l_2.data(), l_2.size())
+			    == maxArrayElementIndex(label.data(), label.size())) {
+				++correct_cnt;
+			}
+
 			// Calculate a delta for layer 2
 			l_2_delta = label - l_2;
 
@@ -416,44 +428,72 @@ int32_t neuralLearning_2_layer(
 
 		} // Images loop
 
-		// Test
-		if (it % 3 == 0) {
-			PRINT_DBG(true, PREF, "Iteration: %lu;  Training error: %f",
-			          static_cast<unsigned long>(it), error / images_labels.size());
+		// Print results of training
+		if (it % debug_f_mul == 0) {
+			PRINT_DBG(true, PREF,
+			          "Iteration: %lu;  Training correct: %f;  Training error: %f",
+			          static_cast<unsigned long>(it),
+			          static_cast<double>(correct_cnt) / images_labels.size(),
+			          error / images_labels.size());
+		}
 
-			// Test images loop
-			for (const auto& image_label : images_labels_test) {
+		// Set error and correct counter to 0
+		error = correct_cnt = 0;
 
-				// Check image
-				if (   image_label.first.isNull() == true
-				    || image_label.first.sizeInBytes() != imagesWidth * imagesHeight) {
-					PRINT_ERR(true, PREF, "Bad test image");
-					return -1;
-				}
+		// Test images loop
+		for (const auto& image_label : images_labels_test) {
 
-				// Get image (layer 0)
-				auto image_data = image_label.first.bits();
-				for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-					l_0(0, i) = image_data[i] / 255.0;
-				}
+			// Check image
+			if (   image_label.first.isNull() == true
+			    || image_label.first.sizeInBytes() != imagesWidth * imagesHeight) {
+				PRINT_ERR(true, PREF, "Bad test image");
+				return -1;
+			}
 
-				// Calculate an layer 1
-				l_1 = l_0 * w_0_1;
+			// Get image (layer 0)
+			auto image_data = image_label.first.bits();
+			for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+				l_0(0, i) = image_data[i] / 255.0;
+			}
 
-				// Apply activation function to the layer 1 (hidden layer)
-				// ReLU
-				// ReLU(l_1.data(), l_1.size());
-				// Hyperbolic tangent
-				tanh(l_1.data(), l_1.size());
+			// Calculate an layer 1
+			l_1 = l_0 * w_0_1;
 
-				// Calculate an layer 2
-				l_2 = l_1 * w_1_2;
+			// Apply activation function to the layer 1 (hidden layer)
+			// ReLU
+			// ReLU(l_1.data(), l_1.size());
+			// Hyperbolic tangent
+			tanh(l_1.data(), l_1.size());
 
-				qDebug() << "\t" << l_2(0, 0) << l_2(0, 1) << l_2(0, 2);
+			// Calculate an layer 2
+			l_2 = l_1 * w_1_2;
 
-			} // Test images loop
+			// Get a label
+			Eigen::MatrixXd label(1, num_labels);
+			for (uint32_t i = 0; i < num_labels; ++i) {
+				label(0, i) = image_label.second[i];
+			}
 
-		} // Test
+			// Calculate an error
+			error += ((label - l_2) * (label - l_2).transpose()).sum();
+
+			// Add to correct counter
+			if (   maxArrayElementIndex(l_2.data(), l_2.size())
+			    == maxArrayElementIndex(label.data(), label.size())) {
+				++correct_cnt;
+			}
+
+		} // Test images loop
+
+		// Print results of test
+		if (it % debug_f_mul == 0) {
+			PRINT_DBG(true, PREF,
+			          "Iteration: %lu;  Test correct: %f;  Test error: %f",
+			          static_cast<unsigned long>(it),
+			          static_cast<double>(correct_cnt) / images_labels_test.size(),
+			          error / images_labels_test.size());
+			PRINT_DBG(true, PREF, "");
+		}
 
 	} // Iterations loop
 
@@ -561,6 +601,7 @@ int32_t getImagesAndLabels(std::vector<std::pair<QImage, std::vector<uint32_t>>>
 	// Get image files lists
 	std::vector<QFileInfoList> files_lists(numCopters);
 	for (uint32_t i = 0; i < numCopters; ++i) {
+		qDebug() << folders_list[i].filePath();
 		QDir dir(folders_list[i].filePath());
 		files_lists[i] = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
 		if (files_lists[i].size() != files_lists.front().size()) {
