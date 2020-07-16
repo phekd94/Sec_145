@@ -1,19 +1,20 @@
 
 #include "Learning.h"
 
-#include <cmath>         // std::abs(), std::pow(); std::tanh(); std::exp()
-#include <vector>        // std::vector<> class
-#include <QImage>        // QImage class
-#include <QDir>          // QDir class
-#include <QFile>         // QFile class
-#include <algorithm>     // std::transform<>()
-#include <random>        // PRNG
-#include <ctime>         // time()
-#include <utility>       // std::pair<>
-#include <QByteArray>    // QByteArray class
-#include "Eigen/Dense"   // Eigen::MatrixXd class
-#include "Algorithms.h"  // convertPixelLimits[](); dotProduct(); sumArrayExpElements<>();
-                         // maxArrayElement<>(); maxArrayElementIndex<>()
+#include <cmath>          // std::abs(), std::pow(); std::tanh(); std::exp()
+#include <vector>         // std::vector<> class
+#include <QImage>         // QImage class
+#include <QDir>           // QDir class
+#include <QFile>          // QFile class
+#include <algorithm>      // std::transform<>()
+#include <random>         // PRNG
+#include <ctime>          // time()
+#include <utility>        // std::pair<>
+#include <QByteArray>     // QByteArray class
+#include "Eigen/Dense"    // Eigen::MatrixXd class
+#include "other/Other.h"  // writeVarInFile<>()
+#include "Algorithms.h"   // convertPixelLimits[](); dotProduct(); sumArrayExpElements<>();
+                          // maxArrayElement<>(); maxArrayElementIndex<>()
 
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -58,11 +59,11 @@ int32_t neuralLearning_2_layer(
 //  test == true : result = from file
 int32_t fillWeights(Eigen::MatrixXd& matrix,
                     const double a, const double b,
-                    const bool test = false, const QString& name = "");
+                    const bool fromFile = false, const QString& name = "");
 
 //-------------------------------------------------------------------------------------------------
 // Gets a bernoulli distribution vector
-int32_t getB_D(std::vector<bool>& vector, const double p, const bool test = false);
+int32_t getB_D(std::vector<bool>& vector, const double p, const bool fromFile = false);
 
 //-------------------------------------------------------------------------------------------------
 // Get images and labels from specified path
@@ -92,6 +93,15 @@ int32_t batch_gradientDescent(
             const uint32_t num_labels, const double alpha, const uint32_t hidden_size,
             const uint32_t imagesWidth, const uint32_t imagesHeight, const bool test,
             const uint32_t max_error, const uint32_t max_weight);
+
+//-------------------------------------------------------------------------------------------------
+// Test neural network weights
+int32_t testWeights(const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels_test,
+            const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
+            double& error, uint32_t& correct_cnt,
+            const uint32_t num_labels, const uint32_t hidden_size,
+            const uint32_t imagesWidth, const uint32_t imagesHeight,
+            const uint32_t max_error, const bool test = false);
 
 //-------------------------------------------------------------------------------------------------
 // ReLU activation function
@@ -174,7 +184,7 @@ int32_t simpleLearning(const std::vector<QImage>& images,
 		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
 
 			// Process data
-			if (data[i] == 255) {
+			if (255 == data[i]) {
 				res_double[i] += b;
 			}
 		}
@@ -309,7 +319,7 @@ int32_t neuralLearning_2_layer(
 	const uint32_t debug_f_mul = 1;
 
 	// Alpha coefficient
-	const double alpha = 0.01; //0.0002;
+	const double alpha = 0.01;
 
 	// Max weight and error for catch a divergence
 	const double max_weight = 1000;
@@ -322,7 +332,7 @@ int32_t neuralLearning_2_layer(
 	const uint32_t num_labels = static_cast<uint32_t>(images_labels.front().second.size());
 
 	// Batch size
-	const uint32_t batch_size = 24; // 59
+	const uint32_t batch_size = 24;
 
 	// Weights
 	Eigen::MatrixXd w_0_1(imagesWidth * imagesHeight, hidden_size);
@@ -338,25 +348,38 @@ int32_t neuralLearning_2_layer(
 		return -1;
 	}
 
-	// Layers and deltas for layers
-	Eigen::MatrixXd l_0(1, imagesWidth * imagesHeight);
-	Eigen::MatrixXd l_1(1, hidden_size);
-	Eigen::MatrixXd l_2(1, num_labels);
-	Eigen::MatrixXd l_2_delta(1, num_labels);
-	Eigen::MatrixXd l_1_delta(1, hidden_size);
-
 	// Error
 	double error;
 
 	// Correct counter
 	uint32_t correct_cnt;
 
+	// Create and open files for results
+	QFile f_w_0_1(resultPath + "/" + resultName + "_w_0_1.txt");
+	QFile f_w_1_2(resultPath + "/" + resultName + "_w_1_2.txt");
+	QFile f_params(resultPath + "/" + resultName + "_params.txt");
+	QFile f_acc(resultPath + "/" + resultName + "_acc.txt");
+	QFile f_err(resultPath + "/" + resultName + "_err.txt");
+	QFile f_acc_test(resultPath + "/" + resultName + "_acc_test.txt");
+	QFile f_err_test(resultPath + "/" + resultName + "_err_test.txt");
+	if (   f_w_0_1.open(QIODevice::WriteOnly) == false
+	    || f_w_1_2.open(QIODevice::WriteOnly) == false
+	    || f_params.open(QIODevice::WriteOnly) == false
+	    || f_acc.open(QIODevice::WriteOnly) == false
+	    || f_err.open(QIODevice::WriteOnly) == false
+	    || f_acc_test.open(QIODevice::WriteOnly) == false
+	    || f_err_test.open(QIODevice::WriteOnly) == false) {
+		PRINT_ERR(true, PREF, "Can't open one of the files in WriteOnly mode");
+		return -1;
+	}
+
 	// Iterations loop
 	for (uint32_t it = 0; it < numIterations; ++it) {
 
-		// Set error and correct counter to 0
+		// Set an error and a correct counter to 0
 		error = correct_cnt = 0;
 
+		// Apply a gradient descent
 		if (batch_gradientDescent(images_labels, batch_size, w_0_1, w_1_2, error, correct_cnt,
 		                          num_labels, alpha, hidden_size, imagesWidth, imagesHeight,
 		                          test, max_error, max_weight) != 0) {
@@ -364,8 +387,8 @@ int32_t neuralLearning_2_layer(
 			return -1;
 		}
 
-		// Print results of training
-		if (it % debug_f_mul == 0) {
+		// Print results of training (if need)
+		if (debug_f_mul != 0 && it % debug_f_mul == 0) {
 			PRINT_DBG(true, PREF,
 			          "Iteration: %lu;  Training correct: %f;  Training error: %f",
 			          static_cast<unsigned long>(it),
@@ -373,68 +396,30 @@ int32_t neuralLearning_2_layer(
 			          error / images_labels.size());
 		}
 
-		// Set error and correct counter to 0
+		// Save an error and a correct counter for training
+		if (writeVarInFile(f_err, error / images_labels.size()) != 0) {
+			PRINT_ERR(true, PREF, "writeVarInFile(error)");
+			return -1;
+		}
+		if (writeVarInFile(f_acc,
+		                   static_cast<double>(correct_cnt) / images_labels.size()) != 0) {
+			PRINT_ERR(true, PREF, "writeVarInFile(correct_cnt)");
+			return -1;
+		}
+
+		// Set an error and a correct counter to 0
 		error = correct_cnt = 0;
 
-		// Test images loop
-		for (const auto& image_label : images_labels_test) {
-
-			// Check image
-			if (   image_label.first.isNull() == true
-			    || image_label.first.sizeInBytes() != imagesWidth * imagesHeight) {
-				PRINT_ERR(true, PREF, "Bad test image");
-				return -1;
-			}
-
-			// Get image (layer 0)
-			auto image_data = image_label.first.bits();
-			for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-				l_0(0, i) = image_data[i] / 255.0;
-			}
-
-			// Calculate an layer 1
-			l_1 = l_0 * w_0_1;
-
-			// Apply activation function to the layer 1 (hidden layer)
-			// ReLU
-			// ReLU(l_1.data(), l_1.size());
-			// Hyperbolic tangent
-			tanh(l_1.data(), l_1.size());
-
-			// Calculate an layer 2
-			l_2 = l_1 * w_1_2;
-
-			// Get a label
-			Eigen::MatrixXd label(1, num_labels);
-			for (uint32_t i = 0; i < num_labels; ++i) {
-				label(0, i) = image_label.second[i];
-
-				if (test == true) {
-					PRINT_DBG(true, PREF, "%f", l_2(0, i));
-				}
-			}
-
-			// Calculate an error
-			error += ((label - l_2) * (label - l_2).transpose()).sum();
-
-			// Add to correct counter
-			if (   maxArrayElementIndex(l_2.data(), l_2.size())
-			    == maxArrayElementIndex(label.data(), label.size())) {
-				++correct_cnt;
-			}
-
-		} // Test images loop
-
-		// Check divergence
-		if (   error > max_error
-		    || maxArrayElement(w_1_2.data(), w_1_2.size()) > max_weight
-		    || maxArrayElement(w_0_1.data(), w_0_1.size()) > max_weight) {
-			PRINT_ERR(true, PREF, "divergence");
+		// Test neural network weights
+		if (testWeights(images_labels_test, w_0_1, w_1_2,
+		                error, correct_cnt, num_labels, hidden_size,
+		                imagesWidth, imagesHeight, max_error, test) != 0) {
+			PRINT_ERR(true, PREF, "testWeights()");
 			return -1;
 		}
 
 		// Print results of test
-		if (it % debug_f_mul == 0) { ////////////  debug_f_mul !!!!!!!!!!!!!!!
+		if (debug_f_mul != 0 && it % debug_f_mul == 0) {
 			PRINT_DBG(true, PREF,
 			          "Iteration: %lu;  Test correct: %f;  Test error: %f",
 			          static_cast<unsigned long>(it),
@@ -443,7 +428,38 @@ int32_t neuralLearning_2_layer(
 			PRINT_DBG(true, PREF, "");
 		}
 
+		// Save an error and a correct counter for test
+		if (writeVarInFile(f_err_test, error / images_labels_test.size()) != 0) {
+			PRINT_ERR(true, PREF, "writeVarInFile(error for test)");
+			return -1;
+		}
+		if (writeVarInFile(f_acc_test,
+		                   static_cast<double>(correct_cnt) / images_labels_test.size()) != 0) {
+			PRINT_ERR(true, PREF, "writeVarInFile(correct_cnt for test)");
+			return -1;
+		}
+
 	} // Iterations loop
+
+	// Save neural network parameters
+	if (writeVarInFile(f_params, alpha) != 0) {
+		PRINT_ERR(true, PREF, "writeVarInFile(alpha)");
+		return -1;
+	}
+	if (writeVarInFile(f_params, hidden_size) != 0) {
+		PRINT_ERR(true, PREF, "writeVarInFile(hidden_size)");
+		return -1;
+	}
+
+	// Save weights
+	if (writeMatrixInFile(f_w_0_1, w_0_1) != 0) {
+		PRINT_ERR(true, PREF, "writeMatrixInFile(w_0_1)");
+		return -1;
+	}
+	if (writeMatrixInFile(f_w_1_2, w_1_2) != 0) {
+		PRINT_ERR(true, PREF, "writeMatrixInFile(w_1_2)");
+		return -1;
+	}
 
 	return 0;
 }
@@ -451,9 +467,9 @@ int32_t neuralLearning_2_layer(
 //-------------------------------------------------------------------------------------------------
 int32_t fillWeights(Eigen::MatrixXd& matrix,
                     const double a, const double b,
-                    const bool test, const QString& name)
+                    const bool fromFile, const QString& name)
 {
-	if (test == true) {
+	if (true == fromFile) {
 		QFile file("C:/Users/ekd/Documents/deep_learning/images/learn/random_n/" + name + ".txt");
 		if (file.open(QIODevice::ReadOnly) == false) {
 			PRINT_ERR(true, PREF, "Can't open file %s",
@@ -470,7 +486,7 @@ int32_t fillWeights(Eigen::MatrixXd& matrix,
 				}
 				bool ok;
 				matrix(i, j) = ar.toDouble(&ok);
-				if (ok == false) {
+				if (false == ok) {
 					PRINT_ERR(true, PREF, "Bad content of file %s",
 					          file.fileName().toStdString().c_str());
 					return -1;
@@ -491,9 +507,9 @@ int32_t fillWeights(Eigen::MatrixXd& matrix,
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t getB_D(std::vector<bool>& vector, const double p, const bool test)
+int32_t getB_D(std::vector<bool>& vector, const double p, const bool fromFile)
 {
-	if (test == true) {
+	if (true == fromFile) {
 		QFile file("C:/Users/ekd/Documents/deep_learning/images/learn/random_n/b_d.txt");
 		if (file.open(QIODevice::ReadOnly) == false) {
 			PRINT_ERR(true, PREF, "Can't open file %s",
@@ -509,7 +525,7 @@ int32_t getB_D(std::vector<bool>& vector, const double p, const bool test)
 			}
 			bool ok;
 			vector[i] = ar.toUInt(&ok);
-			if (ok == false) {
+			if (false == ok) {
 				PRINT_ERR(true, PREF, "Bad content of file %s",
 				          file.fileName().toStdString().c_str());
 				return -1;
@@ -821,6 +837,76 @@ int32_t batch_gradientDescent(
 		}
 
 	} // Images loop
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t testWeights(
+            const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels_test,
+            const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
+            double& error, uint32_t& correct_cnt,
+            const uint32_t num_labels, const uint32_t hidden_size,
+            const uint32_t imagesWidth, const uint32_t imagesHeight,
+            const uint32_t max_error, const bool test)
+{
+	// Test images loop
+	for (const auto& image_label : images_labels_test) {
+
+		// Layers
+		Eigen::MatrixXd l_0(1, imagesWidth * imagesHeight);
+		Eigen::MatrixXd l_1(1, hidden_size);
+		Eigen::MatrixXd l_2(1, num_labels);
+
+		// Check an image
+		if (   image_label.first.isNull() == true
+		    || image_label.first.sizeInBytes() != imagesWidth * imagesHeight) {
+			PRINT_ERR(true, PREF, "Bad test image");
+			return -1;
+		}
+
+		// Get an image (layer 0)
+		auto image_data = image_label.first.bits();
+		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+			l_0(0, i) = image_data[i] / 255.0;
+		}
+
+		// Calculate an layer 1
+		l_1 = l_0 * w_0_1;
+
+		// Apply an activation function to the layer 1 (hidden layer)
+		// Hyperbolic tangent
+		tanh(l_1.data(), l_1.size());
+
+		// Calculate an layer 2
+		l_2 = l_1 * w_1_2;
+
+		// Get a label
+		Eigen::MatrixXd label(1, num_labels);
+		for (uint32_t i = 0; i < num_labels; ++i) {
+			label(0, i) = image_label.second[i];
+
+			if (true == test) {
+				PRINT_DBG(true, PREF, "%f", l_2(0, i));
+			}
+		}
+
+		// Calculate an error
+		error += ((label - l_2) * (label - l_2).transpose()).sum();
+
+		// Add to correct counter
+		if (   maxArrayElementIndex(l_2.data(), l_2.size())
+		    == maxArrayElementIndex(label.data(), label.size())) {
+			++correct_cnt;
+		}
+
+		// Check a divergence
+		if (error > max_error) {
+			PRINT_ERR(true, PREF, "divergence");
+			return -1;
+		}
+
+	} // Test images loop
 
 	return 0;
 }
