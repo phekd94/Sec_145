@@ -1,12 +1,10 @@
 
 #include "CopterSearchRecognition.h"
 
-#include "algorithms/Algorithms.h"  // correlationCoefficient(), dotProduct()
-#include <QByteArray>               // QByteArray class
-#include <cmath>                    // std::fabs()
-#include <algorithm>                // std::transform() template function
+#include <QByteArray>     // QByteArray class
+#include "other/Other.h"  // writeVarInFile<>()
 
-#include "other/printDebug.h"       // PRINT_DBG, PRINT_ERR
+#include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;
@@ -15,66 +13,97 @@ using namespace Sec_145;
 const char* const CopterSearchRecognition::PREF = "[CopterSearchRecognition]: ";
 
 //-------------------------------------------------------------------------------------------------
-CopterSearchRecognition::CopterSearchRecognition(const std::vector<QString>& pathModels,
+CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkParams,
                                                  const LearningType modelsType,
-                                                 const QString& resultPath,
-                                                 const uint32_t modelWidth,
-                                                 const uint32_t modelHeight) :
-    m_modelsType(modelsType),
-    m_modelWidth(modelWidth),
-    m_modelHeight(modelHeight)
+                                                 const QString& resultName,
+                                                 const uint32_t imagesWidth,
+                                                 const uint32_t imagesHeight,
+                                                 uint32_t incrCutArea) :
+    m_learningType(modelsType),
+    m_imagesWidth(imagesWidth),
+    m_imagesHeight(imagesHeight),
+    m_init(false),
+    m_incrCutArea(incrCutArea)
 {
-	m_number = static_cast<uint32_t>(pathModels.size());
-	m_f = std::vector<QFile>(m_number);
+	switch (m_learningType) {
+	case LearningType::Neural_2_layer:
+	{
+		// Open a file with parameters of the neural network
+		QFile f(pathToNetworkParams + "/l_2_b_params.txt");
+		if (f.open(QIODevice::ReadOnly) == false) {
+			PRINT_ERR(true, PREF, "Can't open a file with parameters of the neural network");
+			return;
+		}
 
-	switch (m_modelsType) {
+		// Read an alpha coefficient
+		// m_alpha
+
+		// Read a number of intermediate layers
+		// m_hidden_size
+
+		// Close file with parameters of the neural network
+		f.close();
+
+		// Open a file with weight (layer 0 -> layer 1)
+		f.setFileName(pathToNetworkParams + "/l_2_b_w_0_1.txt");
+		if (f.open(QIODevice::ReadOnly) == false) {
+			PRINT_ERR(true, PREF, "Can't open a file with weight w_0_1");
+			return;
+		}
+
+		// Read a weight w_0_1
+		// m_w_0_1 // m_imagesWidth * m_imagesHeight, m_hidden_size
+
+		// Close file with weight w_0_1
+		f.close();
+
+		// Open a file with weight (layer 1 -> layer 2)
+		f.setFileName(pathToNetworkParams + "/l_2_b_w_1_2.txt");
+		if (f.open(QIODevice::ReadOnly) == false) {
+			PRINT_ERR(true, PREF, "Can't open a file with weight w_1_2");
+			return;
+		}
+
+		// Read a weight w_1_2
+		// m_w_1_2 // m_hidden_size, m_numCopters
+
+		// Close file with weight w_1_2
+		f.close();
+
+		// Open a file for result (without check)
+		m_f.setFileName(pathToNetworkParams + "/" + resultName);
+		m_f.open(QIODevice::WriteOnly);
+
+		break;
+	}
 	default:
-		m_number = 0;
 		PRINT_ERR(true, PREF, "Unknown learning type");
 		return;
 		break;
 	}
 
-	// Loop for all model
-	for (uint32_t i = 0; i < m_number; ++i) {
+	// Set initialization flag
+	m_init = true;
 
-		// Open a file for write a results (if need)
-		if (resultPath.isNull() == false) {
-			m_f[i].setFileName(resultPath + "/c_" + QString::number(i) + ".txt");
-			if (m_f[i].open(QIODevice::WriteOnly) == false) {
-				PRINT_ERR(true, PREF, "Can't open %lu file in WriteOnly mode",
-				          static_cast<unsigned long>(i));
-			}
-		}
-
-		// Get a model
-		switch (m_modelsType) {
-		case LearningType::Neural_2_layer:
-		{
-			break;
-		}
-		}
-	}
-
-	PRINT_DBG(m_debug, PREF, "Load models was successfull");
+	PRINT_DBG(m_debug, PREF, "Load neural network was successfull");
 }
 
 //-------------------------------------------------------------------------------------------------
 CopterSearchRecognition::~CopterSearchRecognition()
 {
-	// Close files for write results
-	for (auto & file : m_f) {
-		file.close();
-	}
-	PRINT_DBG(m_debug, PREF, "Files were closed");
+	PRINT_DBG(m_debug, PREF, "");
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image,
-                                                      std::vector<double>& results)
+int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint32_t& copterIndex)
 {
-	// Initialization a vector with models images
-	results.resize(m_number, 0);
+	// Set a copter index to 0
+	copterIndex = 0;
+
+	// Check the init flag
+	if (m_init == false) {
+		return -1;
+	}
 
 	// Check the incoming parameter
 	if (image.isNull() == true) {
@@ -93,6 +122,30 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image,
 		return -1;
 	}
 
+	// Increase a cut area
+	if (m_incrCutArea > x)
+		x = 0;
+	else
+		x -= m_incrCutArea;
+
+	if (m_incrCutArea > y)
+		y = 0;
+	else
+		y -= m_incrCutArea;
+
+	if (x + w + 2 * m_incrCutArea >= static_cast<uint32_t>(image.width()))
+		w = static_cast<uint32_t>(image.width()) - x;
+	else
+		w += 2 * m_incrCutArea;
+
+	if (y + h + 2 * m_incrCutArea >= static_cast<uint32_t>(image.height()))
+		h = static_cast<uint32_t>(image.height()) - y;
+	else
+		h += 2 * m_incrCutArea;
+
+	qDebug() << x << y << w << h;
+	return 0; ///////////////////////////////////////////////////////////
+
 	// Cut an area with copter
 	QImage imageCopter = image.copy(x, y, w, h);
 	if (imageCopter.isNull() == true) {
@@ -102,41 +155,34 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image,
 		return -1;
 	}
 
-	// Get data of this area and convert it
-	uint8_t* data = imageCopter.bits();
-	for (uint32_t i = 0; i < imageCopter.sizeInBytes(); ++i) {
-		if (data[i] < 255)
-			data[i] = 0;
-	}
+	// Convert to Grayscale8 format
+	imageCopter.convertTo(QImage::Format_Grayscale8);
 
 	// Scale a cuted area
-	QImage imageCopterScale = imageCopter.scaled(m_modelWidth, m_modelHeight);
+	QImage imageCopterScale = imageCopter.scaled(m_imagesWidth, m_imagesHeight);
 	if (imageCopterScale.isNull() == true) {
 		PRINT_ERR(true, PREF, "Scaled image is null");
 		return -1;
 	}
-	data = imageCopterScale.bits();
 
 	// Get a results
-	for (uint32_t i = 0; i < m_number; ++i) {
-		switch (m_modelsType) {
-		case LearningType::Neural_2_layer:
-		{
-
-			break;
-		}
-		default:
-			return -1;
-			break;
-		}
+	uint32_t recognitionLabel;
+	switch (m_learningType) {
+	case LearningType::Neural_2_layer:
+	{
+		// recognitionLabel = get...() // m_numCopters, m_imagesWidth, m_imagesHeight
+		// m_w_0_1, m_w_1_2, m_hidden_size,     imageCopterScale
+		break;
+	}
+	default:
+		return -1;
+		break;
 	}
 
-	// Save results
-	for (uint32_t i = 0; i < m_number; ++i) {
-
-		// Write data
-		if (m_f[i].isOpen() == true) {
-			m_f[i].write(QByteArray::number(results[i]) + QByteArray("\n"));
+	// Save result
+	if (m_f.isOpen() == true) {
+		if (writeVarInFile(m_f, recognitionLabel) != 0) {
+			PRINT_ERR(true, PREF, "Can't write a result");
 		}
 	}
 

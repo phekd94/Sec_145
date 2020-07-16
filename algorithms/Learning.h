@@ -41,18 +41,24 @@ NOTE: * Access only across '*' or '[]' to data received from Eigen::MatrixXd::da
 
 	  * Python code for print a plot:
 "
-	# Import a module
 	import matplotlib.pyplot as plt
 
-	# Read a file content
-	with open("C:/Users/ekd/Documents/deep_learning/models/neural/inspire_e.txt", 'r') as f:
+	with open(PATH_TO_FILE_WITH_TEST, 'r') as f:
 		content = f.readlines()
 	content = [float(x.strip()) for x in content]
 
-	# Assign data to plot
-	plt.plot(content)
+	with open(PATH_TO_FILE_WITH_TRAIN, 'r') as f:
+		content_2 = f.readlines()
+	content_2 = [float(x.strip()) for x in content_2]
 
-	# Show a plot
+	plt.plot(content, label='test')
+	plt.plot(content_2, label='train')
+	plt.legend()
+	plt.title('Success')
+	plt.xlabel('Iteration')
+	plt.ylabel('Probability of success')
+	plt.grid(True)
+
 	plt.show()
 "
 
@@ -64,8 +70,9 @@ NOTE: * Access only across '*' or '[]' to data received from Eigen::MatrixXd::da
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <cstdint>  // integer types
-#include <QString>  // QString class
+#include <cstdint>      // integer types
+#include <QString>      // QString class
+#include "Eigen/Dense"  // Eigen::MatrixXd class
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145

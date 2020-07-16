@@ -11,7 +11,6 @@
 #include <ctime>          // time()
 #include <utility>        // std::pair<>
 #include <QByteArray>     // QByteArray class
-#include "Eigen/Dense"    // Eigen::MatrixXd class
 #include "other/Other.h"  // writeVarInFile<>()
 #include "Algorithms.h"   // convertPixelLimits[](); dotProduct(); sumArrayExpElements<>();
                           // maxArrayElement<>(); maxArrayElementIndex<>()
@@ -96,7 +95,8 @@ int32_t batch_gradientDescent(
 
 //-------------------------------------------------------------------------------------------------
 // Test neural network weights
-int32_t testWeights(const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels_test,
+int32_t testWeights(
+            const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels_test,
             const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
             double& error, uint32_t& correct_cnt,
             const uint32_t num_labels, const uint32_t hidden_size,

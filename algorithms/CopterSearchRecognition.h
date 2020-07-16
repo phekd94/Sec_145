@@ -3,7 +3,7 @@
 
 //-------------------------------------------------------------------------------------------------
 /*
-DESCRITION: Class for copter search for chameleon project
+DESCRITION: Class for copter recognition
 TODO: * test class (logic() method)
 FIXME:
 DANGER:
@@ -23,7 +23,7 @@ Sec_145::CopterSearchRecognition
 #include <QString>                // QString class
 #include "algorithms/Learning.h"  // LearningType enum
 #include <QFile>                  // QFile class
-#include <vector>                 // std::vector template class
+#include "Eigen/Dense"            // Eigen::MatrixXd class
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -34,15 +34,16 @@ class CopterSearchRecognition : public CopterSearch
 {
 
 public:
-	CopterSearchRecognition(const std::vector<QString>& pathModels,
-	                        const LearningType modelsType,
-	                        const QString& resultPath = QString(),
-	                        const uint32_t modelWidth = 20,
-	                        const uint32_t modelHeight = 20);
+	CopterSearchRecognition(const QString& pathToNetworkParams,
+	                        const LearningType learningType,
+	                        const QString& resultName,
+	                        const uint32_t imagesWidth,
+	                        const uint32_t imagesHeight,
+	                        uint32_t incrCutArea);
 	virtual ~CopterSearchRecognition();
 
 	// Gets recognition percents
-	int32_t getRecognitionResult(const QImage& image, std::vector<double>& results);
+	int32_t getRecognitionResult(const QImage& image, uint32_t& copterIndex);
 
 private:
 
@@ -50,17 +51,33 @@ private:
 	static const char* const PREF;
 
 	// Type of models
-	LearningType m_modelsType;
+	LearningType m_learningType;
 
-	// Number of copters models
-	uint32_t m_number;
+	// Number of copters for recognition
+	uint32_t m_numCopters;
 
-	// Files for results
-	std::vector<QFile> m_f;
+	// File for result
+	QFile m_f;
 
-	// Width and height of models
-	uint32_t m_modelWidth;
-	uint32_t m_modelHeight;
+	// Width and height of input image
+	uint32_t m_imagesWidth;
+	uint32_t m_imagesHeight;
+
+	// Weights
+	Eigen::MatrixXd m_w_0_1;
+	Eigen::MatrixXd m_w_1_2;
+
+	// Initialization flag
+	bool m_init;
+
+	// Alpha coefficient
+	double m_alpha;
+
+	// Number of intermediate layers
+	uint32_t m_hidden_size;
+
+	// For increase a cut area
+	uint32_t m_incrCutArea;
 };
 
 //-------------------------------------------------------------------------------------------------
