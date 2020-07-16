@@ -45,17 +45,7 @@ int32_t writeVarInFile(QFile& file, const T& data)
 //-------------------------------------------------------------------------------------------------
 // Write variable in file (explicit specialization for double data type)
 template <>
-int32_t writeVarInFile<double>(QFile& file, const double& data)
-{
-	const char* const PREF = "[Other]: ";
-	QByteArray ar;
-	ar = ar.setNum(data, 'f');
-	if (file.write(ar + "\n") == -1) {
-		PRINT_ERR(true, PREF, "Bad data");
-		return -1;
-	}
-	return 0;
-}
+int32_t writeVarInFile<double>(QFile& file, const double& data);
 
 //-------------------------------------------------------------------------------------------------
 // Write array in file
