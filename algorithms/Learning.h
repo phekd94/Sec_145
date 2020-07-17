@@ -72,6 +72,7 @@ NOTE: * Access only across '*' or '[]' to data received from Eigen::MatrixXd::da
 //-------------------------------------------------------------------------------------------------
 #include <cstdint>      // integer types
 #include <QString>      // QString class
+#include <QImage>       // QImage class
 #include "Eigen/Dense"  // Eigen::MatrixXd class
 
 //-------------------------------------------------------------------------------------------------
@@ -85,6 +86,13 @@ enum class LearningType {
 	Neural_1_layer [[deprecated("This learning method gives inaccurate results")]],
 	Neural_2_layer,
 };
+
+//-------------------------------------------------------------------------------------------------
+// Get recognition label from neural network
+int32_t getRecognitionLabel(const QImage& image,
+                            const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
+                            Eigen::MatrixXd& l_0, Eigen::MatrixXd& l_1, Eigen::MatrixXd& l_2,
+                            const uint32_t imagesWidth, const uint32_t imagesHeight);
 
 //-------------------------------------------------------------------------------------------------
 // Learning a model

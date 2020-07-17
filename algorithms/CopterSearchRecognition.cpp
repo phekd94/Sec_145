@@ -1,8 +1,9 @@
 
 #include "CopterSearchRecognition.h"
 
-#include <QByteArray>     // QByteArray class
-#include "other/Other.h"  // writeVarInFile<>()
+#include <QByteArray>             // QByteArray class
+#include "other/Other.h"          // writeVarInFile<>()
+#include "algorithms/Learning.h"  // getRecognitionLabel()
 
 #include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -35,11 +36,17 @@ CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkPar
 			return;
 		}
 
-		// Read an alpha coefficient
-		// m_alpha
+		// Read an number of copters
+		if (readVarFromFile(f, m_numCopters) != 0) {
+			PRINT_ERR(true, PREF, "readVarFromFile(m_alpha)");
+			return;
+		}
 
 		// Read a number of intermediate layers
-		// m_hidden_size
+		if (readVarFromFile(f, m_hidden_size) != 0) {
+			PRINT_ERR(true, PREF, "readVarFromFile(m_hidden_size)");
+			return;
+		}
 
 		// Close file with parameters of the neural network
 		f.close();
@@ -52,7 +59,11 @@ CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkPar
 		}
 
 		// Read a weight w_0_1
-		// m_w_0_1 // m_imagesWidth * m_imagesHeight, m_hidden_size
+		m_w_0_1 = Eigen::MatrixXd(m_imagesWidth * m_imagesHeight, m_hidden_size);
+		if (readMatrixFromFile(f, m_w_0_1) != 0) {
+			PRINT_ERR(true, PREF, "readMatrixFromFile(m_w_0_1)");
+			return;
+		}
 
 		// Close file with weight w_0_1
 		f.close();
@@ -65,13 +76,22 @@ CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkPar
 		}
 
 		// Read a weight w_1_2
-		// m_w_1_2 // m_hidden_size, m_numCopters
+		m_w_1_2 = Eigen::MatrixXd(m_hidden_size, m_numCopters);
+		if (readMatrixFromFile(f, m_w_1_2) != 0) {
+			PRINT_ERR(true, PREF, "readMatrixFromFile(m_w_1_2)");
+			return;
+		}
 
 		// Close file with weight w_1_2
 		f.close();
 
+		// Create layers
+		m_l_0 = Eigen::MatrixXd(1, m_imagesWidth * m_imagesHeight);
+		m_l_1 = Eigen::MatrixXd(1, m_hidden_size);
+		m_l_2 = Eigen::MatrixXd(1, m_numCopters);
+
 		// Open a file for result (without check)
-		m_f.setFileName(pathToNetworkParams + "/" + resultName);
+		m_f.setFileName(pathToNetworkParams + "/" + resultName + ".txt");
 		m_f.open(QIODevice::WriteOnly);
 
 		break;
@@ -143,9 +163,6 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 	else
 		h += 2 * m_incrCutArea;
 
-	qDebug() << x << y << w << h;
-	return 0; ///////////////////////////////////////////////////////////
-
 	// Cut an area with copter
 	QImage imageCopter = image.copy(x, y, w, h);
 	if (imageCopter.isNull() == true) {
@@ -166,12 +183,20 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 	}
 
 	// Get a results
-	uint32_t recognitionLabel;
 	switch (m_learningType) {
 	case LearningType::Neural_2_layer:
 	{
-		// recognitionLabel = get...() // m_numCopters, m_imagesWidth, m_imagesHeight
-		// m_w_0_1, m_w_1_2, m_hidden_size,     imageCopterScale
+		int32_t recognitionLabel;
+		recognitionLabel = getRecognitionLabel(imageCopterScale, m_w_0_1, m_w_1_2,
+		                                       m_l_0, m_l_1, m_l_2,
+		                                       m_imagesWidth, m_imagesHeight);
+		if (recognitionLabel < 0) {
+			PRINT_ERR(true, PREF, "getRecognitionLabel()");
+			return -1;
+		}
+
+		copterIndex = static_cast<uint32_t>(recognitionLabel);
+
 		break;
 	}
 	default:
@@ -181,7 +206,7 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 
 	// Save result
 	if (m_f.isOpen() == true) {
-		if (writeVarInFile(m_f, recognitionLabel) != 0) {
+		if (writeVarInFile(m_f, copterIndex) != 0) {
 			PRINT_ERR(true, PREF, "Can't write a result");
 		}
 	}

@@ -5,6 +5,7 @@
 /*
 DESCRITION: Helper functions
 TODO: * PREF
+	  * One readVarFromFile() function. Use type_id
 FIXME:
 DANGER:
 NOTE:
@@ -30,12 +31,10 @@ namespace Sec_145
 //-------------------------------------------------------------------------------------------------
 // Write variable in file
 template <typename T>
-int32_t writeVarInFile(QFile& file, const T& data)
+int32_t writeVarInFile(QFile& file, const T& var)
 {
 	const char* const PREF = "[Other]: ";
-	QByteArray ar;
-	ar = ar.setNum(data);
-	if (file.write(ar + "\n") == -1) {
+	if (file.write(QByteArray::number(var) + "\n") == -1) {
 		PRINT_ERR(true, PREF, "Bad data");
 		return -1;
 	}
@@ -45,7 +44,7 @@ int32_t writeVarInFile(QFile& file, const T& data)
 //-------------------------------------------------------------------------------------------------
 // Write variable in file (explicit specialization for double data type)
 template <>
-int32_t writeVarInFile<double>(QFile& file, const double& data);
+int32_t writeVarInFile<double>(QFile& file, const double& var);
 
 //-------------------------------------------------------------------------------------------------
 // Write array in file
@@ -72,6 +71,29 @@ int32_t writeMatrixInFile(QFile& file, const Matrix& m)
 		for (uint32_t j = 0; j < m.cols(); ++j) {
 			if (writeVarInFile(file, m(i, j)) != 0) {
 				PRINT_ERR(true, PREF, "writeVarInFile()");
+				return -1;
+			}
+		}
+	}
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Read variable from file
+int32_t readVarFromFile(QFile& file, uint32_t& var);
+int32_t readVarFromFile(QFile& file, int32_t& var);
+int32_t readVarFromFile(QFile& file, double& var);
+
+//-------------------------------------------------------------------------------------------------
+// Read matrix from file
+template <typename Matrix>
+int32_t readMatrixFromFile(QFile& file, Matrix& m)
+{
+	const char* const PREF = "[Other]: ";
+	for (uint32_t i = 0; i < m.rows(); ++i) {
+		for (uint32_t j = 0; j < m.cols(); ++j) {
+			if (readVarFromFile(file, m(i, j)) != 0) {
+				PRINT_ERR(true, PREF, "readVarFromFile()");
 				return -1;
 			}
 		}

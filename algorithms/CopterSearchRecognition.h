@@ -67,11 +67,13 @@ private:
 	Eigen::MatrixXd m_w_0_1;
 	Eigen::MatrixXd m_w_1_2;
 
+	// Layers
+	Eigen::MatrixXd m_l_0;
+	Eigen::MatrixXd m_l_1;
+	Eigen::MatrixXd m_l_2;
+
 	// Initialization flag
 	bool m_init;
-
-	// Alpha coefficient
-	double m_alpha;
 
 	// Number of intermediate layers
 	uint32_t m_hidden_size;

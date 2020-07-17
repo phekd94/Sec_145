@@ -21,7 +21,7 @@ NOTE: * "const" in lambda function definition: "const" makes the linkage interna
 #include <cstdint>  // integer types
 #include <QString>  // QString class
 #include <vector>   // std::vector template class
-#include <cmath>    // std::exp()
+#include <cmath>    // std::exp(); DBL_MIN
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145

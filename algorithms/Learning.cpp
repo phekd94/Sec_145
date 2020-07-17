@@ -104,6 +104,13 @@ int32_t testWeights(
             const uint32_t max_error, const bool test = false);
 
 //-------------------------------------------------------------------------------------------------
+// Get recognition from neural network
+int32_t getRecognitionLayer(const QImage& image,
+                            const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
+                            Eigen::MatrixXd& l_0, Eigen::MatrixXd& l_1, Eigen::MatrixXd& l_2,
+                            const uint32_t imagesWidth, const uint32_t imagesHeight);
+
+//-------------------------------------------------------------------------------------------------
 // ReLU activation function
 template <typename DataType>
 void ReLU(DataType* const data, uint32_t size)
@@ -442,7 +449,7 @@ int32_t neuralLearning_2_layer(
 	} // Iterations loop
 
 	// Save neural network parameters
-	if (writeVarInFile(f_params, alpha) != 0) {
+	if (writeVarInFile(f_params, num_labels) != 0) {
 		PRINT_ERR(true, PREF, "writeVarInFile(alpha)");
 		return -1;
 	}
@@ -858,28 +865,11 @@ int32_t testWeights(
 		Eigen::MatrixXd l_1(1, hidden_size);
 		Eigen::MatrixXd l_2(1, num_labels);
 
-		// Check an image
-		if (   image_label.first.isNull() == true
-		    || image_label.first.sizeInBytes() != imagesWidth * imagesHeight) {
-			PRINT_ERR(true, PREF, "Bad test image");
+		if (getRecognitionLayer(image_label.first, w_0_1, w_1_2, l_0, l_1, l_2,
+		                        imagesWidth, imagesHeight) != 0) {
+			PRINT_ERR(true, PREF, "getRecognitionLayer()");
 			return -1;
 		}
-
-		// Get an image (layer 0)
-		auto image_data = image_label.first.bits();
-		for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
-			l_0(0, i) = image_data[i] / 255.0;
-		}
-
-		// Calculate an layer 1
-		l_1 = l_0 * w_0_1;
-
-		// Apply an activation function to the layer 1 (hidden layer)
-		// Hyperbolic tangent
-		tanh(l_1.data(), l_1.size());
-
-		// Calculate an layer 2
-		l_2 = l_1 * w_1_2;
 
 		// Get a label
 		Eigen::MatrixXd label(1, num_labels);
@@ -909,6 +899,51 @@ int32_t testWeights(
 	} // Test images loop
 
 	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t getRecognitionLayer(const QImage& image,
+                            const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
+                            Eigen::MatrixXd& l_0, Eigen::MatrixXd& l_1, Eigen::MatrixXd& l_2,
+                            const uint32_t imagesWidth, const uint32_t imagesHeight)
+{
+	// Check an image
+	if (image.isNull() == true || image.sizeInBytes() != imagesWidth * imagesHeight) {
+		PRINT_ERR(true, PREF, "Bad test image");
+		return -1;
+	}
+
+	// Get an image (layer 0)
+	auto image_data = image.bits();
+	for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+		l_0(0, i) = image_data[i] / 255.0;
+	}
+
+	// Calculate an layer 1
+	l_1 = l_0 * w_0_1;
+
+	// Apply an activation function to the layer 1 (hidden layer)
+	// Hyperbolic tangent
+	tanh(l_1.data(), l_1.size());
+
+	// Calculate an layer 2
+	l_2 = l_1 * w_1_2;
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t getRecognitionLabel(const QImage& image,
+                            const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
+                            Eigen::MatrixXd& l_0, Eigen::MatrixXd& l_1, Eigen::MatrixXd& l_2,
+                            const uint32_t imagesWidth, const uint32_t imagesHeight)
+{
+	if (getRecognitionLayer(image, w_0_1, w_1_2, l_0, l_1, l_2, imagesWidth, imagesHeight) != 0) {
+		PRINT_ERR(true, PREF, "getRecognitionLayer()");
+		return -1;
+	}
+
+	return maxArrayElementIndex(l_2.data(), l_2.size());
 }
 
 //-------------------------------------------------------------------------------------------------
