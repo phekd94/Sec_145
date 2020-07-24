@@ -323,26 +323,36 @@ int32_t neuralLearning_2_layer(
         const bool test)
 {
 	// Debug frequency multiplier
-	const uint32_t debug_f_mul = 1;
+	const uint32_t debug_f_mul {1};
 
 	// Alpha coefficient
-	const double alpha = 0.01;
+	const double alpha {0.01};
 
 	// Max weight and error for catch a divergence
-	const double max_weight = 1000;
-	const double max_error = 1000;
+	const double max_weight {1000};
+	const double max_error {1000};
+
+	// Kernels parameters
+	uint32_t num_kernels {16};
+	uint32_t kernel_rows {3};
+	uint32_t kernel_cols {3};
 
 	// Number of intermediate layers
-	const uint32_t hidden_size = 100;
+	// const uint32_t hidden_size = 100;
+	const uint32_t hidden_size {(imagesWidth - kernel_rows) *
+		                        (imagesHeight - kernel_cols) *
+		                        num_kernels};
 
 	// Number of labels
-	const uint32_t num_labels = static_cast<uint32_t>(images_labels.front().second.size());
+	const uint32_t num_labels {static_cast<uint32_t>(images_labels.front().second.size())};
 
 	// Batch size
-	const uint32_t batch_size = 24;
+	// const uint32_t batch_size {24};
+	const uint32_t batch_size {1};
 
 	// Weights
-	Eigen::MatrixXd w_0_1(imagesWidth * imagesHeight, hidden_size);
+	// Eigen::MatrixXd w_0_1(imagesWidth * imagesHeight, hidden_size);
+	Eigen::MatrixXd w_0_1(kernel_rows * kernel_cols, num_kernels); // kernels
 	Eigen::MatrixXd w_1_2(hidden_size, num_labels);
 
 	// Fill the matrix with weights of random numbers
