@@ -775,6 +775,7 @@ int32_t batch_gradientDescent(
 			// Get an image (layer 0)
 			auto image_data = image_label.first.bits();
 			for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+				// Normalization of image data
 				l_0[batch](0, i) = image_data[i] / 255.0;
 			}
 
@@ -919,7 +920,7 @@ int32_t getRecognitionLayer(const QImage& image,
 {
 	// Check an image
 	if (image.isNull() == true || image.sizeInBytes() != imagesWidth * imagesHeight) {
-		PRINT_ERR(true, PREF, "Bad test image");
+		PRINT_ERR(true, PREF, "Bad image");
 		return -1;
 	}
 

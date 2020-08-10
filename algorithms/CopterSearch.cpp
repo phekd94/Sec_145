@@ -87,7 +87,8 @@ int32_t CopterSearch::getIndexOfObjectSet()
 	}
 
 	// Index for return value; maximal size of suitable set
-	uint32_t index, max_set_size = 0;
+    int32_t index = 0;
+    uint32_t max_set_size = 0;
 
 	// Process all parameters in vector
 	for (uint32_t i = 0; i < mm_xy.size(); ++i) {
@@ -117,19 +118,15 @@ int32_t CopterSearch::getIndexOfObjectSet()
 		// Filter a member by old object position
 		if (true == m_flag_old_object) {
 			if (true == m_old_object.valid) {
-				if (!(   std::abs(static_cast<int>(m_old_object.max_x) -
-				                  static_cast<int>(mm_xy[i].max_x)) <
-				         m_delta_old_object
-				      && std::abs(static_cast<int>(m_old_object.max_y) -
-				                  static_cast<int>(mm_xy[i].max_y)) <
-				         m_delta_old_object
-				      && std::abs(static_cast<int>(m_old_object.min_x) -
-				                  static_cast<int>(mm_xy[i].min_x)) <
-				         m_delta_old_object
-				      && std::abs(static_cast<int>(m_old_object.min_y) -
-				                  static_cast<int>(mm_xy[i].min_y)) <
-				         m_delta_old_object)) {
-					PRINT_DBG(m_debug, PREF, "stop: filter by old obj, index = %lu",
+                if (   std::abs(static_cast<int>(m_old_object.max_x) -
+                                static_cast<int>(mm_xy[i].max_x)) > m_delta_old_object
+                    && std::abs(static_cast<int>(m_old_object.max_y) -
+                                static_cast<int>(mm_xy[i].max_y)) > m_delta_old_object
+                    && std::abs(static_cast<int>(m_old_object.min_x) -
+                                static_cast<int>(mm_xy[i].min_x)) > m_delta_old_object
+                    && std::abs(static_cast<int>(m_old_object.min_y) -
+                                static_cast<int>(mm_xy[i].min_y)) > m_delta_old_object) {
+                    PRINT_DBG(m_debug, PREF, "stop: filter by old obj, index = %lu",
 					          static_cast<unsigned long>(mm_xy[i].i));
 					continue;
 				}
@@ -142,7 +139,7 @@ int32_t CopterSearch::getIndexOfObjectSet()
 		// Choice a set with maximum size
 		if (mm_xy[i].set_size > max_set_size) {
 			max_set_size = mm_xy[i].set_size;
-			index = i;
+            index = static_cast<int32_t>(i);
 		}
 	}
 
@@ -160,11 +157,11 @@ int32_t CopterSearch::getIndexOfObjectSet()
 		index = -1;
 	} else {
 		m_flag_recognized = true;
-		m_copterSet = m_d_set[index];
+        m_copterSet = m_d_set[static_cast<uint32_t>(index)];
 		if (true == m_debug)
-			mm_xy[index].print();
+            mm_xy[static_cast<uint32_t>(index)].print();
 		PRINT_DBG(m_debug, PREF, "is an old object now");
-		m_old_object = mm_xy[index];
+        m_old_object = mm_xy[static_cast<uint32_t>(index)];
 	}
 
 	PRINT_DBG(m_debug, PREF, "=================");
