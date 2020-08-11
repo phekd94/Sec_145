@@ -94,6 +94,18 @@ int32_t batch_gradientDescent(
             const uint32_t max_error, const uint32_t max_weight);
 
 //-------------------------------------------------------------------------------------------------
+// Batch gradient descent method with convolutional layer
+int32_t batch_gradientDescent_conv(
+            const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels,
+            const uint32_t batch_size,
+            Eigen::MatrixXd& w_0_1, Eigen::MatrixXd& w_1_2,
+            double& error, uint32_t& correct_cnt,
+            const uint32_t num_labels, const double alpha, const uint32_t hidden_size,
+            const uint32_t kernel_rows, const uint32_t kernel_cols,
+            const uint32_t imagesWidth, const uint32_t imagesHeight, const bool test,
+            const uint32_t max_error, const uint32_t max_weight);
+
+//-------------------------------------------------------------------------------------------------
 // Test neural network weights
 int32_t testWeights(
             const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels_test,
@@ -333,25 +345,22 @@ int32_t neuralLearning_2_layer(
 	const double max_error {1000};
 
 	// Kernels parameters
-	uint32_t num_kernels {16};
+	uint32_t num_kernels {1}; // {16};
 	uint32_t kernel_rows {3};
-	uint32_t kernel_cols {3};
+	uint32_t kernel_cols {4};
 
 	// Number of intermediate layers
-	// const uint32_t hidden_size = 100;
-	const uint32_t hidden_size {(imagesWidth - kernel_rows) *
-		                        (imagesHeight - kernel_cols) *
+	const uint32_t hidden_size {(imagesWidth - kernel_cols + 1) *
+		                        (imagesHeight - kernel_rows + 1) *
 		                        num_kernels};
 
 	// Number of labels
 	const uint32_t num_labels {static_cast<uint32_t>(images_labels.front().second.size())};
 
 	// Batch size
-	// const uint32_t batch_size {24};
-	const uint32_t batch_size {1};
+	const uint32_t batch_size {1}; // {24};
 
 	// Weights
-	// Eigen::MatrixXd w_0_1(imagesWidth * imagesHeight, hidden_size);
 	Eigen::MatrixXd w_0_1(kernel_rows * kernel_cols, num_kernels); // kernels
 	Eigen::MatrixXd w_1_2(hidden_size, num_labels);
 
@@ -396,13 +405,17 @@ int32_t neuralLearning_2_layer(
 		// Set an error and a correct counter to 0
 		error = correct_cnt = 0;
 
-		// Apply a gradient descent
-		if (batch_gradientDescent(images_labels, batch_size, w_0_1, w_1_2, error, correct_cnt,
-		                          num_labels, alpha, hidden_size, imagesWidth, imagesHeight,
+		// Apply a gradient descent with convolutional layer
+		if (batch_gradientDescent_conv(
+		                          images_labels, batch_size, w_0_1, w_1_2, error, correct_cnt,
+		                          num_labels, alpha, hidden_size,
+		                          kernel_rows, kernel_cols,
+		                          imagesWidth, imagesHeight,
 		                          test, max_error, max_weight) != 0) {
-			PRINT_ERR(true, PREF, "batch_gradientDescent()");
+			PRINT_ERR(true, PREF, "batch_gradientDescent_conv()");
 			return -1;
 		}
+		return 0;
 
 		// Print results of training (if need)
 		if (debug_f_mul != 0 && it % debug_f_mul == 0) {
@@ -781,6 +794,191 @@ int32_t batch_gradientDescent(
 
 			// Calculate an layer 1
 			l_1[batch] = l_0[batch] * w_0_1;
+
+			// Apply an activation function to the layer 1 (hidden layer)
+			// Hyperbolic tangent
+			tanh(l_1[batch].data(), l_1[batch].size());
+
+			// Dropout a some neurons in layer 1
+			std::vector<bool> dropout_mask(l_1[batch].size());
+			if (getB_D(dropout_mask, 0.5, test) != 0) {
+				PRINT_ERR(true, PREF, "Can't get bernoulli distribution vector");
+				return -1;
+			}
+			for (uint32_t i = 0; i < l_1[batch].size(); ++i) {
+				l_1[batch](0, i) *= dropout_mask[i] * 2;
+			}
+
+			// Calculate an layer 2
+			l_2[batch] = l_1[batch] * w_1_2;
+
+			// Apply an activation function to the layer 2 (output layer)
+			softmax(l_2[batch].data(), l_2[batch].size());
+
+			// Get a label
+			Eigen::MatrixXd label(1, num_labels);
+			for (uint32_t i = 0; i < num_labels; ++i) {
+				label(0, i) = image_label.second[i];
+			}
+
+			// Calculate an error
+			error += ((label - l_2[batch]) * (label - l_2[batch]).transpose()).sum();
+
+			// Add to correct counter
+			if (   maxArrayElementIndex(l_2[batch].data(), l_2[batch].size())
+			    == maxArrayElementIndex(label.data(), label.size())) {
+				++correct_cnt;
+			}
+
+			// Calculate a delta for layer 2
+			l_2_delta[batch] = label - l_2[batch];
+			for (uint32_t i = 0; i < l_2_delta[batch].size(); ++i) {
+				l_2_delta[batch](0, i) /= (batch_size * num_labels);
+			}
+
+			// Calculate a delta for layer 1
+			l_1_delta[batch] = l_2_delta[batch] * w_1_2.transpose();
+
+			// Apply an derivative of activation function
+			// Hyperbolic tangent
+			tanh_derivative(l_1[batch].data(), l_1[batch].size());
+			for (uint32_t i = 0; i < l_1[batch].size(); ++i) {
+				l_1_delta[batch](0, i) *= l_1[batch](0, i);
+			}
+
+			// Dropout the same neurons as in layer 1
+			for (uint32_t i = 0; i < l_1_delta[batch].size(); ++i) {
+				l_1_delta[batch](0, i) *= dropout_mask[i];
+			}
+
+		} // Batch loop
+
+		// Correct weights
+		for (uint32_t batch = 0; batch < batch_size; ++batch) {
+			w_1_2 += alpha * l_1[batch].transpose() * l_2_delta[batch];
+			w_0_1 += alpha * l_0[batch].transpose() * l_1_delta[batch];
+		}
+
+		// Check a divergence
+		if (   error > max_error
+		    || maxArrayElement(w_1_2.data(), w_1_2.size()) > max_weight
+		    || maxArrayElement(w_0_1.data(), w_0_1.size()) > max_weight) {
+			PRINT_ERR(true, PREF, "divergence");
+			return -1;
+		}
+
+	} // Images loop
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t batch_gradientDescent_conv(
+            const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels,
+            const uint32_t batch_size,
+            Eigen::MatrixXd& w_0_1, Eigen::MatrixXd& w_1_2,
+            double& error, uint32_t& correct_cnt,
+            const uint32_t num_labels, const double alpha, const uint32_t hidden_size,
+            const uint32_t kernel_rows, const uint32_t kernel_cols,
+            const uint32_t imagesWidth, const uint32_t imagesHeight, const bool test,
+            const uint32_t max_error, const uint32_t max_weight)
+{
+	// Layers and delta for layers
+	std::vector<Eigen::MatrixXd> l_0(batch_size, Eigen::MatrixXd(1, imagesWidth * imagesHeight));
+	std::vector<Eigen::MatrixXd> l_1(batch_size, Eigen::MatrixXd(1, hidden_size));
+	std::vector<Eigen::MatrixXd> l_2(batch_size, Eigen::MatrixXd(1, num_labels));
+	std::vector<Eigen::MatrixXd> l_2_delta(batch_size, Eigen::MatrixXd(1, num_labels));
+	std::vector<Eigen::MatrixXd> l_1_delta(batch_size, Eigen::MatrixXd(1, hidden_size));
+
+	// Images loop
+	for (uint32_t i_image = 0; i_image < images_labels.size() / batch_size; ++i_image) {
+
+		// Batch loop
+		for (uint32_t batch = 0; batch < batch_size; ++batch) {
+
+			// Get an image and label from list
+			const auto& image_label = images_labels[i_image * batch_size + batch];
+
+			// Check an image
+			if (   image_label.first.isNull() == true
+			    || image_label.first.sizeInBytes() != imagesWidth * imagesHeight) {
+				PRINT_ERR(true, PREF, "Bad image");
+				return -1;
+			}
+
+			// Get an image (layer 0)
+			auto image_data = image_label.first.bits();
+			for (uint32_t i = 0; i < imagesWidth * imagesHeight; ++i) {
+				// Normalization of image data
+				l_0[batch](0, i) = image_data[i] / 255.0;
+			}
+
+			//l_1[batch] = l_0[batch] * w_0_1;
+
+			//QImage image_l_1(imagesWidth - kernel_cols + 1, imagesHeight - kernel_rows + 1,
+			//                 QImage::Format_Grayscale8);
+			//qDebug() << imagesWidth - kernel_cols + 1 << imagesHeight - kernel_rows + 1;
+
+			// Calculate an layer 1
+			for (uint32_t i = 0; i < w_0_1.cols(); ++i) {
+
+				// Get a kernel
+				Eigen::MatrixXd kernel(kernel_rows, kernel_cols);
+				for (uint32_t row = 0; row < kernel_rows; ++row) {
+					for (uint32_t col = 0; col < kernel_cols; ++col) {
+						kernel(row, col) = w_0_1(row * kernel_cols + col, i);
+						//qDebug() << row * kernel_cols + col << row << col << i;
+						//qDebug() << kernel(row, col);
+					}
+				}
+				//qDebug() << "----";
+
+				// Apply a convolution
+				for (uint32_t l_row = 0; l_row < imagesHeight - kernel_rows + 1; ++l_row) {
+					for (uint32_t l_col = 0; l_col < imagesWidth - kernel_cols + 1; ++l_col) {
+
+						double conv = 0;
+						for (uint32_t k_row = 0; k_row < kernel_rows; ++k_row) {
+							for (uint32_t k_col = 0; k_col < kernel_cols; ++k_col) {
+								conv += kernel(k_row, k_col) *
+								        l_0[batch]((l_row + k_row) * imagesWidth + l_col + k_col);
+//								qDebug() << kernel(k_row, k_col) <<
+//								    l_0[batch]((l_row + k_row) * imagesWidth + l_col + k_col) <<
+//								    kernel(k_row, k_col) *
+//								    l_0[batch]((l_row + k_row) * imagesWidth + l_col + k_col) <<
+//								    conv;
+								//qDebug() << (l_row + k_row) * imagesWidth + l_col + k_col;
+							}
+						}
+
+						//qDebug() << "------";
+
+//						qDebug() << i * (imagesHeight - kernel_rows + 1)
+//						              * (imagesWidth - kernel_cols + 1)
+//						            + l_row * (imagesWidth - kernel_cols + 1)
+//						            + l_col;
+						//qDebug() << "-----------";
+
+						l_1[batch](0,
+						           i * (imagesHeight - kernel_rows + 1)
+						             * (imagesWidth - kernel_cols + 1)
+						           + l_row * (imagesWidth - kernel_cols + 1)
+						           + l_col) = conv;
+
+//						image_l_1.bits()[l_row * (imagesWidth - kernel_cols + 1) + l_col] =
+//						        255 * (conv < 0 ? -conv : conv);
+						//qDebug() << l_row * (imagesWidth - kernel_cols + 1) + l_col;
+
+						//qDebug() << conv;
+
+					}
+				}
+
+			}
+
+			//qDebug() << image_l_1.save("C:/Users/ekd/Documents/deep_learning/images/learn/hard_result_cnn/l_1.png");
+
+			return 0;
 
 			// Apply an activation function to the layer 1 (hidden layer)
 			// Hyperbolic tangent
