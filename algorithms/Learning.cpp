@@ -345,7 +345,7 @@ int32_t neuralLearning_2_layer(
 	const double max_error {1000};
 
 	// Kernels parameters
-	uint32_t num_kernels {1}; // {16};
+	uint32_t num_kernels {2}; // {16};
 	uint32_t kernel_rows {3};
 	uint32_t kernel_cols {4};
 
@@ -436,6 +436,8 @@ int32_t neuralLearning_2_layer(
 			PRINT_ERR(true, PREF, "writeVarInFile(correct_cnt)");
 			return -1;
 		}
+
+		continue; ///////////////////////////////////////////////
 
 		// Set an error and a correct counter to 0
 		error = correct_cnt = 0;
@@ -931,17 +933,21 @@ int32_t batch_gradientDescent_conv(
 						//qDebug() << kernel(row, col);
 					}
 				}
-				//qDebug() << "----";
+				//qDebug() << "=====";
+
+				//continue;
 
 				// Apply a convolution
 				for (uint32_t l_row = 0; l_row < imagesHeight - kernel_rows + 1; ++l_row) {
 					for (uint32_t l_col = 0; l_col < imagesWidth - kernel_cols + 1; ++l_col) {
 
+						// Apply a convolution to the part of layer
 						double conv = 0;
 						for (uint32_t k_row = 0; k_row < kernel_rows; ++k_row) {
 							for (uint32_t k_col = 0; k_col < kernel_cols; ++k_col) {
 								conv += kernel(k_row, k_col) *
-								        l_0[batch]((l_row + k_row) * imagesWidth + l_col + k_col);
+								        l_0[batch](0,
+								                   (l_row + k_row) * imagesWidth + l_col + k_col);
 //								qDebug() << kernel(k_row, k_col) <<
 //								    l_0[batch]((l_row + k_row) * imagesWidth + l_col + k_col) <<
 //								    kernel(k_row, k_col) *
@@ -967,7 +973,7 @@ int32_t batch_gradientDescent_conv(
 
 //						image_l_1.bits()[l_row * (imagesWidth - kernel_cols + 1) + l_col] =
 //						        255 * (conv < 0 ? -conv : conv);
-						//qDebug() << l_row * (imagesWidth - kernel_cols + 1) + l_col;
+						qDebug() << l_row * (imagesWidth - kernel_cols + 1) + l_col;
 
 						//qDebug() << conv;
 
@@ -1018,7 +1024,7 @@ int32_t batch_gradientDescent_conv(
 			// Calculate a delta for layer 2
 			l_2_delta[batch] = label - l_2[batch];
 			for (uint32_t i = 0; i < l_2_delta[batch].size(); ++i) {
-				l_2_delta[batch](0, i) /= (batch_size * num_labels);
+				l_2_delta[batch](0, i) /= (batch_size * num_labels); // num_labels ?!?!?!
 			}
 
 			// Calculate a delta for layer 1
@@ -1041,7 +1047,9 @@ int32_t batch_gradientDescent_conv(
 		// Correct weights
 		for (uint32_t batch = 0; batch < batch_size; ++batch) {
 			w_1_2 += alpha * l_1[batch].transpose() * l_2_delta[batch];
-			w_0_1 += alpha * l_0[batch].transpose() * l_1_delta[batch];
+
+			// w_0_1 += alpha * l_0[batch].transpose() * l_1_delta[batch];
+
 		}
 
 		// Check a divergence
