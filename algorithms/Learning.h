@@ -5,7 +5,9 @@
 /*
 DESCRITION: Functions for learning
 TODO: * test class (logic() method)
-FIXME:
+FIXME: * batch_gradientDescent(), batch_gradientDescent_conv():
+		 l_2_delta[batch](0, i) /= (batch_size * num_labels); // num_labels ???
+	   * batch_gradientDescent_conv(): w_0_1 (+ or -)= alpha * ...
 DANGER:
 NOTE: * Access only across '*' or '[]' to data received from Eigen::MatrixXd::data() method
 	  * Python code for print a histogram:
