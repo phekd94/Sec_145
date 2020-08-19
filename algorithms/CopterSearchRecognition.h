@@ -21,7 +21,7 @@ Sec_145::CopterSearchRecognition
 #include "CopterSearch.h"         // CopterSearch class (for inheritance)
 #include <QImage>                 // QImage class
 #include <QString>                // QString class
-#include "algorithms/Learning.h"  // LearningType enum
+#include "Sec_145/algorithms/Learning.h"  // LearningType enum
 #include <QFile>                  // QFile class
 #include "Eigen/Dense"            // Eigen::MatrixXd class
 

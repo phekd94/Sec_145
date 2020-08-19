@@ -72,6 +72,35 @@ uint32_t maxArrayElementIndex(Array* const array, uint32_t size)
 }
 
 //-------------------------------------------------------------------------------------------------
+// Minimal array element
+template <typename Array>
+double minArrayElement(Array* const array, uint32_t size)
+{
+	double res = DBL_MAX;
+	for (uint32_t i = 0; i < size; ++i) {
+		if (array[i] <= res)
+			res = array[i];
+	}
+	return res;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Index of minimal array element
+template <typename Array>
+uint32_t minArrayElementIndex(Array* const array, uint32_t size)
+{
+	double min = DBL_MAX;
+	uint32_t res = 0;
+	for (uint32_t i = 0; i < size; ++i) {
+		if (array[i] <= min) {
+			min = array[i];
+			res = i;
+		}
+	}
+	return res;
+}
+
+//-------------------------------------------------------------------------------------------------
 // Summary of array elements
 template <typename DataType>
 double sumArrayElements(DataType* const data, uint32_t size)

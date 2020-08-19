@@ -22,7 +22,7 @@ Sec_145::DisjointSet class
 #include <cstdint>             // integer types
 #include <vector>              // std::vector
 
-#include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
+#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
