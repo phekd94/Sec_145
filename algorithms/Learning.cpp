@@ -77,6 +77,24 @@ int32_t getImagesAndLabels(std::vector<std::pair<QImage, std::vector<uint32_t>>>
                            const uint32_t imagesHeight);
 
 //-------------------------------------------------------------------------------------------------
+// Save kernels
+int32_t saveKernels(const Eigen::MatrixXd& kernels,
+                    const uint32_t kernel_rows, const uint32_t kernel_cols,
+                    const QString& resultPath, const QString& resultName);
+
+//-------------------------------------------------------------------------------------------------
+// Save a distribution for kernels
+int32_t saveKernelsDistr(const Eigen::MatrixXd& kernelsDistr,
+                         const uint32_t num_kernels, const uint32_t conv_w, const uint32_t conv_h,
+                         const QString& resultPath, const QString& resultName);
+
+//-------------------------------------------------------------------------------------------------
+// Convert vector items to visible view and save its
+int32_t convertToVisibleAndSave(std::vector<std::vector<double>> vec,
+                                const uint32_t width, const uint32_t height,
+                                const QString& resultPath, const QString& resultName);
+
+//-------------------------------------------------------------------------------------------------
 // Gradient descent method
 int32_t gradientDescent(
             const std::vector<std::pair<QImage, std::vector<uint32_t>>>& images_labels,
@@ -116,6 +134,7 @@ int32_t testWeights(
             const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
             double& error, uint32_t& correct_cnt,
             const uint32_t num_labels, const uint32_t hidden_size,
+            const uint32_t kernel_rows, const uint32_t kernel_cols,
             const uint32_t imagesWidth, const uint32_t imagesHeight,
             const uint32_t max_error, const bool test = false);
 
@@ -125,6 +144,14 @@ int32_t getRecognitionLayer(const QImage& image,
                             const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
                             Eigen::MatrixXd& l_0, Eigen::MatrixXd& l_1, Eigen::MatrixXd& l_2,
                             const uint32_t imagesWidth, const uint32_t imagesHeight);
+
+//-------------------------------------------------------------------------------------------------
+// Get recognition from neural network with convolution layer
+int32_t getRecognitionLayer_cnn(const QImage& image,
+                                const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
+                                Eigen::MatrixXd& l_0, Eigen::MatrixXd& l_1, Eigen::MatrixXd& l_2,
+                                const uint8_t kernel_rows, const uint8_t kernel_cols,
+                                const uint32_t imagesWidth, const uint32_t imagesHeight);
 
 //-------------------------------------------------------------------------------------------------
 // ReLU activation function
@@ -349,9 +376,9 @@ int32_t neuralLearning_2_layer(
 	const double max_error {1000};
 
 	// Kernels parameters
-	uint32_t num_kernels {32}; // 16
-	uint32_t kernel_rows {3};  // 4
-	uint32_t kernel_cols {3};  // 4
+	uint32_t num_kernels {32}; // 32
+	uint32_t kernel_rows {5};  // 3
+	uint32_t kernel_cols {5};  // 3
 
 	// Number of intermediate layers
 	const uint32_t hidden_size {(imagesWidth - kernel_cols + 1) *
@@ -440,14 +467,12 @@ int32_t neuralLearning_2_layer(
 			return -1;
 		}
 
-		continue; ///////////////////////////////////////////////
-
 		// Set an error and a correct counter to 0
 		error = correct_cnt = 0;
 
 		// Test neural network weights
 		if (testWeights(images_labels_test, w_0_1, w_1_2,
-		                error, correct_cnt, num_labels, hidden_size,
+		                error, correct_cnt, num_labels, hidden_size, kernel_rows, kernel_cols,
 		                imagesWidth, imagesHeight, max_error, test) != 0) {
 			PRINT_ERR(true, PREF, "testWeights()");
 			return -1;
@@ -476,35 +501,47 @@ int32_t neuralLearning_2_layer(
 
 	} // Iterations loop
 
-
-
-	std::vector<std::vector<double>> tmp;
-	for (uint32_t col = 0; col < w_0_1.cols(); ++col) {
-		tmp.push_back(std::vector<double>());
-		for (uint32_t row = 0; row < w_0_1.rows(); ++row) {
-			tmp[col].push_back(w_0_1(row, col));
-		}
+	// Save kernels and a distribution for kernels
+	if (saveKernels(w_0_1, kernel_rows, kernel_cols, resultPath, "k_") != 0) {
+		PRINT_ERR(true, PREF, "saveKernels(w_0_1)");
+		return -1;
+	}
+	if (saveKernelsDistr(w_1_2, num_kernels,
+	                     imagesWidth - kernel_cols + 1, imagesHeight - kernel_rows + 1,
+	                     resultPath, "l_") != 0) {
+		PRINT_ERR(true, PREF, "saveKernelsDistr(w_1_2)");
+		return -1;
 	}
 
-	for (uint32_t i = 0; i < tmp.size(); ++i) {
-		double* data = tmp[i].data();
 
-		double add = std::abs(minArrayElement(data, tmp[i].size()));
-		for (uint32_t j = 0; j < tmp[i].size(); ++j) {
-			data[j] += add;
-		}
-
-		QImage image_kernel(kernel_cols, kernel_rows, QImage::Format_Grayscale8);
-		add = maxArrayElement(data, tmp[i].size());
-		for (uint32_t j = 0; j < tmp[i].size(); ++j) {
-			data[j] *= (255 / add);
-			image_kernel.bits()[j] = data[j];
-		}
-		QString s = resultPath + "/kernels/k_" + QString::number(i) + ".png";
-		if (image_kernel.save(s) != true) {
-			qDebug() << "Save error";
+	////
+	Eigen::MatrixXd l_0((imagesWidth - kernel_cols + 1) * (imagesHeight - kernel_rows + 1),
+	                    kernel_rows * kernel_cols);
+	Eigen::MatrixXd l_1(1, hidden_size);
+	Eigen::MatrixXd l_2(1, num_labels);
+	if (getRecognitionLayer_cnn(images_labels_test[1].first, w_0_1, w_1_2, l_0, l_1, l_2,
+	                            kernel_rows, kernel_cols, imagesWidth, imagesHeight) != 0) {
+		PRINT_ERR(true, PREF, "getRecognitionLayer_cnn()");
+		return -1;
+	}
+	// Get a distribution for each kernel from matrix (distributions are located in columns)
+	std::vector<std::vector<double>> vec_kernelsDistr;
+	for (uint32_t ker = 0; ker < num_kernels; ++ker) {
+		vec_kernelsDistr.push_back(std::vector<double>());
+		for (uint32_t distr = ker; distr < l_1.cols(); distr += num_kernels) {
+			vec_kernelsDistr[ker].push_back(l_1(0, distr));
 		}
 	}
+	if (convertToVisibleAndSave(vec_kernelsDistr,
+	                            imagesWidth - kernel_cols + 1, imagesHeight - kernel_rows + 1,
+	                            resultPath + "/l_1/",
+	                            "") != 0) {
+		PRINT_ERR(true, PREF, "convertToVisibleAndSave()");
+		return -1;
+	}
+	return 0;
+	////
+
 
 	// Save neural network parameters
 	if (writeVarInFile(f_params, num_labels) != 0) {
@@ -674,6 +711,122 @@ int32_t getImagesAndLabels(std::vector<std::pair<QImage, std::vector<uint32_t>>>
 	PRINT_DBG(true, PREF, "%lu images from %lu folders were loaded",
 	          static_cast<unsigned long>(files_lists.front().size()),
 	          static_cast<unsigned long>(numCopters));
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t saveKernels(const Eigen::MatrixXd& kernels,
+                    const uint32_t kernel_rows, const uint32_t kernel_cols,
+                    const QString& resultPath, const QString& resultName)
+{
+	// Check the incoming parameters
+	if (kernels.rows() != kernel_rows * kernel_cols) {
+		PRINT_ERR(true, PREF, "Number of rows in matrix with kernels is not equal to "
+		                      "kernel_rows * kernel_cols");
+		return -1;
+	}
+
+	// Get each kernel from matrix (each kernel is located in columns)
+	std::vector<std::vector<double>> vec_kernels;
+	for (uint32_t col = 0; col < kernels.cols(); ++col) {
+		vec_kernels.push_back(std::vector<double>());
+		for (uint32_t row = 0; row < kernels.rows(); ++row) {
+			vec_kernels[col].push_back(kernels(row, col));
+		}
+	}
+
+	// Convert a vector and save images with kernels
+	return convertToVisibleAndSave(vec_kernels, kernel_cols, kernel_rows,
+	                               resultPath + "/kernels/", resultName);
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t saveKernelsDistr(const Eigen::MatrixXd& kernelsDistr,
+                         const uint32_t num_kernels, const uint32_t conv_w, const uint32_t conv_h,
+                         const QString& resultPath, const QString& resultName)
+{
+	// Check the incoming parameters
+	if (kernelsDistr.rows() % num_kernels != 0) {
+		PRINT_ERR(true, PREF, "Number of rows in matrix is not divided by the number of kernels");
+		return -1;
+	}
+
+	// Loop for each label (column) for kernels
+	for (uint32_t col = 0; col < kernelsDistr.cols(); ++col) {
+
+	// Get a distribution for each kernel from matrix (distributions are located in columns)
+	std::vector<std::vector<double>> vec_kernelsDistr;
+	for (uint32_t ker = 0; ker < num_kernels; ++ker) {
+		vec_kernelsDistr.push_back(std::vector<double>());
+		for (uint32_t distr = ker; distr < kernelsDistr.rows(); distr += num_kernels) {
+			vec_kernelsDistr[ker].push_back(kernelsDistr(distr, col));
+		}
+	}
+
+	// Convert each distribution for each kernel to a visible view and save their
+	if (convertToVisibleAndSave(vec_kernelsDistr, conv_w, conv_h,
+	                            resultPath + "/kernel_distr/",
+	                            resultName + QString::number(col) + "_") != 0) {
+		PRINT_ERR(true, PREF, "convertToVisibleAndSave()");
+		return -1;
+	}
+
+	} // Loop for each label (column) for kernels
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Convert vector items to visible view and save its
+int32_t convertToVisibleAndSave(std::vector<std::vector<double>> vec,
+                                const uint32_t width, const uint32_t height,
+                                const QString& resultPath, const QString& resultName)
+{
+	// Convert each vector to a visible view and save their
+	for (uint32_t i = 0; i < vec.size(); ++i) {
+
+		// Check the size of vector
+		if (vec[i].size() != width * height) {
+			PRINT_ERR(true, PREF, "Size of vector is not equal to width * height");
+			return -1;
+		}
+
+		// Get vector data
+		double* const vec_data = vec[i].data();
+
+		// Convert: item [min, max] -> item += min -> item [0, max + min]
+		/*const double min = std::abs(minArrayElement(vec_data,
+													static_cast<uint32_t>(vec[i].size())));
+		for (uint32_t j = 0; j < vec[i].size(); ++j) {
+			vec_data[j] += min;
+		}*/
+
+		// Create an image for vector and get its data
+		QImage image(width, height, QImage::Format_Grayscale8);
+		uint8_t* const image_data = image.bits();
+
+		// Convert: item [0, max + min] -> item *= 255/max -> item [0, 255]
+		const double max = maxArrayElement(vec_data, static_cast<uint32_t>(vec[i].size()));
+		if (max > 255) {
+			PRINT_ERR(true, PREF, "Maximal element from %lu vector is too large",
+			          static_cast<unsigned long>(i));
+			continue;
+		}
+		for (uint32_t j = 0; j < vec[i].size(); ++j) {
+			vec_data[j] *= 255.0 / max;
+			//image_data[j] = vec_data[j];
+			image_data[j] = (vec_data[j] > 0 ? vec_data[j] : 0);
+		}
+
+		// Save an image with vector
+		const QString s = resultPath + resultName + QString::number(i) + ".png";
+		if (image.save(s) != true) {
+			PRINT_ERR(true, PREF, "Can not save an image with %lu vector",
+			          static_cast<unsigned long>(i));
+			return -1;
+		}
+	}
 
 	return 0;
 }
@@ -969,11 +1122,12 @@ int32_t batch_gradientDescent_conv(
 
 			// Apply an activation function to the layer 1 (hidden layer)
 			// Hyperbolic tangent
-			tanh(l_1[batch].data(), l_1[batch].size());
+			// tanh(l_1[batch].data(), l_1[batch].size());
+			ReLU(l_1[batch].data(), l_1[batch].size());
 
 			// Dropout a some neurons in layer 1
 			std::vector<bool> dropout_mask(l_1[batch].size());
-			if (getB_D(dropout_mask, 0.5, test) != 0) {
+			if (getB_D(dropout_mask, 0.8, test) != 0) {
 				PRINT_ERR(true, PREF, "Can't get bernoulli distribution vector");
 				return -1;
 			}
@@ -1013,7 +1167,8 @@ int32_t batch_gradientDescent_conv(
 
 			// Apply an derivative of activation function
 			// Hyperbolic tangent
-			tanh_derivative(l_1[batch].data(), l_1[batch].size());
+			//tanh_derivative(l_1[batch].data(), l_1[batch].size());
+			ReLU_derivative(l_1[batch].data(), l_1[batch].size());
 			for (uint32_t i = 0; i < l_1[batch].size(); ++i) {
 				l_1_delta[batch](0, i) *= l_1[batch](0, i);
 			}
@@ -1064,6 +1219,7 @@ int32_t testWeights(
             const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
             double& error, uint32_t& correct_cnt,
             const uint32_t num_labels, const uint32_t hidden_size,
+            const uint32_t kernel_rows, const uint32_t kernel_cols,
             const uint32_t imagesWidth, const uint32_t imagesHeight,
             const uint32_t max_error, const bool test)
 {
@@ -1071,13 +1227,24 @@ int32_t testWeights(
 	for (const auto& image_label : images_labels_test) {
 
 		// Layers
-		Eigen::MatrixXd l_0(1, imagesWidth * imagesHeight);
+//		Eigen::MatrixXd l_0(1, imagesWidth * imagesHeight);
+//		Eigen::MatrixXd l_1(1, hidden_size);
+//		Eigen::MatrixXd l_2(1, num_labels);
+
+//		if (getRecognitionLayer(image_label.first, w_0_1, w_1_2, l_0, l_1, l_2,
+//		                        imagesWidth, imagesHeight) != 0) {
+//			PRINT_ERR(true, PREF, "getRecognitionLayer()");
+//			return -1;
+//		}
+
+		Eigen::MatrixXd l_0((imagesWidth - kernel_cols + 1) * (imagesHeight - kernel_rows + 1),
+		                    kernel_rows * kernel_cols);
 		Eigen::MatrixXd l_1(1, hidden_size);
 		Eigen::MatrixXd l_2(1, num_labels);
 
-		if (getRecognitionLayer(image_label.first, w_0_1, w_1_2, l_0, l_1, l_2,
-		                        imagesWidth, imagesHeight) != 0) {
-			PRINT_ERR(true, PREF, "getRecognitionLayer()");
+		if (getRecognitionLayer_cnn(image_label.first, w_0_1, w_1_2, l_0, l_1, l_2,
+		                            kernel_rows, kernel_cols, imagesWidth, imagesHeight) != 0) {
+			PRINT_ERR(true, PREF, "getRecognitionLayer_cnn()");
 			return -1;
 		}
 
@@ -1135,6 +1302,53 @@ int32_t getRecognitionLayer(const QImage& image,
 	// Apply an activation function to the layer 1 (hidden layer)
 	// Hyperbolic tangent
 	tanh(l_1.data(), l_1.size());
+
+	// Calculate an layer 2
+	l_2 = l_1 * w_1_2;
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t getRecognitionLayer_cnn(const QImage& image,
+                                const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
+                                Eigen::MatrixXd& l_0, Eigen::MatrixXd& l_1, Eigen::MatrixXd& l_2,
+                                const uint8_t kernel_rows, const uint8_t kernel_cols,
+                                const uint32_t imagesWidth, const uint32_t imagesHeight)
+{
+	// Check an image
+	if (image.isNull() == true || image.sizeInBytes() != imagesWidth * imagesHeight) {
+		PRINT_ERR(true, PREF, "Bad image");
+		return -1;
+	}
+
+	// Get an image (layer 0)
+	auto image_data = image.bits();
+	for (uint32_t l_row = 0; l_row < imagesHeight - kernel_rows + 1; ++l_row) {
+		for (uint32_t l_col = 0; l_col < imagesWidth - kernel_cols + 1; ++l_col) {
+			for (uint32_t k_row = 0; k_row < kernel_rows; ++k_row) {
+				for (uint32_t k_col = 0; k_col < kernel_cols; ++k_col) {
+					l_0(l_row * (imagesWidth - kernel_cols + 1) + l_col,
+					    k_row * kernel_cols + k_col) =
+					    image_data[(l_row + k_row) * imagesWidth + l_col + k_col] / 255.0;
+				}
+			}
+		}
+	}
+
+	// Calculate an layer 1
+	//  Get a convolutions
+	Eigen::MatrixXd tmp = l_0 * w_0_1;
+	//  Matrix to vecor transformation
+	for (uint32_t row = 0; row < tmp.rows(); ++row) {
+		for (uint32_t col = 0; col < tmp.cols(); ++col) {
+			l_1(0, row * tmp.cols() + col) = tmp(row, col);
+		}
+	}
+
+	// Apply an activation function to the layer 1 (hidden layer)
+	// ReLU
+	ReLU(l_1.data(), l_1.size());
 
 	// Calculate an layer 2
 	l_2 = l_1 * w_1_2;
