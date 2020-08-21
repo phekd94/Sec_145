@@ -376,9 +376,9 @@ int32_t neuralLearning_2_layer(
 	const double max_error {1000};
 
 	// Kernels parameters
-	uint32_t num_kernels {32}; // 32
-	uint32_t kernel_rows {5};  // 3
-	uint32_t kernel_cols {5};  // 3
+	uint32_t num_kernels {32};
+	uint32_t kernel_rows {5};
+	uint32_t kernel_cols {5};
 
 	// Number of intermediate layers
 	const uint32_t hidden_size {(imagesWidth - kernel_cols + 1) *
@@ -1127,7 +1127,7 @@ int32_t batch_gradientDescent_conv(
 
 			// Dropout a some neurons in layer 1
 			std::vector<bool> dropout_mask(l_1[batch].size());
-			if (getB_D(dropout_mask, 0.8, test) != 0) {
+			if (getB_D(dropout_mask, 0.7, test) != 0) {
 				PRINT_ERR(true, PREF, "Can't get bernoulli distribution vector");
 				return -1;
 			}
