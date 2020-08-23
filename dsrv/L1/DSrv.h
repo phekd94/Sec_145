@@ -4,7 +4,8 @@
 //-------------------------------------------------------------------------------------------------
 /*
 DESCRITION: pure virtual data server class
-TODO: * sendData(..., address, port, and other parameters) for the all protocols
+TODO:
+	* sendData(..., address, port, and other parameters) for the all protocols
 FIXME:
 DANGER:
 NOTE:
@@ -19,9 +20,9 @@ Sec_145::DSrv class
 */
 
 //-------------------------------------------------------------------------------------------------
-#include "DSrv_Storage.h"             // DSrv_Storage class (for inheritance)
-#include <cstdint>                    // integer types
-#include "dsrv/other/DSrv_Defines.h"  // MAX_NAME_SIZE
+#include "DSrv_Storage.h"           // DSrv_Storage class (for inheritance)
+#include <cstdint>                  // integer types
+#include "../other/DSrv_Defines.h"  // MAX_NAME_SIZE
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145 {

@@ -1,7 +1,7 @@
 
 #include "DSrv_Hexapod_v2.h"
 
-#include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
+#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;
@@ -182,14 +182,14 @@ void DSrv_Hexapod_v2::onSendCommand(const uint32_t cmd, const uint32_t* data, co
 		// Call a stop() method
 		if (stop() != 0) {
 			PRINT_ERR(true, PREF, "stop()");
-			if (true == *data) {
+			if (true == static_cast<bool>(*data)) {
 				emit stateChanged(0, HEXAPOD_ERR_USART_CLOSE, 0);
 			} else {
 				// Set a flag of complete
 				m_stop_ok = true;
 			}
 		} else {
-			if (true == *data) {
+			if (true == static_cast<bool>(*data)) {
 				emit stateChanged(0, HEXAPOD_DEV_CLOSED, 0);
 			} else {
 				// Set a flag of complete

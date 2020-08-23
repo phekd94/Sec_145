@@ -18,11 +18,11 @@ Sec_145::Dsrv_Hexapod_v2 class
 */
 
 //-------------------------------------------------------------------------------------------------
-#include "dsrv/L2/DSrv_USART_QT.h"  // DSrv_USART_QT class (for inheritance)
+#include "../L2/DSrv_USART_QT.h"  // DSrv_USART_QT class (for inheritance)
 
-#include <QObject>                  // Q_OBJECT macros
-#include <cstdint>                  // integer types
-#include <vector>                   // std::vector
+#include <QObject>                // Q_OBJECT macros
+#include <cstdint>                // integer types
+#include <vector>                 // std::vector
 
 //-------------------------------------------------------------------------------------------------
 // Constants

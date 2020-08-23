@@ -7,7 +7,8 @@ DESCRITION: macroses and function for print debug messages
 TODO:
 FIXME:
 DANGER:
-NOTE: * __FUNCTION__ is a __func__ synonym
+NOTE:
+	* __FUNCTION__ is a __func__ synonym
 */
 
 //-------------------------------------------------------------------------------------------------

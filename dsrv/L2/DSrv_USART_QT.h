@@ -4,12 +4,14 @@
 //-------------------------------------------------------------------------------------------------
 /*
 DESCRITION: class implements work with USART
-TODO: * sendData(): blockSignals() (race condition sendData() and slotReadyRead())
-	  * mutex test
-	  * include QSerialPort replace by public inheritance
+TODO:
+	* sendData(): blockSignals() (race condition sendData() and slotReadyRead())
+	* mutex test
+	* include QSerialPort replace by public inheritance
 FIXME:
 DANGER:
-NOTE: * Doesn't suit for large data stream due to slot for read data
+NOTE:
+	* Doesn't suit for large data stream due to slot for read data
 
 Sec_145::DSrv_USART_QT class
 +---------------+------------+
@@ -21,12 +23,12 @@ Sec_145::DSrv_USART_QT class
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <QObject>           // QObject class (for inheritance); Q_OBJECT macros
-#include "dsrv/L1/DSrv.h"    // DSrv class (for inheritance)
+#include <QObject>         // QObject class (for inheritance); Q_OBJECT macros
+#include "../L1/DSrv.h"    // DSrv class (for inheritance)
 
-#include <cstdint>           // integer types
-#include <QSerialPort>       // QSerialPort class
-#include <mutex>             // std::mutex, std::lock_guard
+#include <cstdint>         // integer types
+#include <QSerialPort>     // QSerialPort class
+#include <mutex>           // std::mutex, std::lock_guard
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145 {

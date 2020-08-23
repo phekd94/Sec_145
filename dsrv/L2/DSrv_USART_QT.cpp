@@ -1,7 +1,7 @@
 
 #include "DSrv_USART_QT.h"
 
-#include "other/printDebug.h"  // PRINT_DBG, PRINT_ERR
+#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;

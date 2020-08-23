@@ -4,8 +4,9 @@
 //-------------------------------------------------------------------------------------------------
 /*
 DESCRITION: class for storing data
-TODO: * checksum (with sensitive to the order of the blocks (bytes) in the data word (message))
-	  * mutex test
+TODO:
+	* checksum (with sensitive to the order of the blocks (bytes) in the data word (message))
+	* mutex test
 FIXME:
 DANGER:
 NOTE:

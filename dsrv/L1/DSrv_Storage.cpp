@@ -1,11 +1,11 @@
 
 #include "DSrv_Storage.h"
-#include "dsrv/other/DSrv_Defines.h"  // MAX_DATA_SIZE
+#include "../other/DSrv_Defines.h"  // MAX_DATA_SIZE
 
-#include <cstring>                    // std::memcpy
-#include <utility>                    // std::swap
+#include <cstring>                  // std::memcpy
+#include <utility>                  // std::swap
 
-#include "other/printDebug.h"         // PRINT_DBG, PRINT_ERR
+#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;
