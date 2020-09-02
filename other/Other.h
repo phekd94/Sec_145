@@ -103,4 +103,13 @@ int32_t readMatrixFromFile(QFile& file, Matrix& m)
 }
 
 //-------------------------------------------------------------------------------------------------
+// Read vectors with double numbers from file
+int32_t readVectorsFromFile(QFile& file, std::vector<std::vector<double>>& vectors,
+                            const uint32_t vectors_num, const uint32_t vector_size);
+
+//-------------------------------------------------------------------------------------------------
+// Compare two files with double numbers
+int32_t compareFiles(QFile& file_1, QFile& file_2, const uint32_t num);
+
+//-------------------------------------------------------------------------------------------------
 } // namespace Sec_145

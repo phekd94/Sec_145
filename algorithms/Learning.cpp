@@ -154,6 +154,14 @@ int32_t getRecognitionLayer_cnn(const QImage& image,
                                 const uint32_t imagesWidth, const uint32_t imagesHeight);
 
 //-------------------------------------------------------------------------------------------------
+// Get recognition from neural network for copters (version 1)
+int32_t getRecognitionLayer_copters_v1(const QImage& image,
+                                const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
+                                Eigen::MatrixXd& l_0, Eigen::MatrixXd& l_1, Eigen::MatrixXd& l_2,
+                                const uint8_t kernel_rows, const uint8_t kernel_cols,
+                                const uint32_t imagesWidth, const uint32_t imagesHeight);
+
+//-------------------------------------------------------------------------------------------------
 // ReLU activation function
 template <typename DataType>
 void ReLU(DataType* const data, uint32_t size)
@@ -1417,6 +1425,120 @@ int32_t modelLearning(const QString& pathToImages,
 		return -1;
 		break;
 	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Get recognition from neural network for copters (version 1)
+int32_t getRecognitionLayer_copters_v1(const QImage& image,
+                                const Eigen::MatrixXd& w_0_1, const Eigen::MatrixXd& w_1_2,
+                                Eigen::MatrixXd& l_0, Eigen::MatrixXd& l_1, Eigen::MatrixXd& l_2,
+                                const uint8_t kernel_rows, const uint8_t kernel_cols,
+                                const uint32_t imagesWidth, const uint32_t imagesHeight)
+{
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Load neural network for copters (version 1)
+int32_t loadModel_copters_v1(const QString& pathToModel)
+{
+	uint32_t imagesHeight {152};
+	uint32_t imagesWidth {152};
+	uint32_t kernel_rows {3};
+	uint32_t kernel_cols {3};
+
+	Eigen::MatrixXd l_0((imagesWidth - kernel_cols + 1) * (imagesHeight - kernel_rows + 1),
+	                    kernel_rows * kernel_cols);
+	Eigen::MatrixXd conv2d(kernel_rows * kernel_cols, 32);
+
+
+	QFile f;
+
+	//================= Layer 0 =================
+	// Open a file with weight (conv2d)
+	//f.setFileName(pathToModel + "/conv2d_kernels.txt");
+	//f.setFileName(pathToModel + "/conv2d_bias.txt");
+	f.setFileName(pathToModel + "/tensor.txt");
+	if (f.open(QIODevice::ReadOnly) == false) {
+		PRINT_ERR(true, PREF, "Can't open a file with conv2d weights");
+		return -1;
+	}
+
+	// Read a weight w_0_1
+	std::vector<std::vector<double>> vectors;
+	//if (readVectorsFromFile(f, vectors, 32, 9) != 0) {
+	//if (readVectorsFromFile(f, vectors, 1, 32) != 0) {
+	if (readVectorsFromFile(f, vectors, 1, 152*152) != 0) {
+		return -1;
+	}
+
+	// Close file with weight w_0_1
+	f.close();
+
+	// Layer 0
+	for (uint32_t l_row = 0; l_row < imagesHeight - kernel_rows + 1; ++l_row) {
+		for (uint32_t l_col = 0; l_col < imagesWidth - kernel_cols + 1; ++l_col) {
+			for (uint32_t k_row = 0; k_row < kernel_rows; ++k_row) {
+				for (uint32_t k_col = 0; k_col < kernel_cols; ++k_col) {
+					l_0(l_row * (imagesWidth - kernel_cols + 1) + l_col,
+					    k_row * kernel_cols + k_col) =
+					    vectors[0][(l_row + k_row) * imagesWidth + l_col + k_col]; // / 255.0; !!
+				}
+			}
+		}
+	}
+	vectors.clear();
+
+	//================= conv2d =================
+	// Open a file with weight (conv2d)
+	f.setFileName(pathToModel + "/conv2d_kernels.txt");
+	//f.setFileName(pathToModel + "/conv2d_bias.txt");
+	//f.setFileName(pathToModel + "/tensor.txt");
+	if (f.open(QIODevice::ReadOnly) == false) {
+		PRINT_ERR(true, PREF, "Can't open a file with conv2d weights");
+		return -1;
+	}
+
+	// Read a weight w_0_1
+	if (readVectorsFromFile(f, vectors, 32, 9) != 0) {
+	//if (readVectorsFromFile(f, vectors, 1, 32) != 0) {
+	//if (readVectorsFromFile(f, vectors, 1, 152*152) != 0) {
+		return -1;
+	}
+
+	// Close file with weight w_0_1
+	f.close();
+
+	for (uint32_t i = 0; i < vectors.size(); ++i) {
+		for (uint32_t j = 0; j < kernel_rows * kernel_cols; ++j) {
+			conv2d(j, i) = vectors[i][j];
+		}
+	}
+
+	//===========================================
+	auto res = l_0 * conv2d;
+	qDebug() << res.rows() << res.cols();
+
+
+
+
+
+//	for (auto vector : vectors) {
+//		for (auto el : vector) {
+//			qDebug() << el;
+//		}
+//	}
+//	QThread::sleep(1);
+
+//	for (uint32_t i = 0; i < res.rows(); ++i) {
+//		for (uint32_t j = 0; j < res.cols(); ++j) {
+//			qDebug() << res(i, j);
+//		}
+//		qDebug() << "==============";
+//	}
+//	QThread::sleep(3);
 
 	return 0;
 }
