@@ -162,6 +162,10 @@ int32_t getRecognitionLayer_copters_v1(const QImage& image,
                                 const uint32_t imagesWidth, const uint32_t imagesHeight);
 
 //-------------------------------------------------------------------------------------------------
+// Max pooling 2D (2x2, step 2)
+//void maxPooling2D(const Eigen::MatrixXd& in, Eigen::MatrixXd& out);
+
+//-------------------------------------------------------------------------------------------------
 // ReLU activation function
 template <typename DataType>
 void ReLU(DataType* const data, uint32_t size)
@@ -1460,7 +1464,7 @@ int32_t loadModel_copters_v1(const QString& pathToModel)
 	// Open a file with weight (conv2d)
 	//f.setFileName(pathToModel + "/conv2d_kernels.txt");
 	//f.setFileName(pathToModel + "/conv2d_bias.txt");
-	f.setFileName(pathToModel + "/tensor.txt");
+	f.setFileName(pathToModel + "/tensor_blue.txt");
 	if (f.open(QIODevice::ReadOnly) == false) {
 		PRINT_ERR(true, PREF, "Can't open a file with conv2d weights");
 		return -1;
@@ -1493,7 +1497,7 @@ int32_t loadModel_copters_v1(const QString& pathToModel)
 
 	//================= conv2d =================
 	// Open a file with weight (conv2d)
-	f.setFileName(pathToModel + "/conv2d_kernels.txt");
+	f.setFileName(pathToModel + "/conv2d_12_kernels_blue.txt");
 	//f.setFileName(pathToModel + "/conv2d_bias.txt");
 	//f.setFileName(pathToModel + "/tensor.txt");
 	if (f.open(QIODevice::ReadOnly) == false) {
@@ -1516,14 +1520,67 @@ int32_t loadModel_copters_v1(const QString& pathToModel)
 			conv2d(j, i) = vectors[i][j];
 		}
 	}
+	vectors.clear();
 
 	//===========================================
-	auto res = l_0 * conv2d;
-	qDebug() << res.rows() << res.cols();
+	Eigen::MatrixXd res = l_0 * conv2d;
+	//qDebug() << res.rows() << res.cols();
+
+	/*//================= biases =================
+	// Open a file with weight (conv2d)
+	//f.setFileName(pathToModel + "/conv2d_kernels.txt");
+	f.setFileName(pathToModel + "/conv2d_bias.txt");
+	//f.setFileName(pathToModel + "/tensor.txt");
+	if (f.open(QIODevice::ReadOnly) == false) {
+		PRINT_ERR(true, PREF, "Can't open a file with conv2d weights");
+		return -1;
+	}
+
+	// Read a weight w_0_1
+	//if (readVectorsFromFile(f, vectors, 32, 9) != 0) {
+	if (readVectorsFromFile(f, vectors, 1, 32) != 0) {
+	//if (readVectorsFromFile(f, vectors, 1, 152*152) != 0) {
+		return -1;
+	}
+
+	// Close file with weight w_0_1
+	f.close();
 
 
+	for (uint32_t col = 0; col < res.cols(); ++col) {
+		for (uint32_t row = 0; row < res.rows(); ++row) {
+			res(row, col) += vectors[0][col];
+		}
+	}
+	vectors.clear();*/
 
+	//================= RELU =================
+	//ReLU(res.data(), res.size());
 
+	//===========================================
+	f.setFileName(pathToModel + "/res_blue.txt");
+	if (f.open(QIODevice::WriteOnly) == false) {
+		PRINT_ERR(true, PREF, "Can't open a file for res");
+		return -1;
+	}
+	if (writeMatrixInFile(f, res) != 0) {
+		PRINT_ERR(true, PREF, "writeMatrixInFile");
+		return -1;
+	}
+	f.close();
+
+	return 0;
+
+	//=========================================== compare
+	QFile file_1(pathToModel + "/res.txt");
+	QFile file_2(pathToModel + "/conv2d.txt");
+	bool c;
+	if (compareFiles(file_1, file_2, res.rows() * res.cols(), c) != 0) {
+		PRINT_ERR(true, PREF, "compareFiles");
+		return -1;
+	}
+
+	qDebug() << c;
 
 //	for (auto vector : vectors) {
 //		for (auto el : vector) {

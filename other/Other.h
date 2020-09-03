@@ -109,7 +109,7 @@ int32_t readVectorsFromFile(QFile& file, std::vector<std::vector<double>>& vecto
 
 //-------------------------------------------------------------------------------------------------
 // Compare two files with double numbers
-int32_t compareFiles(QFile& file_1, QFile& file_2, const uint32_t num);
+int32_t compareFiles(QFile& file_1, QFile& file_2, const uint32_t num, bool& res);
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
