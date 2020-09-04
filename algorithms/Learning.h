@@ -113,5 +113,7 @@ int32_t modelLearning(const QString& pathToImages,
 // Load neural network for copters (version 1)
 int32_t loadModel_copters_v1(const QString& pathToModel);
 
+int32_t getRecognitionLayer_copters_v1();
+
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
