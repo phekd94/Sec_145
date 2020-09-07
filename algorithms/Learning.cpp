@@ -19,7 +19,9 @@
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
+
 #include <QThread> // sleep debug
+#include <QDateTime>
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145 {
@@ -1430,12 +1432,14 @@ int32_t modelLearning(const QString& pathToImages,
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t maxPooling2D(const Eigen::MatrixXd& in, Eigen::MatrixXd& out, const uint32_t line_size)
+int32_t maxPooling2D(const Eigen::MatrixXd& in, Eigen::MatrixXd& out,
+                     const uint32_t in_line_size, const uint32_t out_line_size)
 {
 	// Check the number of rows and columns of incomming matrix
-	if (   in.rows() / (2 * 2) != out.rows()
-	    || in.cols() != out.cols()
-	    || in.rows() / line_size != line_size) {
+	if (   // in.rows() / (2 * 2) != out.rows() || // ?!?!?!?!?!?!?!?!?!??!!??!?!!??!?!?
+	       in.cols() != out.cols()
+	    //|| in.rows() / in_line_size != in_line_size // ?!?!?!?!
+	       ) {
 		PRINT_ERR(true, PREF, "Bad size of input or output matrix");
 		return -1;
 	}
@@ -1443,44 +1447,52 @@ int32_t maxPooling2D(const Eigen::MatrixXd& in, Eigen::MatrixXd& out, const uint
 	// Max pooling 2D for each kernel
 	for (uint32_t ker = 0; ker < in.cols(); ++ker) {
 
-	// Max pooling 2D
-	for (uint32_t i = 0; i < line_size / 2; ++i) {
-		for (uint32_t j = 0, k = 0; j < line_size; j += 2, ++k) {
-			// qDebug() << 2 * i << j; // in
-			// qDebug() << 2 * i * line_size + j; // in
-			// qDebug() << 2 * i * line_size + j + line_size; // in
-			// qDebug() << i * line_size / 2 + k; // out
+		// Max pooling 2D
+		for (uint32_t i = 0, m = 0; /*i < in_line_size*/ m < out_line_size; i += 2, ++m) { // ++i
+			for (uint32_t j = 0, k = 0; /*j < in_line_size*/ k < out_line_size; j += 2, ++k) {
 
-			double max_1 = std::max(in(2 * i * line_size + j, ker),
-			                        in(2 * i * line_size + j + 1, ker));
-			double max_2 = std::max(in(2 * i * line_size + j + line_size, ker),
-			                        in(2 * i * line_size + j + line_size + 1, ker));
-			out(i * line_size / 2 + k, ker) = std::max(max_1, max_2);
-		}
-		//qDebug() << "--------";
-	} // Max pooling 2D
+				// qDebug() << m << k;
+				// qDebug() << m * out_line_size + k; // out
+				// qDebug() << i << j;
+				// qDebug() << i * in_line_size + j; in
 
-	for (uint32_t row = 0; row < out.rows(); ++row) {
-		//for (uint32_t col = 0; col < out.cols(); ++col) {
-		    qDebug() << out(row, 0);
-	    }
-	    //qDebug() << "----";
-	//}
-	qDebug() << "========";
+				double max_1 = std::max(in(i * in_line_size + j, ker),
+				                        in(i * in_line_size + j + 1, ker));
+				double max_2 = std::max(in(i * in_line_size + j + in_line_size, ker),
+				                        in(i * in_line_size + j + in_line_size + 1, ker));
+				out(m * out_line_size + k, ker) = std::max(max_1, max_2);
+			}
+			//qDebug() << "--------";
+		} // Max pooling 2D
 
-	QThread::sleep(2);
-	return 0;
+		//return 0;
+
+		/*for (uint32_t row = 0; row < out.rows(); ++row) {
+			//for (uint32_t col = 0; col < out.cols(); ++col) {
+				qDebug() << out(row, 0);
+			}
+			//qDebug() << "----";
+		//}
+		qDebug() << "========";*/
+
+		//QThread::sleep(2);
+		//return 0;
 
 	} // Max pooling 2D for each kernel
+
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------------------
 // Number of convolute layers
 const uint32_t num_conv_layers {4};
 
+// Number of dense layers
+const uint32_t num_dense_layers {1};
+
 // In/out size for convolute layers
-const uint32_t in_conv_size[num_conv_layers]  {152, 75, 36, 17};
-const uint32_t out_conv_size[num_conv_layers] {75,  36, 17,  8};
+const uint32_t in_conv_size[num_conv_layers]     {152, 75, 36, 17};
+const uint32_t out_pooling_size[num_conv_layers] {75,  36, 17,  7};
 
 // Rows and columns of kernels
 const uint32_t kernels_rows {3};
@@ -1498,11 +1510,14 @@ const QString kernels_names[num_conv_layers] {
 };
 
 // Inputs and outputs for convolute layers
-std::vector<std::vector<Eigen::MatrixXd>> in_conv(num_conv_layers);
-std::vector<std::vector<Eigen::MatrixXd>> out_conv(num_conv_layers);
+static std::vector<std::vector<Eigen::MatrixXd>> in_conv(num_conv_layers);
+static std::vector<std::vector<Eigen::MatrixXd>> out_conv(num_conv_layers);
 
 // Kernels
-std::vector<std::vector<Eigen::MatrixXd>> kernels(num_conv_layers);
+static std::vector<std::vector<Eigen::MatrixXd>> kernels(num_conv_layers);
+
+// Biases
+static std::vector<std::vector<double>> biases(num_conv_layers);
 
 //-------------------------------------------------------------------------------------------------
 // Get recognition from neural network for copters (version 1)
@@ -1566,39 +1581,132 @@ int32_t getRecognitionLayer_copters_v1()
 
 	//---------------------------
 
+	auto start = QDateTime::currentMSecsSinceEpoch();
+
 	// Loop for each convolution
 	for (uint32_t num_conv_layers_i = 0;
-	     num_conv_layers_i < 1; // num_conv_layers; ///////////////////////////////////////////
+	     num_conv_layers_i < num_conv_layers;
 	     ++num_conv_layers_i) {
 
-	// Loop for depth of convolution
-	for (uint32_t depth_of_kernels_i = 0;
-	     depth_of_kernels_i < depth_of_kernels[num_conv_layers_i];
-	     ++depth_of_kernels_i) {
+		// Set out matrix elements to 0
+		for (uint32_t i = 0; i < out_conv.size(); ++i) {
+			out_conv[num_conv_layers_i][0].data()[i] = 0;
+		}
 
-		// Get convolution result
-		Eigen::MatrixXd conv = in_conv[num_conv_layers_i][depth_of_kernels_i] *
-		                       kernels[num_conv_layers_i][depth_of_kernels_i];
+		// Loop for depth of convolution
+		for (uint32_t depth_of_kernels_i = 0;
+		     depth_of_kernels_i < depth_of_kernels[num_conv_layers_i];
+		     ++depth_of_kernels_i) {
 
-//		// Matrix for result of max pooling 2D
-//		Eigen::MatrixXd pooling(conv.rows() / (2 * 2), conv.cols());
+			// Get a convolution result
+			Eigen::MatrixXd conv = in_conv[num_conv_layers_i][depth_of_kernels_i] *
+			                       kernels[num_conv_layers_i][depth_of_kernels_i];
 
-//		// Apply max pooling 2D
-//		maxPooling2D(conv, pooling, in_conv_size[num_conv_layers_i] - kernels_rows + 1);
+			// Summury for all (depth) convolution result
+			out_conv[num_conv_layers_i][0] += conv;
 
-//		return 0;
-	} // Loop for depth of convolution
+		} // Loop for depth of convolution
 
-	// Loop for depth of convolution
-	for (uint32_t depth_of_kernels_i = 1;
-	     depth_of_kernels_i < depth_of_kernels[num_conv_layers_i];
-	     ++depth_of_kernels_i) {
+		// Add biases
+		for (uint32_t j = 0; j < out_conv[num_conv_layers_i][0].cols(); ++j) {
+			for (uint32_t i = 0; i < out_conv[num_conv_layers_i][0].rows(); ++i) {
+				out_conv[num_conv_layers_i][0](i, j) += biases[num_conv_layers_i][j];
+			}
+		}
 
-	} // Loop for depth of convolution
+		// Apply ReLU activation function
+		ReLU(out_conv[num_conv_layers_i][0].data(), out_conv[num_conv_layers_i][0].size());
+
+		//qDebug() << out_conv[num_conv_layers_i][0](15 + 1, 2);
+		//qDebug() << out_conv[num_conv_layers_i][0].rows() << out_conv[num_conv_layers_i][0].cols();
+		//qDebug() << QDateTime::currentMSecsSinceEpoch() - start;
+		//return 0;
+
+		// Matrix for result of max pooling 2D
+		Eigen::MatrixXd pooling(//out_conv[num_conv_layers_i][0].rows() / (2 * 2),
+		                          out_pooling_size[num_conv_layers_i]
+		                        * out_pooling_size[num_conv_layers_i],
+		                        out_conv[num_conv_layers_i][0].cols());
+
+		//qDebug() << out_conv[num_conv_layers_i][0].rows()
+		//         << out_conv[num_conv_layers_i][0].cols();
+		qDebug() << pooling.rows() << pooling.cols();
+
+		// Apply max pooling 2D
+		maxPooling2D(out_conv[num_conv_layers_i][0], pooling,
+		             in_conv_size[num_conv_layers_i] - kernels_rows + 1,
+		             out_pooling_size[num_conv_layers_i]);
+
+		//return 0;
+
+		//qDebug() << pooling(7, 2);
+		//qDebug() << QDateTime::currentMSecsSinceEpoch() - start;
+
+		//  File name with kernels
+/*		if (num_conv_layers_i == 3) {
+		QString fileName =   "C:/Users/ekd/AppData/Local/Programs/Python/Python38/Scripts/"
+							 "copter_rgb/res.txt";
+		f.setFileName(fileName);
+		//  Open file
+		if (f.open(QIODevice::WriteOnly) == false) {
+			PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+		writeMatrixInFile(f, pooling);
+		f.close();
+		}
+*/
+
+		if (num_conv_layers_i >= num_conv_layers_i - 1) {
+
+			continue;
+		}
+
+		for (uint32_t depth_of_kernels_i = 0;
+		     depth_of_kernels_i < depth_of_kernels[num_conv_layers_i + 1];
+		     ++depth_of_kernels_i) {
+
+//			qDebug() << depth_of_kernels_i << num_conv_layers_i + 1
+//			         << in_conv_size[num_conv_layers_i + 1];
+
+			// Get tensor
+			for (uint32_t l_row = 0;
+			     l_row < in_conv_size[num_conv_layers_i + 1] - kernels_rows + 1;
+			     ++l_row) {
+				for (uint32_t l_col = 0;
+				     l_col < in_conv_size[num_conv_layers_i + 1] - kernels_cols + 1;
+				     ++l_col) {
+					for (uint32_t k_row = 0; k_row < kernels_rows; ++k_row) {
+						for (uint32_t k_col = 0; k_col < kernels_cols; ++k_col) {
+//							qDebug() << k_row << k_col;
+//							/*qDebug() << l_row * (in_conv_size[num_conv_layers_i + 1]
+//										- kernels_cols + 1) + l_col
+//									<< k_row * kernels_cols + k_col;*/
+//							qDebug() << depth_of_kernels_i
+//							         << (l_row + k_row) * in_conv_size[num_conv_layers_i + 1]
+//							            + l_col + k_col;
+
+							in_conv[num_conv_layers_i + 1][depth_of_kernels_i](
+							          l_row * (in_conv_size[num_conv_layers_i + 1]
+							        - kernels_cols + 1) + l_col,
+							        k_row * kernels_cols + k_col) =
+							    pooling(  (l_row + k_row) * in_conv_size[num_conv_layers_i + 1]
+							            + l_col + k_col,
+							            depth_of_kernels_i);
+							    // / 255.0; !!
+						}
+					}
+				}
+			}
+
+		}
+
+
+		//return 0;
 
 	}
 
-
+	qDebug() << QDateTime::currentMSecsSinceEpoch() - start;
 	return 0;
 }
 
@@ -1606,7 +1714,7 @@ int32_t getRecognitionLayer_copters_v1()
 // Load neural network for copters (version 1)
 int32_t loadModel_copters_v1(const QString& pathToModel)
 {
-	// Inputs/outputs for convolute layers
+	// Inputs and outputs for convolute layers
 	for (uint32_t i = 0; i < num_conv_layers; ++i) {
 		for (uint32_t j = 0; j < depth_of_kernels[i]; ++j) {
 			in_conv[i].push_back(
@@ -1620,7 +1728,7 @@ int32_t loadModel_copters_v1(const QString& pathToModel)
 		            Eigen::MatrixXd(
 		                (in_conv_size[i] - kernels_cols + 1) *
 		                (in_conv_size[i] - kernels_rows + 1),
-		                num_of_kernels[i])); // ?!?!?!?!?!?!?!?!?!?!?!??!!?!?!?!?!?
+		                num_of_kernels[i]));
 	}
 
 	// Kernels
@@ -1631,6 +1739,11 @@ int32_t loadModel_copters_v1(const QString& pathToModel)
 		}
 	}
 
+	// Biases
+	for (uint32_t i = 0; i < num_conv_layers; ++i) {
+		biases[i] = std::vector<double>(num_of_kernels[i]);
+	}
+
 	// For files with weights
 	QFile f;
 
@@ -1639,19 +1752,55 @@ int32_t loadModel_copters_v1(const QString& pathToModel)
 
 	// Loop for each convolution
 	for (uint32_t num_conv_layers_i = 0;
-	     num_conv_layers_i < 1; // num_conv_layers; ///////////////////////////////////////////
+	     num_conv_layers_i < num_conv_layers;
 	     ++num_conv_layers_i) {
 
-	// Loop for depth of convolution
-	for (uint32_t depth_of_kernels_i = 0;
-	     depth_of_kernels_i < depth_of_kernels[num_conv_layers_i];
-	     ++depth_of_kernels_i) {
+		// Loop for depth of convolution
+		for (uint32_t depth_of_kernels_i = 0;
+		     depth_of_kernels_i < depth_of_kernels[num_conv_layers_i];
+		     ++depth_of_kernels_i) {
 
-		// Load kernels
+			// Load kernels
+			//  File name with kernels
+			QString fileName =   pathToModel + "/"
+			                   + kernels_names[num_conv_layers_i] + "_kernel_"
+			                   + QString::number(depth_of_kernels_i)
+			                   + ".txt";
+			f.setFileName(fileName);
+
+			//  Open file
+			if (f.open(QIODevice::ReadOnly) == false) {
+				PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
+				return -1;
+			}
+
+			//  Read kernels
+			if (readVectorsFromFile(f, vectors,
+			                        num_of_kernels[num_conv_layers_i],
+			                        kernels_rows * kernels_cols) != 0) {
+				PRINT_ERR(true, PREF, "Can't read from file %s", fileName.toStdString().c_str());
+				return -1;
+			}
+
+			//  Close file
+			f.close();
+
+			// Get matrix with kernels
+			for (uint32_t i = 0; i < num_of_kernels[num_conv_layers_i]; ++i) {
+				for (uint32_t j = 0; j < kernels_rows * kernels_cols; ++j) {
+					kernels[num_conv_layers_i][depth_of_kernels_i](j, i) = vectors[i][j];
+				}
+			}
+
+			// Clears vectors with file contents
+			vectors.clear();
+
+		} // Loop for depth of convolution
+
+		// Load a biases
 		//  File name with kernels
 		QString fileName =   pathToModel + "/"
-		                   + kernels_names[num_conv_layers_i] + "_kernel_"
-		                   + QString::number(depth_of_kernels_i)
+		                   + kernels_names[num_conv_layers_i] + "_bias"
 		                   + ".txt";
 		f.setFileName(fileName);
 
@@ -1661,10 +1810,10 @@ int32_t loadModel_copters_v1(const QString& pathToModel)
 			return -1;
 		}
 
-		//  Read kernels
+		//  Read biases
 		if (readVectorsFromFile(f, vectors,
-		                        num_of_kernels[num_conv_layers_i],
-		                        kernels_rows * kernels_cols) != 0) {
+		                        1,
+		                        num_of_kernels[num_conv_layers_i]) != 0) {
 			PRINT_ERR(true, PREF, "Can't read from file %s", fileName.toStdString().c_str());
 			return -1;
 		}
@@ -1672,20 +1821,13 @@ int32_t loadModel_copters_v1(const QString& pathToModel)
 		//  Close file
 		f.close();
 
-		// Get matrix with kernels
-		for (uint32_t i = 0; i < num_of_kernels[num_conv_layers_i]; ++i) {
-			for (uint32_t j = 0; j < kernels_rows * kernels_cols; ++j) {
-				kernels[num_conv_layers_i][depth_of_kernels_i](j, i) = vectors[i][j];
-			}
-		}
+		// Get biases
+		biases[num_conv_layers_i] = vectors[0];
 
 		// Clears vectors with file contents
 		vectors.clear();
 
-	} // Loop for depth of convolution
-
 	} // Loop for each convolution
-
 
 /*
 	//================= Layer 0 =================

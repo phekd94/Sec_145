@@ -11,7 +11,7 @@ template <>
 int32_t writeVarInFile<double>(QFile& file, const double& var)
 {
 	const char* const PREF = "[Other]: ";
-	if (file.write(QByteArray::number(var, 'f', 10) + "\n") == -1) {
+	if (file.write(QByteArray::number(var, 'f', 3) + "\n") == -1) {
 		PRINT_ERR(true, PREF, "Bad data");
 		return -1;
 	}
