@@ -1487,9 +1487,6 @@ int32_t maxPooling2D(const Eigen::MatrixXd& in, Eigen::MatrixXd& out,
 // Number of convolute layers
 const uint32_t num_conv_layers {4};
 
-// Number of dense layers
-const uint32_t num_dense_layers {1};
-
 // In/out size for convolute layers
 const uint32_t in_conv_size[num_conv_layers]     {152, 75, 36, 17};
 const uint32_t out_pooling_size[num_conv_layers] {75,  36, 17,  7};
@@ -1518,6 +1515,30 @@ static std::vector<std::vector<Eigen::MatrixXd>> kernels(num_conv_layers);
 
 // Biases
 static std::vector<std::vector<double>> biases(num_conv_layers);
+
+// Number of dense layers
+const uint32_t num_dense_layers {2};
+
+// Sizes of dense layers
+const uint32_t dense_size[num_dense_layers] {512, 3};
+
+// Input vector for dense layers
+const uint32_t in_dense[num_dense_layers] {7 * 7 * 128, 512};
+
+// Names of denses
+const QString dense_names[num_dense_layers] {
+	"dense_6", "dense_7"
+};
+
+// Dense matrix
+static std::vector<Eigen::MatrixXd> dense(num_dense_layers);
+
+// Biases for dense layers
+static std::vector<std::vector<double>> dense_biases(num_dense_layers);
+
+// Inputs and outputs for dense layers
+static std::vector<Eigen::MatrixXd> dense_in(num_dense_layers);
+static std::vector<Eigen::MatrixXd> dense_out(num_dense_layers);
 
 //-------------------------------------------------------------------------------------------------
 // Get recognition from neural network for copters (version 1)
@@ -1630,7 +1651,7 @@ int32_t getRecognitionLayer_copters_v1()
 
 		//qDebug() << out_conv[num_conv_layers_i][0].rows()
 		//         << out_conv[num_conv_layers_i][0].cols();
-		qDebug() << pooling.rows() << pooling.cols();
+		//qDebug() << pooling.rows() << pooling.cols();
 
 		// Apply max pooling 2D
 		maxPooling2D(out_conv[num_conv_layers_i][0], pooling,
@@ -1657,8 +1678,13 @@ int32_t getRecognitionLayer_copters_v1()
 		}
 */
 
-		if (num_conv_layers_i >= num_conv_layers_i - 1) {
-
+		// Flatten last convolution layer
+		if (num_conv_layers_i >= num_conv_layers - 1) {
+			for (uint32_t i = 0; i < pooling.rows(); ++i) {
+				for (uint32_t j = 0; j < pooling.cols(); ++j) {
+					dense_in[0](0, i * pooling.cols() + j) = pooling(i, j);
+				}
+			}
 			continue;
 		}
 
@@ -1706,6 +1732,50 @@ int32_t getRecognitionLayer_copters_v1()
 
 	}
 
+
+	// Loop for each dense
+	for (uint32_t num_dense_layers_i = 0;
+	     num_dense_layers_i < num_dense_layers;
+	     ++num_dense_layers_i) {
+
+		// Get a result
+		dense_out[num_dense_layers_i] = dense_in[num_dense_layers_i] * dense[num_dense_layers_i];
+
+		// Add biases
+		for (uint32_t bias_i = 0; bias_i < dense_out[num_dense_layers_i].cols(); ++bias_i) {
+			dense_out[num_dense_layers_i](0, bias_i) += dense_biases[num_dense_layers_i][bias_i];
+		}
+
+		// Activation function
+		if (num_dense_layers_i < num_dense_layers - 1) {
+			// ReLU
+			ReLU(dense_out[num_dense_layers_i].data(), dense_out[num_dense_layers_i].size());
+			dense_in[num_dense_layers_i + 1] = dense_out[num_dense_layers_i];
+		} else {
+			// Softmax
+			softmax(dense_out[num_dense_layers_i].data(), dense_out[num_dense_layers_i].size());
+
+			qDebug() << maxArrayElementIndex(dense_out[num_dense_layers_i].data(),
+			                                 dense_out[num_dense_layers_i].size())
+			         << maxArrayElement(dense_out[num_dense_layers_i].data(),
+			                            dense_out[num_dense_layers_i].size());
+		}
+
+		/*if (num_dense_layers_i == 1) {
+		QString fileName =   "C:/Users/ekd/AppData/Local/Programs/Python/Python38/Scripts/"
+							 "copter_rgb/res.txt";
+		f.setFileName(fileName);
+		//  Open file
+		if (f.open(QIODevice::WriteOnly) == false) {
+			PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+		writeMatrixInFile(f, dense_out[num_dense_layers_i]);
+		f.close();
+		}*/
+
+	}
+
 	qDebug() << QDateTime::currentMSecsSinceEpoch() - start;
 	return 0;
 }
@@ -1742,6 +1812,22 @@ int32_t loadModel_copters_v1(const QString& pathToModel)
 	// Biases
 	for (uint32_t i = 0; i < num_conv_layers; ++i) {
 		biases[i] = std::vector<double>(num_of_kernels[i]);
+	}
+
+	// Dense
+	for (uint32_t i = 0; i < num_dense_layers; ++i) {
+		dense[i] = Eigen::MatrixXd(in_dense[i], dense_size[i]);
+	}
+
+	// Biases for dense
+	for (uint32_t i = 0; i < num_dense_layers; ++i) {
+		dense_biases[i] = std::vector<double>(dense_size[i]);
+	}
+
+	// In/out for dense
+	for (uint32_t i = 0; i < num_dense_layers; ++i) {
+		dense_in[i] = Eigen::MatrixXd(1, in_dense[i]);
+		dense_out[i] = Eigen::MatrixXd(1, dense_size[i]);
 	}
 
 	// For files with weights
@@ -1828,6 +1914,48 @@ int32_t loadModel_copters_v1(const QString& pathToModel)
 		vectors.clear();
 
 	} // Loop for each convolution
+
+
+	// Loop for each dense
+	for (uint32_t num_dense_layers_i = 0;
+	     num_dense_layers_i < num_dense_layers;
+	     ++num_dense_layers_i) {
+
+		// Load dense
+		//  File name with dense
+		QString fileName =   pathToModel + "/"
+		                   + dense_names[num_dense_layers_i]
+		                   + ".txt";
+		f.setFileName(fileName);
+
+		//  Open file
+		if (f.open(QIODevice::ReadOnly) == false) {
+			PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Read dense
+		if (readVectorsFromFile(f, vectors,
+		                        in_dense[num_dense_layers_i],
+		                        dense_size[num_dense_layers_i]) != 0) {
+			PRINT_ERR(true, PREF, "Can't read from file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Close file
+		f.close();
+
+		// Get dense matrix
+		for (uint32_t row = 0; row < in_dense[num_dense_layers_i]; ++row) {
+			for (uint32_t col = 0; col < dense_size[num_dense_layers_i]; ++col) {
+				dense[num_dense_layers_i](row, col) = vectors[row][col];
+			}
+		}
+
+		// Clears vectors with file contents
+		vectors.clear();
+
+	}
 
 /*
 	//================= Layer 0 =================

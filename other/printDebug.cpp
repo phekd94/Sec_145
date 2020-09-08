@@ -18,7 +18,7 @@ bool CHECK_PRINTF_ERROR(const int ret,
                         const char* const format)
 {
 	if (ret < 0) {
-		const uint32_t BUF_SIZE = 100;
+		const uint32_t BUF_SIZE = 500;
 		char out[BUF_SIZE];
 		if (sprintf(out, "%s%s%s(): %s(): "
 		                 "format encoding error occurred; format: \n\t\"%s\"",
@@ -37,7 +37,7 @@ bool CHECK_PRINTF_ERROR(const int ret,
 void Sec_145::printDebug(const char* pref, const char* func,
                          const bool err, const char* format, ...)
 {
-	const uint32_t BUF_SIZE = 100;
+	const uint32_t BUF_SIZE = 500;
 
 	char buf[BUF_SIZE], userMsg[BUF_SIZE], out[BUF_SIZE + BUF_SIZE];
 	va_list argList;
