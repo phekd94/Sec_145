@@ -35,7 +35,6 @@ class CopterSearchRecognition : public CopterSearch
 
 public:
 	CopterSearchRecognition(const QString& pathToNetworkParams,
-	                        const LearningType learningType,
 	                        const QString& resultName,
 	                        const uint32_t imagesWidth,
 	                        const uint32_t imagesHeight,
@@ -49,9 +48,6 @@ private:
 
 	// Preface in debug message
 	static const char* const PREF;
-
-	// Type of models
-	LearningType m_learningType;
 
 	// Number of copters for recognition
 	uint32_t m_numCopters;

@@ -45,7 +45,7 @@ double correlationCoefficient(const std::vector<uint8_t>& d_1, const std::vector
 //-------------------------------------------------------------------------------------------------
 // Maximum array element
 template <typename Array>
-double maxArrayElement(Array* const array, uint32_t size)
+double maxArrayElement(Array* const array, const uint32_t size)
 {
 	double res = DBL_MIN;
 	for (uint32_t i = 0; i < size; ++i) {
@@ -58,7 +58,7 @@ double maxArrayElement(Array* const array, uint32_t size)
 //-------------------------------------------------------------------------------------------------
 // Index of maximum array element
 template <typename Array>
-uint32_t maxArrayElementIndex(Array* const array, uint32_t size)
+uint32_t maxArrayElementIndex(Array* const array, const uint32_t size)
 {
 	double max = DBL_MIN;
 	uint32_t res = 0;
@@ -74,7 +74,7 @@ uint32_t maxArrayElementIndex(Array* const array, uint32_t size)
 //-------------------------------------------------------------------------------------------------
 // Minimal array element
 template <typename Array>
-double minArrayElement(Array* const array, uint32_t size)
+double minArrayElement(Array* const array, const uint32_t size)
 {
 	double res = DBL_MAX;
 	for (uint32_t i = 0; i < size; ++i) {
@@ -87,7 +87,7 @@ double minArrayElement(Array* const array, uint32_t size)
 //-------------------------------------------------------------------------------------------------
 // Index of minimal array element
 template <typename Array>
-uint32_t minArrayElementIndex(Array* const array, uint32_t size)
+uint32_t minArrayElementIndex(Array* const array, const uint32_t size)
 {
 	double min = DBL_MAX;
 	uint32_t res = 0;
@@ -103,7 +103,7 @@ uint32_t minArrayElementIndex(Array* const array, uint32_t size)
 //-------------------------------------------------------------------------------------------------
 // Summary of array elements
 template <typename DataType>
-double sumArrayElements(DataType* const data, uint32_t size)
+double sumArrayElements(DataType* const data, const uint32_t size)
 {
 	double sum = 0;
 	for (uint32_t i = 0; i < size; ++i) {
@@ -115,7 +115,7 @@ double sumArrayElements(DataType* const data, uint32_t size)
 //-------------------------------------------------------------------------------------------------
 // Summary of array elements
 template <typename DataType>
-double sumArrayExpElements(DataType* const data, uint32_t size)
+double sumArrayExpElements(DataType* const data, const uint32_t size)
 {
 	double sum = 0;
 	for (uint32_t i = 0; i < size; ++i) {

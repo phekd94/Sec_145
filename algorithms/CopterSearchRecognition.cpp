@@ -15,18 +15,16 @@ const char* const CopterSearchRecognition::PREF = "[CopterSearchRecognition]: ";
 
 //-------------------------------------------------------------------------------------------------
 CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkParams,
-                                                 const LearningType modelsType,
                                                  const QString& resultName,
                                                  const uint32_t imagesWidth,
                                                  const uint32_t imagesHeight,
                                                  uint32_t incrCutArea) :
-    m_learningType(modelsType),
     m_imagesWidth(imagesWidth),
     m_imagesHeight(imagesHeight),
     m_init(false),
     m_incrCutArea(incrCutArea)
 {
-	switch (m_learningType) {
+	/*switch (m_learningType) {
 	case LearningType::Neural_2_layer:
 	{
 		// Open a file with parameters of the neural network
@@ -103,7 +101,7 @@ CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkPar
 	}
 
 	// Set initialization flag
-	m_init = true;
+	m_init = true;*/
 
 	PRINT_DBG(m_debug, PREF, "Load neural network was successfull");
 }
@@ -183,7 +181,7 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 	}
 
 	// Get a results
-	switch (m_learningType) {
+	/*switch (m_learningType) {
 	case LearningType::Neural_2_layer:
 	{
 		int32_t recognitionLabel;
@@ -202,7 +200,7 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 	default:
 		return -1;
 		break;
-	}
+	}*/
 
 	// Save result
 	if (m_f.isOpen() == true) {
