@@ -6,20 +6,14 @@
 #include <QImage>                 // QImage class
 #include <QFile>                  // QFile class
 #include <algorithm>              // std::max<>()
-
-
-
-#include "Sec_145/other/Other.h"  // writeVarInFile<>()
-#include "Algorithms.h"           // convertPixelLimits[](); dotProduct();
-                                  // sumArrayExpElements<>();
+#include <QDateTime>              // currentMSecsSinceEpoch()
+#include "Sec_145/other/Other.h"  // readVectorsFromFile<>()
+#include "Algorithms.h"           // sumArrayExpElements<>();
                                   // maxArrayElement<>(); maxArrayElementIndex<>()
-                                  // minArrayElement<>(); minArrayElementIndex<>()
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
-
-#include <QThread>  // sleep debug
-#include <QDateTime>  //
+#include <chrono>
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145 {
@@ -167,6 +161,12 @@ int32_t getRecognitionLabel()
 {
 	auto start = QDateTime::currentMSecsSinceEpoch();
 
+	using namespace std::chrono;
+
+	milliseconds ms_start = duration_cast<milliseconds>(
+	            system_clock::now().time_since_epoch()
+	            );
+
 //------------------------------
 	// Loop for each convolution
 	for (uint32_t num_conv_layers_i = 0;
@@ -294,6 +294,12 @@ int32_t getRecognitionLabel()
 //-----------
 	PRINT_DBG(true, PREF, "Execution time: %lu msec",
 	          static_cast<unsigned long>(QDateTime::currentMSecsSinceEpoch() - start));
+
+	milliseconds ms_finish = duration_cast<milliseconds>(
+	           system_clock::now().time_since_epoch()
+	           );
+	qDebug() << ms_finish.count() - ms_start.count();
+
 	return maxArrayElementIndex(dense_out[num_dense_layers - 1].data(),
 	                            dense_out[num_dense_layers - 1].size());
 }
