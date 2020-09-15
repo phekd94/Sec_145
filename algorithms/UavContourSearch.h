@@ -6,7 +6,7 @@
 DESCRITION: Template class for UAV contour search
 TODO: 
  * test class (logic() method)
- * Members in set part in getIndexOfUavSet() method
+ * Members in set part in getIndexOfUavSet() method: delegate the part to T type
 FIXME:
  * drawFilterRectangles(): boundaries works incorrect
 DANGER:
