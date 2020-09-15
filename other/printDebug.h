@@ -8,27 +8,28 @@ TODO:
 FIXME:
 DANGER:
 NOTE:
-	* __FUNCTION__ is a __func__ synonym
+ * __FUNCTION__ is a __func__ synonym
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <QDebug>  // qDebug()
+// #include <QDebug>  // qDebug()
 
 //-------------------------------------------------------------------------------------------------
-namespace Sec_145 {
+namespace Sec_145
+{
 
 //-------------------------------------------------------------------------------------------------
-#define PRINT_DBG(enable, pref, ...)                             \
-	do {                                                         \
-	    if (enable)                                              \
-	        printDebug(pref, __FUNCTION__, false, __VA_ARGS__);  \
+#define PRINT_DBG(enable, pref, ...)                                      \
+	do {                                                                  \
+	    if (enable)                                                       \
+	        Sec_145::printDebug(pref, __FUNCTION__, false, __VA_ARGS__);  \
 	} while(0)
 
 //-------------------------------------------------------------------------------------------------
-#define PRINT_ERR(enable, pref, ...)                            \
-	do {                                                        \
-	    if (enable)                                             \
-	        printDebug(pref, __FUNCTION__, true, __VA_ARGS__);  \
+#define PRINT_ERR(enable, pref, ...)                                     \
+	do {                                                                 \
+	    if (enable)                                                      \
+	        Sec_145::printDebug(pref, __FUNCTION__, true, __VA_ARGS__);  \
 	} while(0)
 
 //-------------------------------------------------------------------------------------------------

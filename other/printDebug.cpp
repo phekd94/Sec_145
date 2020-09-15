@@ -3,39 +3,51 @@
 
 #include <cstdio>   // vsprintf(), sprintf()
 #include <cstdarg>  // va_list, va_start(), va_end()
+#include <cstdint>  // integer types
 
-#include <QDebug>   // qDebug()
-#include <QTime>    // currentTime()
+#include <iostream>  // std::cout; std::endl
+
+// #include <QDebug>   // qDebug()
+// #include <QTime>    // currentTime()
 
 //-------------------------------------------------------------------------------------------------
 // Application preface in debug message
 const char* const PREF = "[Sec_145]: ";
 
 //-------------------------------------------------------------------------------------------------
-bool CHECK_PRINTF_ERROR(const int ret,
+bool CHECK_PRINTF_ERROR(const int ret, 
                         const char* const pref,
-                        const char* const func,
+                        const char* const func, 
                         const char* const format)
 {
-	if (ret < 0) {
+	if (ret < 0) 
+	{
 		const uint32_t BUF_SIZE = 500;
 		char out[BUF_SIZE];
 		if (sprintf(out, "%s%s%s(): %s(): "
 		                 "format encoding error occurred; format: \n\t\"%s\"",
-		                 PREF, pref, func, __FUNCTION__, format) < 0) {
-			qDebug() << PREF << __FUNCTION__ << ": sprintf() error";
+		                 PREF, pref, func, __FUNCTION__, format) < 0) 
+		{
+			// qDebug() << PREF << __FUNCTION__ << ": sprintf() error";
+			std::cout << PREF << __FUNCTION__ << ": sprintf() error" << std::endl;
 			return false;
 		}
-		qDebug() << QTime::currentTime().toString("hh:mm:ss") << out;
+		// qDebug() << QTime::currentTime().toString("hh:mm:ss") << out;
+		std::cout << out << std::endl;
 		return false;
-	} else {
+	} 
+	else 
+	{
 		return true;
 	}
 }
 
 //-------------------------------------------------------------------------------------------------
-void Sec_145::printDebug(const char* pref, const char* func,
-                         const bool err, const char* format, ...)
+void Sec_145::printDebug(const char* pref, 
+                         const char* func, 
+                         const bool err, 
+                         const char* format, 
+                         ...)
 {
 	const uint32_t BUF_SIZE = 500;
 
@@ -70,5 +82,6 @@ void Sec_145::printDebug(const char* pref, const char* func,
 	if (CHECK_PRINTF_ERROR(ret, pref, func, format) == false)
 		return;
 
-	qDebug() << QTime::currentTime().toString("hh:mm:ss") << out;
+	// qDebug() << QTime::currentTime().toString("hh:mm:ss") << out;
+	std::cout << out << std::endl;
 }
