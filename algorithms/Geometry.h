@@ -75,8 +75,6 @@ public:
 		return false;
 	}
 
-private:
-
 	// The points belong to this ellipse
 	std::vector<Point> points;
 

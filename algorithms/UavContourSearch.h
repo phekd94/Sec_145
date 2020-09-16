@@ -7,6 +7,7 @@ DESCRITION: Template class for UAV contour search
 TODO: 
  * test class (logic() method)
  * Members in set part in getIndexOfUavSet() method: delegate the part to T type
+ * getIndexOfUavSet() check
 FIXME:
  * drawFilterRectangles(): boundaries works incorrect
 DANGER:
@@ -22,11 +23,15 @@ Sec_145::UavContourSearch
 */
 
 //-------------------------------------------------------------------------------------------------
-#include "DisjointSet.h"  // DisjointSet template class (for inheritance)
+//#include "DisjointSet.h"  // DisjointSet template class (for inheritance)
 #include <cstdint>        // integer types
 #include <vector>         // std::vector
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
+
+
+//#include "Geometry.h"
+
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -34,15 +39,20 @@ namespace Sec_145
 
 //-------------------------------------------------------------------------------------------------
 // Template class for UAV contour search
-template <typename T>
-class UavContourSearch : public DisjointSet<T>
+template <typename ContourSearchClass>
+class UavContourSearch : public ContourSearchClass
 {
 public:
 
 	UavContourSearch();
 
 	// Get index of set of set contains UAV contour
-	virtual int32_t getIndexOfUavSet();
+	int32_t getIndexOfUavSet();
+
+	void clearContours()
+	{
+		ContourSearchClass::clearDisjointSet();
+	}
 
 	// Draws a rectangles for filter
 	void drawFilterRectangles(uint8_t* const data,
@@ -55,7 +65,7 @@ public:
 	int32_t getUavParameters(uint32_t& x, uint32_t& y, uint32_t& w, uint32_t& h) const;
 
 	// Gets UAV parameters: set with UAV contour
-	const std::vector<T>& getUavParameters() const;
+	// const std::vector<T>& getUavParameters() const;
 
 	// *******************
 
@@ -197,43 +207,45 @@ private:
 	bool m_flag_size;
 	bool m_flag_old_object;
 
-	// Flag; copter was recognized
+	// Flag; UAV was recognized
 	bool m_flag_recognized;
 
-	// Index of set with recognized copter
-	std::vector<T> m_copterSet;
+	// Set with UAV contour
+	// std::vector<T> m_copterSet;
+	// decltype (ContourSearchClass::getSet(0)) m_copterSet;
 };
 
 //=================================================================================================
 // UavContourSearch class implementation
 
 //-------------------------------------------------------------------------------------------------
-template <typename T>
-const char* const UavContourSearch<T>::PREF = "[UavContourSearch]: ";
+template <typename ContourSearchClass>
+const char* const UavContourSearch<ContourSearchClass>::PREF = "[UavContourSearch]: ";
 
 //-------------------------------------------------------------------------------------------------
-template <typename T>
-UavContourSearch<T>::UavContourSearch() : m_wihtout_recognize(0), 
-                                          m_wihtout_recognize_num(1),
-                                          m_max_set_size(35), m_min_set_size(5),
-                                          m_max_delta_x(350), m_min_delta_x(100),
-                                          m_max_delta_y(300), m_min_delta_y(50),
-                                          m_delta_old_object(50),
-                                          m_flag_set_size(false),
-                                          m_flag_size(false),
-                                          m_flag_old_object(false),
-                                          m_flag_recognized(false),
-                                          m_copterSet()
+template <typename ContourSearchClass>
+UavContourSearch<ContourSearchClass>::UavContourSearch() : m_wihtout_recognize(0),
+                                                           m_wihtout_recognize_num(1),
+                                                           m_max_set_size(35), m_min_set_size(5),
+                                                           m_max_delta_x(350), m_min_delta_x(100),
+                                                           m_max_delta_y(300), m_min_delta_y(50),
+                                                           m_delta_old_object(50),
+                                                           m_flag_set_size(false),
+                                                           m_flag_size(false),
+                                                           m_flag_old_object(false),
+                                                           m_flag_recognized(false)//,
+                                                           //m_copterSet()
 {
-	PRINT_DBG(UavContourSearch<T>::m_debug, PREF, "");
+	PRINT_DBG(UavContourSearch<ContourSearchClass>::m_debug, PREF, "");
 }
 
 //-------------------------------------------------------------------------------------------------
-template <typename T>
-int32_t UavContourSearch<T>::getIndexOfUavSet()
+template <typename ContourSearchClass>
+int32_t UavContourSearch<ContourSearchClass>::getIndexOfUavSet()
 {
-	// ...
-	const std::vector<std::vector<T>> m_d_set = DisjointSet<T>::getDisjointSet();
+	// Get a disjoint set
+	decltype ( ContourSearchClass::getDisjointSet() ) m_d_set =
+	        ContourSearchClass::getDisjointSet();
 
 	// Create a vector with minimum and maximum values of coordinates
 	// (size of this vector is equal to size of disjoint set)
@@ -304,7 +316,7 @@ int32_t UavContourSearch<T>::getIndexOfUavSet()
 
 	// Print a content of the vector member with maximum, minimum values
 	// and other parameters
-	if (true == DisjointSet<T>::m_debug)
+	if (true == ContourSearchClass::m_debug)
 	{
 		for (const auto& el : mm_xy)
 		{
@@ -336,12 +348,12 @@ int32_t UavContourSearch<T>::getIndexOfUavSet()
 		// Filter a member by size
 		if (true == m_flag_size)
 		{
-			if (!(mm_xy[i].delta_x > m_min_delta_x
+			if (!(   mm_xy[i].delta_x > m_min_delta_x
 				  && mm_xy[i].delta_x < m_max_delta_x
 				  && mm_xy[i].delta_y > m_min_delta_y
 				  && mm_xy[i].delta_y < m_max_delta_y))
 			{
-				PRINT_DBG(DisjointSet<T>::m_debug, PREF, "stop: filter by size, index = %lu",
+				PRINT_DBG(ContourSearchClass::m_debug, PREF, "stop: filter by size, index = %lu",
 						  static_cast<unsigned long>(mm_xy[i].i));
 				continue;
 			}
@@ -361,14 +373,14 @@ int32_t UavContourSearch<T>::getIndexOfUavSet()
 					&& std::abs(static_cast<int>(m_old_object.min_y) -
 								static_cast<int>(mm_xy[i].min_y)) > m_delta_old_object)
 				{
-					PRINT_DBG(DisjointSet<T>::m_debug, PREF, "stop: filter by old obj, index = %lu",
+					PRINT_DBG(ContourSearchClass::m_debug, PREF, "stop: filter by old obj, index = %lu",
 							  static_cast<unsigned long>(mm_xy[i].i));
 					continue;
 				}
 			}
 		}
 
-		PRINT_DBG(DisjointSet<T>::m_debug, PREF, "detect, index = %lu",
+		PRINT_DBG(ContourSearchClass::m_debug, PREF, "detect, index = %lu",
 				  static_cast<unsigned long>(mm_xy[i].i));
 
 		// Choice a set with maximum size
@@ -383,28 +395,28 @@ int32_t UavContourSearch<T>::getIndexOfUavSet()
 	if (0 == max_set_size)
 	{
 		m_flag_recognized = false;
-		m_copterSet.resize(0);
+		// m_copterSet.resize(0);
 		if (++m_wihtout_recognize > m_wihtout_recognize_num)
 		{
-			PRINT_DBG(DisjointSet<T>::m_debug, PREF, "m_wihtout_recognize > %lu",
+			PRINT_DBG(ContourSearchClass::m_debug, PREF, "m_wihtout_recognize > %lu",
 					  static_cast<unsigned long>(m_wihtout_recognize_num));
 			m_wihtout_recognize = 0;
 			m_old_object = MinMax_XY();
 		}
-		PRINT_DBG(DisjointSet<T>::m_debug, PREF, "Copter was not recognized");
+		PRINT_DBG(ContourSearchClass::m_debug, PREF, "Copter was not recognized");
 		index = -1;
 	}
 	else
 	{
 		m_flag_recognized = true;
-		m_copterSet = m_d_set[static_cast<uint32_t>(index)];
-		if (true == DisjointSet<T>::m_debug)
+		// m_copterSet = m_d_set[static_cast<uint32_t>(index)];
+		if (true == ContourSearchClass::m_debug)
 			mm_xy[static_cast<uint32_t>(index)].print();
-		PRINT_DBG(DisjointSet<T>::m_debug, PREF, "is an old object now");
+		PRINT_DBG(ContourSearchClass::m_debug, PREF, "is an old object now");
 		m_old_object = mm_xy[static_cast<uint32_t>(index)];
 	}
 
-	PRINT_DBG(DisjointSet<T>::m_debug, PREF, "=================");
+	PRINT_DBG(ContourSearchClass::m_debug, PREF, "=================");
 
 	return index;
 }
@@ -491,19 +503,20 @@ int32_t UavContourSearch<T>::getUavParameters(uint32_t& x, uint32_t& y,
 }
 
 //-------------------------------------------------------------------------------------------------
-template <typename T>
-const std::vector<T>& UavContourSearch<T>::getUavParameters() const
-{
-	// Empty set
-	static const std::vector<T> empty_set;
 
-	// Check a valid of recognized object
-	if (false == m_flag_recognized || m_copterSet.size() == 0)
-		return empty_set;
+//template <typename T>
+//const std::vector<T>& UavContourSearch<T>::getUavParameters() const
+//{
+//	// Empty set
+//	static const std::vector<T> empty_set;
 
-	// Get parameters
-	return m_copterSet;
-}
+//	// Check a valid of recognized object
+//	if (false == m_flag_recognized || m_copterSet.size() == 0)
+//		return empty_set;
+
+//	// Get parameters
+//	return m_copterSet;
+//}
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145

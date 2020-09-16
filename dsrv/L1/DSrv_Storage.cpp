@@ -11,8 +11,8 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-const char* DSrv_Storage::PREF      = "[DSrv_Storage]: ";
-const char* DSrv_Storage_test::PREF = "[DSrv_Storage_test]: ";
+const char* const DSrv_Storage::PREF      = "[DSrv_Storage]: ";
+const char* const DSrv_Storage_test::PREF = "[DSrv_Storage_test]: ";
 
 //-------------------------------------------------------------------------------------------------
 DSrv_Storage::DSrv_Storage() : m_completeData(nullptr),

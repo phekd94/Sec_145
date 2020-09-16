@@ -65,7 +65,7 @@ protected:
 private:
 
 	// Preface in debug message
-	static const char* PREF;
+	static const char* const PREF;
 
 	// Pointers to the data
 	uint8_t* m_completeData;
@@ -101,7 +101,7 @@ public:
 private:
 
 	// Preface in debug message
-	static const char* PREF;
+	static const char* const PREF;
 };
 
 //-------------------------------------------------------------------------------------------------
