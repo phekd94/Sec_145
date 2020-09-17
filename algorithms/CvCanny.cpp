@@ -1,54 +1,58 @@
 
 #include "CvCanny.h"
 
-#include "opencv2/core/mat.hpp"  // ss
-#include "opencv2/imgproc.hpp"
-
-#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
+#include <exception>             // std::exception
+#include "opencv2/core/mat.hpp"  // cv::Mat
+#include "opencv2/imgproc.hpp"   // cv::blur(); cv::Canny(); findContours()
 
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-const char* const CvCanny::PREF = "[CvCanny]: ";
+const char* const CvCanny::PREF {"[CvCanny]: "};
 
 //-------------------------------------------------------------------------------------------------
-CvCanny::CvCanny(const uint32_t threshold, const uint32_t kernelSize) : m_threshold(threshold),
-                                                                        m_kernelSize(kernelSize)
+int32_t CvCanny::applyDetector(const uint8_t* const greyData,
+                               const uint32_t width, const uint32_t height) noexcept
 {
-	PRINT_DBG(DisjointSet<CvPoint>::m_debug, PREF, "");
-}
+	try {
 
-//-------------------------------------------------------------------------------------------------
-int32_t CvCanny::applyDetector(QImage image)
-{
-	image.convertTo(QImage::Format_Grayscale8);
+	// Matrix with image data
+	cv::Mat image_tmp(height, width, CV_8UC1, const_cast<uint8_t*>(greyData));
+	cv::Mat image;
 
-	cv::Mat im(image.height(), image.width(), CV_8UC1, image.bits());
-	cv::Mat im_d;
+	// Get a matrix with image data
+	image_tmp.copyTo(image);
 
-	im.copyTo(im_d);
+	// Blur an image
+	cv::blur(image, image, cv::Size(3, 3));
 
-	cv::blur(im_d, im_d, cv::Size(3, 3));
-	cv::Canny(im_d, im_d, m_threshold, 3 * m_threshold, m_kernelSize);
+	// Apply Canny detector
+	cv::Canny(image, image, m_threshold, 3 * m_threshold, m_kernelSize);
 
-	findContours(im_d, m_contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+	// Find contours (get a set of sets with contours points)
+	findContours(image, m_contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
-	//qDebug() << m_contours.size();
-
-	for (int i = 0; i < m_contours.size(); ++i) {
-		//std::cout << contours[i].size() << std::endl;
-		for (int j = 0; j < m_contours[i].size(); ++j) {
-			//std::cout << contours[i][j].x << "  " << contours[i][j].y << ", ";
+	// Add points to disjoint set
+	for (uint32_t i = 0; i < m_contours.size(); ++i)
+	{
+		for (uint32_t j = 0; j < m_contours[i].size(); ++j)
+		{
 			if (DisjointSet<CvPoint>::addMember(Sec_145::CvPoint(m_contours[i][j])) != 0)
 			{
-				PRINT_ERR(true, "main", "addMember");
+				PRINT_ERR(true, PREF, "addMember()");
+				return -1;
 			}
 		}
-		//std::cout << std::endl;
 	}
 
-	//qDebug() << DisjointSet<CvPoint>::getDisjointSet().size();
-
 	return 0;
+
+	}
+	catch (std::exception& obj)
+	{
+		PRINT_ERR(true, PREF, "Exception (%s) during call OpenCV functions has been occured",
+		          obj.what());
+		return -1;
+	}
 }

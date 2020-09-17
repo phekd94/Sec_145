@@ -20,8 +20,10 @@ Sec_145::DisjointSet<> class
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <cstdint>  // integer types
-#include <vector>   // std::vector
+#include <cstdint>    // integer types
+#include <vector>     // std::vector
+#include <exception>  // std::exception
+#include <stdexcept>  // std::logic_error
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -30,64 +32,78 @@ namespace Sec_145
 {
 
 //-------------------------------------------------------------------------------------------------
-// The template class is a disjoint set for given types
-template <typename T>
-class DisjointSet
+// Template class is a disjoint set for given types
+template <typename T> class DisjointSet
 {
 public:
 
-	explicit DisjointSet(const uint32_t metric = 30);
+	explicit DisjointSet(const uint32_t metric = 30) : m_debug(false), m_metric(metric)
+	{
+		PRINT_DBG(m_debug, PREF, "");
+	}
 
-	// Adds a member to set
-	int32_t addMember(const T& member);
+	// Adds a member to disjoint set
+	int32_t addMember(const T& member) noexcept;
 
 	// Clears a disjoint set
-	void clearDisjointSet()
+	void clearDisjointSet() noexcept
 	{
 		m_d_set.clear();
 	}
 
-	// ***** Getters *****
+	// ***********************
+	// ******* Getters *******
+	// ***********************
 
 	// Gets a disjoint set
-	const std::vector<std::vector<T>>& getDisjointSet() const
+	const std::vector<std::vector<T>>& getDisjointSet() const noexcept
 	{ 
 		return m_d_set; 
 	}
 
 	// Gets a size of disjoint set
-	uint32_t getDisjointSetSize() const
+	uint32_t getDisjointSetSize() const noexcept
 	{ 
 		return static_cast<uint32_t>(m_d_set.size()); 
 	}
 
 	// Gets a set from disjoint set
-	const std::vector<T>& getSet(const uint32_t index) const;
+	// (std::out_of_range exception can be thrown)
+	const std::vector<T>& getSet(const uint32_t index) const
+	{
+		return m_d_set.at(index);
+	}
+
+	// Gets a size of set from disjoint set
+	// (std::out_of_range exception can be thrown)
+	uint32_t getSetSize(const uint32_t index) const
+	{
+		return static_cast<uint32_t>(m_d_set.at(index).size());
+	}
 
 	// Gets an index of set with maximum size
-	int32_t getIndexOfSetWithMaxSize() const;
+	// (std::logic_error exception can be thrown)
+	uint32_t getIndexOfSetWithMaxSize() const;
 
-	// *******************
-
-	// ***** Setters *****
+	// ***********************
+	// ******* Setters *******
+	// ***********************
 
 	// Sets a metric
-	void setMetric(const uint32_t metric)
+	void setMetric(const uint32_t metric) noexcept
 	{ 
 		m_metric = metric; 
 	}
 
-	// Enable/disable debug messages
-	void setDebug(const bool d)
+	// Sets a debug enable flag
+	void setDebug(const bool d) noexcept
 	{ 
 		m_debug = d; 
 	}
 
-	// *******************
-
 protected:
 	
-	// Enable/disable a debug output via printDebug.cpp/.h
+	// Enable a debug output
 	bool m_debug;
 
 private:
@@ -95,7 +111,7 @@ private:
 	// Preface in debug message
 	static const char* const PREF;
 
-	// The disjoint set
+	// Disjoint set
 	std::vector<std::vector<T>> m_d_set;
 
 	// Metric
@@ -105,35 +121,33 @@ private:
 	const std::vector<T> empty_set;
 
 	// Unites sets in a disjoint set
-	int32_t unionSets(uint32_t index_dest, uint32_t index_src);
+	int32_t unionSets(const uint32_t index_dest, const uint32_t index_src) noexcept;
 };
 
 //=================================================================================================
-// DisjointSet class implementation
+// ************************************************
+// ******* DisjointSet class implementation *******
+// ************************************************
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
-const char* const DisjointSet<T>::PREF = "[DisjointSet]: ";
+const char* const DisjointSet<T>::PREF {"[DisjointSet]: "};
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
-DisjointSet<T>::DisjointSet(const uint32_t metric) : m_metric(metric), m_debug(false)
+int32_t DisjointSet<T>::addMember(const T& member) noexcept
 {
-	PRINT_DBG(m_debug, PREF, "");
-}
+	// Catch a push_back() exception
+	try {
 
-//-------------------------------------------------------------------------------------------------
-template <typename T>
-int32_t DisjointSet<T>::addMember(const T& member)
-{
-	// Flag; suitable set was not found
-	bool added = false;
+	// Flag; set for add was not found
+	bool added {false};
 
 	// Flag; some suitable sets were found
-	bool added_tmp = false;
+	bool addSuit {false};
 
 	// Indices of some suitable sets
-	std::vector<uint32_t> sets;
+	std::vector<uint32_t> suitSets;
 
 	// Sets in disjoint set
 	for (uint32_t i = 0; i < m_d_set.size(); ++i) 
@@ -155,14 +169,14 @@ int32_t DisjointSet<T>::addMember(const T& member)
 				}
 
 				// Add index of set and set a flag
-				sets.push_back(i);
-				added_tmp = true;
+				suitSets.push_back(i);
+				addSuit = true;
 			}
 
 			// Break the set loop if members are coincided
-			if (true == added_tmp) 
+			if (true == addSuit)
 			{
-				added_tmp = false;
+				addSuit = false;
 				break;
 			}
 		}
@@ -176,56 +190,45 @@ int32_t DisjointSet<T>::addMember(const T& member)
 	}
 
 	// Unite sets which have common member
-	if (sets.size() > 1) 
+	if (suitSets.size() > 1)
 	{
-		uint32_t vector_dest = sets[0];
-		for (uint32_t i = 1; i < sets.size(); ++i) 
+		uint32_t vector_dest = suitSets[0];
+		for (uint32_t i = 1; i < suitSets.size(); ++i)
 		{
-			if (unionSets(vector_dest, sets[i]) != 0) 
+			if (unionSets(vector_dest, suitSets[i]) != 0)
 			{
 				PRINT_ERR(true, PREF, "unionSets(%lu, %lu)", 
 						  static_cast<unsigned long>(vector_dest),
-						  static_cast<unsigned long>(sets[i]));
+				          static_cast<unsigned long>(suitSets[i]));
 				return -1;
 			}
 		}
 	}
 
 	return 0;
-}
 
-//-------------------------------------------------------------------------------------------------
-template <typename T>
-const std::vector<T>& DisjointSet<T>::getSet(const uint32_t index) const
-{
-	if (index >= getDisjointSetSize()) 
+	}
+	catch (std::exception& obj)
 	{
-		// Index is larger or equal than the size of the disjoint set; return an empty set
-		PRINT_ERR(true, PREF, "Index is larger or equal than the size of the disjoint set");
-		return empty_set;
-
-	} 
-	else 
-	{
-		// Return a specified set
-		return m_d_set[index];
+		PRINT_ERR(true, PREF, "Exception (%s) during push_back() member has been occured",
+		          obj.what());
+		return -1;
 	}
 }
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
-int32_t DisjointSet<T>::getIndexOfSetWithMaxSize() const
+uint32_t DisjointSet<T>::getIndexOfSetWithMaxSize() const
 {
 	// Check a size of disjoint set
 	if (getDisjointSetSize() == 0) 
 	{
-		return -1;
+		throw std::logic_error("disjoint set is empty");
 	}
 
 	// Search for the largest set
-	int32_t index = 0;
-	uint32_t max_size = 0;
-	for (int32_t i = 0; i < m_d_set.size(); ++i) 
+	uint32_t index {0}, max_size {0};
+	for (uint32_t i = 0; i < m_d_set.size(); ++i)
 	{
 		if (static_cast<uint32_t>(m_d_set[i].size()) > max_size)
 		{
@@ -240,7 +243,7 @@ int32_t DisjointSet<T>::getIndexOfSetWithMaxSize() const
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
-int32_t DisjointSet<T>::unionSets(uint32_t index_dest, uint32_t index_src)
+int32_t DisjointSet<T>::unionSets(const uint32_t index_dest, const uint32_t index_src) noexcept
 {
 	// Check the incoming parameters
 	if (index_dest >= m_d_set.size() || index_src >= m_d_set.size()) 
@@ -253,9 +256,16 @@ int32_t DisjointSet<T>::unionSets(uint32_t index_dest, uint32_t index_src)
 	}
 
 	// Unite sets
-	m_d_set[index_dest].insert(m_d_set[index_dest].end(),
-	                           m_d_set[index_src].begin(),
-	                           m_d_set[index_src].end());
+	try
+	{
+		m_d_set[index_dest].insert(m_d_set[index_dest].end(),
+		                           m_d_set[index_src].begin(), m_d_set[index_src].end());
+	}
+	catch (std::exception& obj)
+	{
+		PRINT_ERR(true, PREF, "Exception (%s) during insert() set has been occured", obj.what());
+		return -1;
+	}
 
 	// Clear a source set
 	m_d_set[index_src].clear();

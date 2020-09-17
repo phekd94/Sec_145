@@ -23,15 +23,10 @@ Sec_145::UavContourSearch
 */
 
 //-------------------------------------------------------------------------------------------------
-//#include "DisjointSet.h"  // DisjointSet template class (for inheritance)
 #include <cstdint>        // integer types
 #include <vector>         // std::vector
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
-
-
-//#include "Geometry.h"
-
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -44,41 +39,52 @@ class UavContourSearch : public ContourSearchClass
 {
 public:
 
-	UavContourSearch();
+	UavContourSearch() : m_wihtout_recognize(0),
+	                     m_wihtout_recognize_num(1),
+	                     m_max_set_size(35), m_min_set_size(5),
+	                     m_max_delta_x(350), m_min_delta_x(100),
+	                     m_max_delta_y(300), m_min_delta_y(50),
+	                     m_delta_old_object(50),
+	                     m_flag_set_size(false),
+	                     m_flag_size(false),
+	                     m_flag_old_object(false),
+	                     m_flag_recognized(false)
+	{
+		PRINT_DBG(UavContourSearch<ContourSearchClass>::m_debug, PREF, "");
+	}
 
-	// Get index of set of set contains UAV contour
-	int32_t getIndexOfUavSet();
+	// Gets index of set of set contains UAV contour
+	int32_t getIndexOfUavSet(); // noexcept // process
 
-	void clearContours()
+	// Clears contours
+	void clearContours() noexcept
 	{
 		ContourSearchClass::clearDisjointSet();
 	}
 
 	// Draws a rectangles for filter
 	void drawFilterRectangles(uint8_t* const data,
-	                          const uint32_t width, 
-							  const uint32_t height) const;
+	                          const uint32_t width, const uint32_t height) const; // noexcept
 
-	// ***** Getters *****
+	// ***********************
+	// ******* Getters *******
+	// ***********************
 
 	// Gets UAV parameters: left top coordinates of rectangle, width and height
-	int32_t getUavParameters(uint32_t& x, uint32_t& y, uint32_t& w, uint32_t& h) const;
+	int32_t getUavParameters(uint32_t& x, uint32_t& y, uint32_t& w, uint32_t& h) const; // noexcept
 
-	// Gets UAV parameters: set with UAV contour
-	// const std::vector<T>& getUavParameters() const;
-
-	// *******************
-
-	// ***** Setters *****
+	// ***********************
+	// ******* Setters *******
+	// ***********************
 
 	// m_wihtout_recognize_num
-	void setWihtoutRecognizeNum(const uint32_t wihtout_recognize_num)
+	void setWihtoutRecognizeNum(const uint32_t wihtout_recognize_num) noexcept
 	{ 
 		m_wihtout_recognize_num = wihtout_recognize_num; 
 	}
 
 	// m_max_set_size, m_min_set_size
-	void setMaxMinSizeOfSet(const uint32_t max_set_size, const uint32_t min_set_size)
+	void setMaxMinSizeOfSet(const uint32_t max_set_size, const uint32_t min_set_size) noexcept
 	{ 
 		m_max_set_size = max_set_size; 
 		m_min_set_size = min_set_size; 
@@ -86,7 +92,7 @@ public:
 
 	// m_max_delta_x, m_min_delta_x, m_max_delta_y, m_min_delta_y
 	void setDeltaXY(const uint32_t max_delta_x, const uint32_t min_delta_x,
-	                const uint32_t max_delta_y, const uint32_t min_delta_y)
+	                const uint32_t max_delta_y, const uint32_t min_delta_y) noexcept
 	{ 
 		m_max_delta_x = max_delta_x; 
 		m_min_delta_x = min_delta_x; 
@@ -95,30 +101,28 @@ public:
 	}
 
 	// m_delta_old_object
-	void setDeltaOld(const int32_t delta_old_object)
+	void setDeltaOld(const int32_t delta_old_object) noexcept
 	{ 
 		m_delta_old_object = (delta_old_object < 0 ? 0 : delta_old_object); 
 	}
 
 	// m_flag_set_size
-	void setFlagSetSize(const bool flag)
+	void setFlagSetSize(const bool flag) noexcept
 	{ 
 		m_flag_set_size = flag;
 	}
 
 	// m_flag_size
-	void setFlagSize(const bool flag)
+	void setFlagSize(const bool flag) noexcept
 	{ 
 		m_flag_size = flag; 
 	}
 
 	// m_flag_old_object
-	void setFlagOldObject(const bool flag)
+	void setFlagOldObject(const bool flag) noexcept
 	{ 
 		m_flag_old_object = flag; 
 	}
-
-	// *******************
 
 private:
 
@@ -147,7 +151,7 @@ private:
 		}
 
 		// Prints members of the struct
-		void print() const
+		void print() const noexcept
 		{
 			PRINT_DBG(true, PREF,
 			          "i = %lu, delta x = %lu, delta y = %lu, set_size = %lu,  "
@@ -209,35 +213,16 @@ private:
 
 	// Flag; UAV was recognized
 	bool m_flag_recognized;
-
-	// Set with UAV contour
-	// std::vector<T> m_copterSet;
-	// decltype (ContourSearchClass::getSet(0)) m_copterSet;
 };
 
 //=================================================================================================
-// UavContourSearch class implementation
+// *****************************************************
+// ******* UavContourSearch class implementation *******
+// *****************************************************
 
 //-------------------------------------------------------------------------------------------------
 template <typename ContourSearchClass>
 const char* const UavContourSearch<ContourSearchClass>::PREF = "[UavContourSearch]: ";
-
-//-------------------------------------------------------------------------------------------------
-template <typename ContourSearchClass>
-UavContourSearch<ContourSearchClass>::UavContourSearch() : m_wihtout_recognize(0),
-                                                           m_wihtout_recognize_num(1),
-                                                           m_max_set_size(35), m_min_set_size(5),
-                                                           m_max_delta_x(350), m_min_delta_x(100),
-                                                           m_max_delta_y(300), m_min_delta_y(50),
-                                                           m_delta_old_object(50),
-                                                           m_flag_set_size(false),
-                                                           m_flag_size(false),
-                                                           m_flag_old_object(false),
-                                                           m_flag_recognized(false)//,
-                                                           //m_copterSet()
-{
-	PRINT_DBG(UavContourSearch<ContourSearchClass>::m_debug, PREF, "");
-}
 
 //-------------------------------------------------------------------------------------------------
 template <typename ContourSearchClass>
@@ -270,43 +255,8 @@ int32_t UavContourSearch<ContourSearchClass>::getIndexOfUavSet()
 		// Members in set
 		for (uint32_t j = 0; j < m_d_set[i].size(); ++j)
 		{
-			// x
-			//  max
-			if (m_d_set[i][j].x > mm_xy[i].max_x)
-				mm_xy[i].max_x = m_d_set[i][j].x;
-			//  min
-			if (m_d_set[i][j].x < mm_xy[i].min_x)
-				mm_xy[i].min_x = m_d_set[i][j].x;
-
-			// y
-			//  max
-			if (m_d_set[i][j].y > mm_xy[i].max_y)
-				mm_xy[i].max_y = m_d_set[i][j].y;
-			//  min
-			if (m_d_set[i][j].y < mm_xy[i].min_y)
-				mm_xy[i].min_y = m_d_set[i][j].y;
-
-			/*
-			// Points in member
-			for (uint32_t k = 0; k < m_d_set[i][j].points.size(); ++k)
-			{
-				// x
-				// max
-				if (m_d_set[i][j].points[k].x > mm_xy[i].max_x)
-					mm_xy[i].max_x = m_d_set[i][j].points[k].x;
-				// min
-				if (m_d_set[i][j].points[k].x < mm_xy[i].min_x)
-					mm_xy[i].min_x = m_d_set[i][j].points[k].x;
-
-				// y
-				// max
-				if (m_d_set[i][j].points[k].y > mm_xy[i].max_y)
-					mm_xy[i].max_y = m_d_set[i][j].points[k].y;
-				// min
-				if (m_d_set[i][j].points[k].y < mm_xy[i].min_y)
-					mm_xy[i].min_y = m_d_set[i][j].points[k].y;
-			}
-			*/
+			m_d_set[i][j].compareMaxMinXY(mm_xy[i].max_x, mm_xy[i].min_x,
+			                            mm_xy[i].max_y, mm_xy[i].min_y);
 		}
 
 		// Calculate delta x and y

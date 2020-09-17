@@ -5,6 +5,7 @@
 /*
 DESCRITION: macroses and function for print debug messages
 TODO:
+ * add noexcept
 FIXME:
 DANGER:
 NOTE:

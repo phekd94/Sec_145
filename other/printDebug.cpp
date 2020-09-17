@@ -7,8 +7,8 @@
 
 #include <iostream>  // std::cout; std::endl
 
-// #include <QDebug>   // qDebug()
-// #include <QTime>    // currentTime()
+#include <QDebug>   // qDebug()
+#include <QTime>    // currentTime()
 
 //-------------------------------------------------------------------------------------------------
 // Application preface in debug message
@@ -82,6 +82,6 @@ void Sec_145::printDebug(const char* pref,
 	if (CHECK_PRINTF_ERROR(ret, pref, func, format) == false)
 		return;
 
-	// qDebug() << QTime::currentTime().toString("hh:mm:ss") << out;
-	std::cout << out << std::endl;
+	qDebug() << QTime::currentTime().toString("hh:mm:ss") << out;
+	// std::cout << out << std::endl;
 }

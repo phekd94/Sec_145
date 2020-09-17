@@ -6,6 +6,8 @@
 DESCRITION: Geometry structs and types
 TODO:
  * test class (logic() method)
+ * Ellipse class: add to name of members "m_"
+ * Ellipse class: compareMaxMinXY() method
 FIXME:
 DANGER:
 NOTE:
@@ -19,6 +21,8 @@ NOTE:
 #ifdef SEC_145_OPENCV_EN
 #include "opencv2/core/types.hpp"  // cv::Point type
 #endif  // SEC_145_OPENCV_EN
+
+#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -51,7 +55,7 @@ public:
 	}
 
 	// Compare ellipses with a given metric
-	const bool compareWithMetric(const Ellipse& ell, const uint32_t metric) const
+	bool compareWithMetric(const Ellipse& ell, const uint32_t metric) const noexcept
 	{
 		for (uint32_t i = 0; i < this->points.size(); ++i)
 		{
@@ -74,6 +78,28 @@ public:
 		// Ellipses are not near
 		return false;
 	}
+
+	/*
+	// Points in member
+	for (uint32_t k = 0; k < m_d_set[i][j].points.size(); ++k)
+	{
+		// x
+		// max
+		if (m_d_set[i][j].points[k].x > mm_xy[i].max_x)
+			mm_xy[i].max_x = m_d_set[i][j].points[k].x;
+		// min
+		if (m_d_set[i][j].points[k].x < mm_xy[i].min_x)
+			mm_xy[i].min_x = m_d_set[i][j].points[k].x;
+
+		// y
+		// max
+		if (m_d_set[i][j].points[k].y > mm_xy[i].max_y)
+			mm_xy[i].max_y = m_d_set[i][j].points[k].y;
+		// min
+		if (m_d_set[i][j].points[k].y < mm_xy[i].min_y)
+			mm_xy[i].min_y = m_d_set[i][j].points[k].y;
+	}
+	*/
 
 	// The points belong to this ellipse
 	std::vector<Point> points;
@@ -103,7 +129,7 @@ public:
 	}
 
 	// Compare points with a given metric
-	const bool compareWithMetric(const cv::Point& p, const uint32_t metric) const
+	bool compareWithMetric(const cv::Point& p, const uint32_t metric) const noexcept
 	{
 		if (   std::abs(this->x - p.x) < static_cast<int>(metric)
 		    && std::abs(this->y - p.y) < static_cast<int>(metric))
@@ -114,6 +140,34 @@ public:
 
 		// Points are not near
 		return false;
+	}
+
+	void compareMaxMinXY(uint32_t& max_x, uint32_t& min_x,
+	                     uint32_t& max_y, uint32_t& min_y) const noexcept
+	{
+		if (this->x < 0 || this->y < 0) {
+			PRINT_ERR(true, "[CvPoint]: ", "One of the point coordinate is less than 0");
+			return;
+		}
+
+		uint32_t x = static_cast<uint32_t>(this->x);
+		uint32_t y = static_cast<uint32_t>(this->y);
+
+		// x
+		//  max
+		if (x > max_x)
+			max_x = x;
+		//  min
+		if (x < min_x)
+			min_x = x;
+
+		// y
+		//  max
+		if (y > max_y)
+			max_y = y;
+		//  min
+		if (y < min_y)
+			min_y = y;
 	}
 };
 
