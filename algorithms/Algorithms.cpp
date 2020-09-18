@@ -1,7 +1,8 @@
 
 #include "Algorithms.h"
 
-#include <cmath>      // std::sqrt(), std::abs(), std::pow()
+#include <cmath>      // std::sqrt(), std::pow()
+#include <cstdlib>    // std::abs()
 #include <vector>     // std::vector template class
 #include <QImage>     // QImage class
 #include <QDir>       // QDir class

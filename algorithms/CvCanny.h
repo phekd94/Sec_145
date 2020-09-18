@@ -6,7 +6,7 @@
 DESCRITION: Class implemets a contour search by Canny contour detector from OpenCV
 TODO:
  * test class (logic() method)
- * cv::blur() why?
+ * cv::blur(): why?
 FIXME:
 DANGER:
 NOTE:

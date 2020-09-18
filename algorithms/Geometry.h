@@ -7,7 +7,7 @@ DESCRITION: Geometry structs and types
 TODO:
  * test class (logic() method)
  * Ellipse class: add to name of members "m_"
- * Ellipse class: compareMaxMinXY() method
+ * Geometry.cpp
 FIXME:
 DANGER:
 NOTE:
@@ -79,27 +79,29 @@ public:
 		return false;
 	}
 
-	/*
-	// Points in member
-	for (uint32_t k = 0; k < m_d_set[i][j].points.size(); ++k)
+	void compareMaxMinXY(uint32_t& max_x, uint32_t& min_x,
+	                     uint32_t& max_y, uint32_t& min_y) const noexcept
 	{
-		// x
-		// max
-		if (m_d_set[i][j].points[k].x > mm_xy[i].max_x)
-			mm_xy[i].max_x = m_d_set[i][j].points[k].x;
-		// min
-		if (m_d_set[i][j].points[k].x < mm_xy[i].min_x)
-			mm_xy[i].min_x = m_d_set[i][j].points[k].x;
+		// Points in member
+		for (uint32_t k = 0; k < this->points.size(); ++k)
+		{
+			// x
+			//  max
+			if (this->points[k].x > max_x)
+				max_x = this->points[k].x;
+			//  min
+			if (this->points[k].x < min_x)
+				min_x = this->points[k].x;
 
-		// y
-		// max
-		if (m_d_set[i][j].points[k].y > mm_xy[i].max_y)
-			mm_xy[i].max_y = m_d_set[i][j].points[k].y;
-		// min
-		if (m_d_set[i][j].points[k].y < mm_xy[i].min_y)
-			mm_xy[i].min_y = m_d_set[i][j].points[k].y;
+			// y
+			//  max
+			if (this->points[k].y > max_y)
+				max_y = this->points[k].y;
+			//  min
+			if (this->points[k].y < min_y)
+				min_y = this->points[k].y;
+		}
 	}
-	*/
 
 	// The points belong to this ellipse
 	std::vector<Point> points;

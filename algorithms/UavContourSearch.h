@@ -6,8 +6,7 @@
 DESCRITION: Template class for UAV contour search
 TODO: 
  * test class (logic() method)
- * Members in set part in getIndexOfUavSet() method: delegate the part to T type
- * getIndexOfUavSet() check
+ * MimMax_XY: add "m_"
 FIXME:
  * drawFilterRectangles(): boundaries works incorrect
 DANGER:
@@ -17,14 +16,15 @@ Sec_145::UavContourSearch
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
-|      YES(*)   |    YES     |
+|      NO       |    YES(*)  |
 +---------------+------------+
-(*) - single parameters for all threads
+(*) - set with suitable parameters is not valid after clearContours() is called
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <cstdint>        // integer types
-#include <vector>         // std::vector
+#include <cstdint>  // integer types
+#include <vector>   // std::vector
+#include <cstdlib>  // std::abs()
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -34,13 +34,26 @@ namespace Sec_145
 
 //-------------------------------------------------------------------------------------------------
 // Template class for UAV contour search
-template <typename ContourSearchClass>
-class UavContourSearch : public ContourSearchClass
+template <typename ContourSearchClass> class UavContourSearch : public ContourSearchClass
 {
 public:
 
-	UavContourSearch() : m_wihtout_recognize(0),
-	                     m_wihtout_recognize_num(1),
+	// Object parameters
+	struct ObjParameters
+	{
+		ObjParameters(uint32_t x = 0, uint32_t y = 0,
+		              uint32_t w = 0, uint32_t h = 0) : m_x(x), m_y(y), m_w(w), m_h(h)
+		{
+		}
+
+		uint32_t m_x;
+		uint32_t m_y;
+		uint32_t m_w;
+		uint32_t m_h;
+	};
+
+	UavContourSearch() : m_wihtout_recognize_cnt(0),
+	                     m_wihtout_recognize_num(0),
 	                     m_max_set_size(35), m_min_set_size(5),
 	                     m_max_delta_x(350), m_min_delta_x(100),
 	                     m_max_delta_y(300), m_min_delta_y(50),
@@ -53,25 +66,38 @@ public:
 		PRINT_DBG(UavContourSearch<ContourSearchClass>::m_debug, PREF, "");
 	}
 
-	// Gets index of set of set contains UAV contour
-	int32_t getIndexOfUavSet(); // noexcept // process
+	// Processes all contours
+	// (exception from push_back() can be thrown)
+	void processContours();
 
 	// Clears contours
 	void clearContours() noexcept
 	{
+		m_suitable_objects_params.clear();
 		ContourSearchClass::clearDisjointSet();
 	}
 
 	// Draws a rectangles for filter
 	void drawFilterRectangles(uint8_t* const data,
-	                          const uint32_t width, const uint32_t height) const; // noexcept
+	                          const uint32_t width, const uint32_t height) const noexcept;
 
 	// ***********************
 	// ******* Getters *******
 	// ***********************
 
 	// Gets UAV parameters: left top coordinates of rectangle, width and height
-	int32_t getUavParameters(uint32_t& x, uint32_t& y, uint32_t& w, uint32_t& h) const; // noexcept
+	// (contour with maximum size of set (which passed all filters))
+	int32_t getUavParameters(uint32_t& x, uint32_t& y, uint32_t& w, uint32_t& h) const noexcept;
+
+	// Gets UAV parameters: left top coordinates of rectangle, width and height
+	// (contour with maximum size of set (which passed all filters))
+	int32_t getUavParameters(ObjParameters& obj_params) const noexcept;
+
+	// Gets set with suitable objects parameters
+	const std::vector<ObjParameters>& getSuitableObjParameters() const noexcept
+	{
+		return m_suitable_objects_params;
+	}
 
 	// ***********************
 	// ******* Setters *******
@@ -101,9 +127,9 @@ public:
 	}
 
 	// m_delta_old_object
-	void setDeltaOld(const int32_t delta_old_object) noexcept
+	void setDeltaOld(const uint32_t delta_old_object) noexcept
 	{ 
-		m_delta_old_object = (delta_old_object < 0 ? 0 : delta_old_object); 
+		m_delta_old_object = delta_old_object;
 	}
 
 	// m_flag_set_size
@@ -130,21 +156,18 @@ private:
 	static const char* const PREF;
 
 	// Struct with coordinates and some parameters of member
-	struct MinMax_XY {
-
+	struct MinMax_XY
+	{
 		// Constants
-		uint32_t DEF_MAX_X = 1024;
-		uint32_t DEF_MAX_Y = 768;
-		uint32_t DEF_MIN_X = 0;
-		uint32_t DEF_MIN_Y = 0;
+		uint32_t DEF_MAX_X {1024};
+		uint32_t DEF_MAX_Y {768};
+		uint32_t DEF_MIN_X {0};
+		uint32_t DEF_MIN_Y {0};
 
 		MinMax_XY() : i(0),
-		              max_x(DEF_MIN_X),
-		              max_y(DEF_MIN_Y),
-		              min_x(DEF_MAX_X),
-		              min_y(DEF_MAX_Y),
-		              delta_x(0),
-		              delta_y(0),
+		              max_x(DEF_MIN_X), max_y(DEF_MIN_Y),
+		              min_x(DEF_MAX_X), min_y(DEF_MAX_Y),
+		              delta_x(0), delta_y(0),
 		              set_size(0),
 		              valid(false)
 		{
@@ -157,29 +180,28 @@ private:
 			          "i = %lu, delta x = %lu, delta y = %lu, set_size = %lu,  "
 			          "max(%lu, %lu), min(%lu, %lu)",
 			          static_cast<unsigned long>(i),
-			          static_cast<unsigned long>(delta_x),
-			          static_cast<unsigned long>(delta_y),
+			          static_cast<unsigned long>(delta_x), static_cast<unsigned long>(delta_y),
 			          static_cast<unsigned long>(set_size),
-			          static_cast<unsigned long>(max_x),
-			          static_cast<unsigned long>(max_y),
-			          static_cast<unsigned long>(min_x),
-			          static_cast<unsigned long>(min_y));
+			          static_cast<unsigned long>(max_x), static_cast<unsigned long>(max_y),
+			          static_cast<unsigned long>(min_x), static_cast<unsigned long>(min_y));
 		}
 
 		// Index
 		uint32_t i;
 
-		// Max x and y
+		// Maximum x and y
 		uint32_t max_x;
 		uint32_t max_y;
 
-		// Min x and y
+		// Minimum x and y
 		uint32_t min_x;
 		uint32_t min_y;
 
 		// Delta x and y
 		uint32_t delta_x;
 		uint32_t delta_y;
+
+		// Size of set
 		uint32_t set_size;
 
 		// Valid of the struct
@@ -189,24 +211,27 @@ private:
 	// Old recognized object
 	MinMax_XY m_old_object;
 
+	// Set with suitable objects parameters
+	std::vector<ObjParameters> m_suitable_objects_params;
+
 	// For old object
-	uint32_t m_wihtout_recognize;
+	uint32_t m_wihtout_recognize_cnt;
 	uint32_t m_wihtout_recognize_num;
 
-	// Max and min size of set
+	// Maximum and minimum size of set
 	uint32_t m_max_set_size;
 	uint32_t m_min_set_size;
 
-	// Max and min delta x and y
+	// Maximum and minimum delta x and y
 	uint32_t m_max_delta_x;
 	uint32_t m_min_delta_x;
 	uint32_t m_max_delta_y;
 	uint32_t m_min_delta_y;
 
 	// Maximum difference with old object
-	int32_t m_delta_old_object;
+	uint32_t m_delta_old_object;
 
-	// Flags enable/disable of recognitions
+	// Enable flags for recognition filters
 	bool m_flag_set_size;
 	bool m_flag_size;
 	bool m_flag_old_object;
@@ -226,7 +251,7 @@ const char* const UavContourSearch<ContourSearchClass>::PREF = "[UavContourSearc
 
 //-------------------------------------------------------------------------------------------------
 template <typename ContourSearchClass>
-int32_t UavContourSearch<ContourSearchClass>::getIndexOfUavSet()
+void UavContourSearch<ContourSearchClass>::processContours()
 {
 	// Get a disjoint set
 	decltype ( ContourSearchClass::getDisjointSet() ) m_d_set =
@@ -256,7 +281,7 @@ int32_t UavContourSearch<ContourSearchClass>::getIndexOfUavSet()
 		for (uint32_t j = 0; j < m_d_set[i].size(); ++j)
 		{
 			m_d_set[i][j].compareMaxMinXY(mm_xy[i].max_x, mm_xy[i].min_x,
-			                            mm_xy[i].max_y, mm_xy[i].min_y);
+			                              mm_xy[i].max_y, mm_xy[i].min_y);
 		}
 
 		// Calculate delta x and y
@@ -264,8 +289,7 @@ int32_t UavContourSearch<ContourSearchClass>::getIndexOfUavSet()
 		mm_xy[i].delta_y = mm_xy[i].max_y - mm_xy[i].min_y;
 	}
 
-	// Print a content of the vector member with maximum, minimum values
-	// and other parameters
+	// Print a content of the vector member with maximum, minimum values and other parameters
 	if (true == ContourSearchClass::m_debug)
 	{
 		for (const auto& el : mm_xy)
@@ -278,8 +302,7 @@ int32_t UavContourSearch<ContourSearchClass>::getIndexOfUavSet()
 	}
 
 	// Index for return value; maximal size of suitable set
-	int32_t index = 0;
-	uint32_t max_set_size = 0;
+	uint32_t index {0}, max_set_size {0};
 
 	// Process all parameters in vector
 	for (uint32_t i = 0; i < mm_xy.size(); ++i)
@@ -292,7 +315,12 @@ int32_t UavContourSearch<ContourSearchClass>::getIndexOfUavSet()
 		if (true == m_flag_set_size)
 		{
 			if (mm_xy[i].set_size < m_min_set_size || mm_xy[i].set_size > m_max_set_size)
+			{
+				PRINT_DBG(ContourSearchClass::m_debug, PREF,
+				          "stop: filter by set size, index = %lu",
+				          static_cast<unsigned long>(mm_xy[i].i));
 				continue;
+			}
 		}
 
 		// Filter a member by size
@@ -303,7 +331,8 @@ int32_t UavContourSearch<ContourSearchClass>::getIndexOfUavSet()
 				  && mm_xy[i].delta_y > m_min_delta_y
 				  && mm_xy[i].delta_y < m_max_delta_y))
 			{
-				PRINT_DBG(ContourSearchClass::m_debug, PREF, "stop: filter by size, index = %lu",
+				PRINT_DBG(ContourSearchClass::m_debug, PREF,
+				          "stop: filter by size, index = %lu",
 						  static_cast<unsigned long>(mm_xy[i].i));
 				continue;
 			}
@@ -314,17 +343,23 @@ int32_t UavContourSearch<ContourSearchClass>::getIndexOfUavSet()
 		{
 			if (true == m_old_object.valid)
 			{
-				if (std::abs(static_cast<int>(m_old_object.max_x) -
-							 static_cast<int>(mm_xy[i].max_x)) > m_delta_old_object
+				if (   std::abs(static_cast<int>(m_old_object.max_x) -
+				                static_cast<int>(mm_xy[i].max_x)) >
+				       static_cast<int>(m_delta_old_object)
 					&& std::abs(static_cast<int>(m_old_object.max_y) -
-								static_cast<int>(mm_xy[i].max_y)) > m_delta_old_object
+				                static_cast<int>(mm_xy[i].max_y)) >
+				       static_cast<int>(m_delta_old_object)
 					&& std::abs(static_cast<int>(m_old_object.min_x) -
-								static_cast<int>(mm_xy[i].min_x)) > m_delta_old_object
+				                static_cast<int>(mm_xy[i].min_x)) >
+				       static_cast<int>(m_delta_old_object)
 					&& std::abs(static_cast<int>(m_old_object.min_y) -
-								static_cast<int>(mm_xy[i].min_y)) > m_delta_old_object)
+				                static_cast<int>(mm_xy[i].min_y)) >
+				       static_cast<int>(m_delta_old_object)
+				   )
 				{
-					PRINT_DBG(ContourSearchClass::m_debug, PREF, "stop: filter by old obj, index = %lu",
-							  static_cast<unsigned long>(mm_xy[i].i));
+					PRINT_DBG(ContourSearchClass::m_debug, PREF,
+					          "stop: filter by old object, index = %lu",
+					          static_cast<unsigned long>(mm_xy[i].i));
 					continue;
 				}
 			}
@@ -333,49 +368,63 @@ int32_t UavContourSearch<ContourSearchClass>::getIndexOfUavSet()
 		PRINT_DBG(ContourSearchClass::m_debug, PREF, "detect, index = %lu",
 				  static_cast<unsigned long>(mm_xy[i].i));
 
+		// Add suitable object parameters
+		m_suitable_objects_params.push_back(ObjParameters(mm_xy[i].min_x, mm_xy[i].min_y,
+		                                                  mm_xy[i].delta_x, mm_xy[i].delta_y));
+
 		// Choice a set with maximum size
 		if (mm_xy[i].set_size > max_set_size)
 		{
 			max_set_size = mm_xy[i].set_size;
-			index = static_cast<int32_t>(i);
+			index = i;
 		}
 	}
 
 	// Verify recognition
 	if (0 == max_set_size)
 	{
-		m_flag_recognized = false;
-		// m_copterSet.resize(0);
-		if (++m_wihtout_recognize > m_wihtout_recognize_num)
+		// Check without recognize counter and number
+		if (++m_wihtout_recognize_cnt > m_wihtout_recognize_num)
 		{
-			PRINT_DBG(ContourSearchClass::m_debug, PREF, "m_wihtout_recognize > %lu",
-					  static_cast<unsigned long>(m_wihtout_recognize_num));
-			m_wihtout_recognize = 0;
+			// Set recognized flag
+			m_flag_recognized = false;
+
+			// Set without recognize counter to 0
+			m_wihtout_recognize_cnt = 0;
+
+			// Set empty object as old object
 			m_old_object = MinMax_XY();
+
+			PRINT_DBG(ContourSearchClass::m_debug, PREF, "m_wihtout_recognize_cnt > %lu",
+					  static_cast<unsigned long>(m_wihtout_recognize_num));
 		}
+
 		PRINT_DBG(ContourSearchClass::m_debug, PREF, "Copter was not recognized");
-		index = -1;
 	}
 	else
 	{
+		// Set recognized flag
 		m_flag_recognized = true;
-		// m_copterSet = m_d_set[static_cast<uint32_t>(index)];
+
+		// Set without recognize counter to 0
+		m_wihtout_recognize_cnt = 0;
+
+		// Set old object
+		m_old_object = mm_xy[index];
+
 		if (true == ContourSearchClass::m_debug)
-			mm_xy[static_cast<uint32_t>(index)].print();
+			mm_xy[index].print();
 		PRINT_DBG(ContourSearchClass::m_debug, PREF, "is an old object now");
-		m_old_object = mm_xy[static_cast<uint32_t>(index)];
 	}
 
 	PRINT_DBG(ContourSearchClass::m_debug, PREF, "=================");
-
-	return index;
 }
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
 void UavContourSearch<T>::drawFilterRectangles(uint8_t* const data,
                                                const uint32_t width,
-                                               const uint32_t height) const
+                                               const uint32_t height) const noexcept
 {
 	const uint32_t OFFSET = 20;
 
@@ -383,7 +432,7 @@ void UavContourSearch<T>::drawFilterRectangles(uint8_t* const data,
 	if (   OFFSET + m_max_delta_y + 2 * m_delta_old_object > height
 		|| OFFSET + m_max_delta_x + 2 * m_delta_old_object > width)
 	{
-		PRINT_ERR(true, PREF, "");
+		PRINT_ERR(true, PREF, "Out of bounds");
 		return;
 	}
 
@@ -437,11 +486,14 @@ void UavContourSearch<T>::drawFilterRectangles(uint8_t* const data,
 //-------------------------------------------------------------------------------------------------
 template <typename T>
 int32_t UavContourSearch<T>::getUavParameters(uint32_t& x, uint32_t& y,
-                                              uint32_t& w, uint32_t& h) const
+                                              uint32_t& w, uint32_t& h) const noexcept
 {
 	// Check a valid of recognized object
 	if (false == m_flag_recognized)
+	{
+		x = y = w = h = 0;
 		return -1;
+	}
 
 	// Get parameters
 	x = m_old_object.min_x;
@@ -453,20 +505,24 @@ int32_t UavContourSearch<T>::getUavParameters(uint32_t& x, uint32_t& y,
 }
 
 //-------------------------------------------------------------------------------------------------
+template <typename T>
+int32_t UavContourSearch<T>::getUavParameters(ObjParameters& obj_params) const noexcept
+{
+	// Check a valid of recognized object
+	if (false == m_flag_recognized)
+	{
+		obj_params.m_x = obj_params.m_y = obj_params.m_w = obj_params.m_h = 0;
+		return -1;
+	}
 
-//template <typename T>
-//const std::vector<T>& UavContourSearch<T>::getUavParameters() const
-//{
-//	// Empty set
-//	static const std::vector<T> empty_set;
+	// Get parameters
+	obj_params.m_x = m_old_object.min_x;
+	obj_params.m_y = m_old_object.min_y;
+	obj_params.m_w = m_old_object.delta_x;
+	obj_params.m_h = m_old_object.delta_y;
 
-//	// Check a valid of recognized object
-//	if (false == m_flag_recognized || m_copterSet.size() == 0)
-//		return empty_set;
-
-//	// Get parameters
-//	return m_copterSet;
-//}
+	return 0;
+}
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
