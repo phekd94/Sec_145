@@ -38,6 +38,9 @@ template <typename ContourSearchClass> class UavContourSearch : public ContourSe
 {
 public:
 
+	// Sets a debug enable flag
+	using ContourSearchClass::setDebug;
+
 	// Object parameters
 	struct ObjParameters
 	{
