@@ -30,8 +30,28 @@ int32_t CvCanny::applyDetector(const uint8_t* const greyData,
 	// Apply Canny detector
 	cv::Canny(image, image, m_threshold, 3 * m_threshold, m_kernelSize);
 
+	// Add points to disjoint set
+	/*
+	for (int32_t row = 0; row >= 0 && row < image.rows; ++row)
+	{
+		for (int32_t col = 0; col >= 0 && col < image.cols; ++col)
+		{
+			if (image.at<uint8_t>(row, col) == 255)
+			{
+				if (DisjointSet<CvPoint>::addMember(Sec_145::CvPoint(cv::Point(col, row))) != 0)
+				{
+					PRINT_ERR(true, PREF, "addMember()");
+					return -1;
+				}
+			}
+		}
+	}
+
+	return 0;
+	*/
+
 	// Find contours (get a set of sets with contours points)
-	findContours(image, m_contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+	cv::findContours(image, m_contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
 	// Add points to disjoint set
 	for (uint32_t i = 0; i < m_contours.size(); ++i)
