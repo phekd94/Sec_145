@@ -7,6 +7,7 @@ DESCRITION: Template class for UAV contour search
 TODO: 
  * test class (logic() method)
  * MimMax_XY: add "m_"
+ * add volatile work flag
 FIXME:
  * drawFilterRectangles(): boundaries works incorrect
 DANGER:
@@ -40,6 +41,9 @@ public:
 
 	// Sets a debug enable flag
 	using ContourSearchClass::setDebug;
+
+	// Sets a metric for disjoint set
+	using ContourSearchClass::setMetric;
 
 	// Object parameters
 	struct ObjParameters
@@ -162,10 +166,10 @@ private:
 	struct MinMax_XY
 	{
 		// Constants
-		uint32_t DEF_MAX_X {1024};
-		uint32_t DEF_MAX_Y {768};
-		uint32_t DEF_MIN_X {0};
-		uint32_t DEF_MIN_Y {0};
+		static const uint32_t DEF_MAX_X {1024};
+		static const uint32_t DEF_MAX_Y {768};
+		static const uint32_t DEF_MIN_X {0};
+		static const uint32_t DEF_MIN_Y {0};
 
 		MinMax_XY() : i(0),
 		              max_x(DEF_MIN_X), max_y(DEF_MIN_Y),

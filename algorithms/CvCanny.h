@@ -7,6 +7,7 @@ DESCRITION: Class implemets a contour search by Canny contour detector from Open
 TODO:
  * test class (logic() method)
  * cv::blur(): why?
+ * add volatile work flag
 FIXME:
 DANGER:
 NOTE:
@@ -37,8 +38,16 @@ class CvCanny : protected DisjointSet<CvPoint>
 {
 public:
 
-	explicit CvCanny(const uint32_t threshold = 15, const uint32_t kernelSize = 3) :
-	    m_threshold(threshold), m_kernelSize(kernelSize)
+	// Type frame enumeration
+	enum class eFrameType
+	{
+		Source,
+		Differential
+	};
+
+	CvCanny() : m_cannyThreshold(20), m_kernelSize(3), m_frameType(eFrameType::Source),
+	            m_stepCannyThreshold(5), m_lowExecutionTime(15), m_highExecutionTime(25),
+	            m_threshold(130), m_frameTypeRatio(0.6)
 	{
 		PRINT_DBG(DisjointSet<CvPoint>::m_debug, PREF, "");
 	}
@@ -48,13 +57,23 @@ public:
 	                      const uint32_t width, const uint32_t height) noexcept;
 
 	// ***********************
+	// ******* Getters *******
+	// ***********************
+
+	// Gets a frame type
+	eFrameType getFrameType() const noexcept
+	{
+		return m_frameType;
+	}
+
+	// ***********************
 	// ******* Setters *******
 	// ***********************
 
-	// Sets a threshold
-	void setThreshold(const uint32_t threshold) noexcept
+	// Sets a threshold for Canny detector
+	void setCannyThreshold(const uint32_t cannyThreshold) noexcept
 	{
-		m_threshold = threshold;
+		m_cannyThreshold = cannyThreshold;
 	}
 
 	// Sets a kernel size
@@ -63,7 +82,43 @@ public:
 		m_kernelSize = kernelSize;
 	}
 
+	// Sets a step for adjustment of threshold for Canny detector
+	void setStepCannyThreshold(const uint32_t stepCannyThreshold) noexcept
+	{
+		m_stepCannyThreshold = stepCannyThreshold;
+	}
+
+	// Sets execution time limits
+	int32_t setExecutionTimeLimits(const uint32_t lowExecutionTime,
+	                               const uint32_t highExecutionTime) noexcept
+	{
+		if (lowExecutionTime > highExecutionTime)
+		{
+			PRINT_ERR(true, PREF, "lowExecutionTime > highExecutionTime");
+			return -1;
+		}
+		m_lowExecutionTime = lowExecutionTime;
+		m_highExecutionTime = highExecutionTime;
+		return 0;
+	}
+
+	// Sets a threshold for threshold OpenCV function
+	void setThreshold(const uint32_t threshold) noexcept
+	{
+		m_threshold = threshold;
+	}
+
+	// Sets a ratio of sky points and points with hard background
+	void setFrameTypeRatio(const double frameTypeRatio) noexcept
+	{
+		m_frameTypeRatio = frameTypeRatio;
+	}
+
 private:
+
+	// Constants
+	static const uint32_t lowCannyThreshold {10};
+	static const uint32_t highCannyThreshold {150};
 
 	// Preface in debug message
 	static const char* const PREF;
@@ -72,10 +127,32 @@ private:
 	std::vector<std::vector<cv::Point>> m_contours;
 
 	// Threshold for Canny detector
-	uint32_t m_threshold;
+	uint32_t m_cannyThreshold;
 
 	// Kernel size for Sobel operator
 	uint32_t m_kernelSize;
+
+	// Frame type
+	eFrameType m_frameType;
+
+	// Execution time
+	uint64_t m_execTime;
+
+	// Step for adjustment of threshold for Canny detector
+	uint32_t m_stepCannyThreshold;
+
+	// Execution time limits
+	uint32_t m_lowExecutionTime;
+	uint32_t m_highExecutionTime;
+
+	// Threshold for threshold OpenCV function
+	uint32_t m_threshold;
+
+	// Ratio of sky points and points with hard background
+	double m_frameTypeRatio;
+
+	// Adjusts parameters
+	void adjustParameters(const cv::Mat& greyImage);
 };
 
 //-------------------------------------------------------------------------------------------------
