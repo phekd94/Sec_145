@@ -6,7 +6,6 @@
 DESCRITION: Template class for UAV contour search
 TODO: 
  * test class (logic() method)
- * MimMax_XY: add "m_"
  * add volatile work flag
 FIXME:
  * drawFilterRectangles(): boundaries works incorrect
@@ -100,6 +99,10 @@ public:
 	// (contour with maximum size of set (which passed all filters))
 	int32_t getUavParameters(ObjParameters& obj_params) const noexcept;
 
+	// Gets UAV parameters: center of the rectangle with found object
+	// (contour with maximum size of set (which passed all filters))
+	int32_t getUavParameters(uint32_t& x, uint32_t& y) const noexcept;
+
 	// Gets set with suitable objects parameters
 	const std::vector<ObjParameters>& getSuitableObjParameters() const noexcept
 	{
@@ -171,12 +174,12 @@ private:
 		static const uint32_t DEF_MIN_X {0};
 		static const uint32_t DEF_MIN_Y {0};
 
-		MinMax_XY() : i(0),
-		              max_x(DEF_MIN_X), max_y(DEF_MIN_Y),
-		              min_x(DEF_MAX_X), min_y(DEF_MAX_Y),
-		              delta_x(0), delta_y(0),
-		              set_size(0),
-		              valid(false)
+		MinMax_XY() : m_i(0),
+		              m_max_x(DEF_MIN_X), m_max_y(DEF_MIN_Y),
+		              m_min_x(DEF_MAX_X), m_min_y(DEF_MAX_Y),
+		              m_delta_x(0), m_delta_y(0),
+		              m_set_size(0),
+		              m_valid(false)
 		{
 		}
 
@@ -186,33 +189,34 @@ private:
 			PRINT_DBG(true, PREF,
 			          "i = %lu, delta x = %lu, delta y = %lu, set_size = %lu,  "
 			          "max(%lu, %lu), min(%lu, %lu)",
-			          static_cast<unsigned long>(i),
-			          static_cast<unsigned long>(delta_x), static_cast<unsigned long>(delta_y),
-			          static_cast<unsigned long>(set_size),
-			          static_cast<unsigned long>(max_x), static_cast<unsigned long>(max_y),
-			          static_cast<unsigned long>(min_x), static_cast<unsigned long>(min_y));
+			          static_cast<unsigned long>(m_i),
+			          static_cast<unsigned long>(m_delta_x),
+			          static_cast<unsigned long>(m_delta_y),
+			          static_cast<unsigned long>(m_set_size),
+			          static_cast<unsigned long>(m_max_x), static_cast<unsigned long>(m_max_y),
+			          static_cast<unsigned long>(m_min_x), static_cast<unsigned long>(m_min_y));
 		}
 
 		// Index
-		uint32_t i;
+		uint32_t m_i;
 
 		// Maximum x and y
-		uint32_t max_x;
-		uint32_t max_y;
+		uint32_t m_max_x;
+		uint32_t m_max_y;
 
 		// Minimum x and y
-		uint32_t min_x;
-		uint32_t min_y;
+		uint32_t m_min_x;
+		uint32_t m_min_y;
 
 		// Delta x and y
-		uint32_t delta_x;
-		uint32_t delta_y;
+		uint32_t m_delta_x;
+		uint32_t m_delta_y;
 
 		// Size of set
-		uint32_t set_size;
+		uint32_t m_set_size;
 
 		// Valid of the struct
-		bool valid;
+		bool m_valid;
 	};
 
 	// Old recognized object
@@ -272,28 +276,28 @@ void UavContourSearch<ContourSearchClass>::processContours()
 	for (uint32_t i = 0; i < m_d_set.size(); ++i)
 	{
 		// Set index
-		mm_xy[i].i = i;
+		mm_xy[i].m_i = i;
 
 		// Check the size of set
 		uint32_t set_size = static_cast<uint32_t>(m_d_set[i].size());
 		if (0 == set_size)
 		{
-			mm_xy[i].valid = false;
+			mm_xy[i].m_valid = false;
 			continue;
 		}
-		mm_xy[i].valid = true;
-		mm_xy[i].set_size = set_size;
+		mm_xy[i].m_valid = true;
+		mm_xy[i].m_set_size = set_size;
 
 		// Members in set
 		for (uint32_t j = 0; j < m_d_set[i].size(); ++j)
 		{
-			m_d_set[i][j].compareMaxMinXY(mm_xy[i].max_x, mm_xy[i].min_x,
-			                              mm_xy[i].max_y, mm_xy[i].min_y);
+			m_d_set[i][j].compareMaxMinXY(mm_xy[i].m_max_x, mm_xy[i].m_min_x,
+			                              mm_xy[i].m_max_y, mm_xy[i].m_min_y);
 		}
 
 		// Calculate delta x and y
-		mm_xy[i].delta_x = mm_xy[i].max_x - mm_xy[i].min_x;
-		mm_xy[i].delta_y = mm_xy[i].max_y - mm_xy[i].min_y;
+		mm_xy[i].m_delta_x = mm_xy[i].m_max_x - mm_xy[i].m_min_x;
+		mm_xy[i].m_delta_y = mm_xy[i].m_max_y - mm_xy[i].m_min_y;
 	}
 
 	// Print a content of the vector member with maximum, minimum values and other parameters
@@ -301,7 +305,7 @@ void UavContourSearch<ContourSearchClass>::processContours()
 	{
 		for (const auto& el : mm_xy)
 		{
-			if (false == el.valid)
+			if (false == el.m_valid)
 				continue;
 			el.print();
 		}
@@ -315,17 +319,17 @@ void UavContourSearch<ContourSearchClass>::processContours()
 	for (uint32_t i = 0; i < mm_xy.size(); ++i)
 	{
 		// Valid
-		if (false == mm_xy[i].valid)
+		if (false == mm_xy[i].m_valid)
 			continue;
 
 		// Filter a member by size in set
 		if (true == m_flag_set_size)
 		{
-			if (mm_xy[i].set_size < m_min_set_size || mm_xy[i].set_size > m_max_set_size)
+			if (mm_xy[i].m_set_size < m_min_set_size || mm_xy[i].m_set_size > m_max_set_size)
 			{
 				PRINT_DBG(ContourSearchClass::m_debug, PREF,
 				          "stop: filter by set size, index = %lu",
-				          static_cast<unsigned long>(mm_xy[i].i));
+				          static_cast<unsigned long>(mm_xy[i].m_i));
 				continue;
 			}
 		}
@@ -333,14 +337,14 @@ void UavContourSearch<ContourSearchClass>::processContours()
 		// Filter a member by size
 		if (true == m_flag_size)
 		{
-			if (!(   mm_xy[i].delta_x > m_min_delta_x
-				  && mm_xy[i].delta_x < m_max_delta_x
-				  && mm_xy[i].delta_y > m_min_delta_y
-				  && mm_xy[i].delta_y < m_max_delta_y))
+			if (!(   mm_xy[i].m_delta_x > m_min_delta_x
+			      && mm_xy[i].m_delta_x < m_max_delta_x
+			      && mm_xy[i].m_delta_y > m_min_delta_y
+			      && mm_xy[i].m_delta_y < m_max_delta_y))
 			{
 				PRINT_DBG(ContourSearchClass::m_debug, PREF,
 				          "stop: filter by size, index = %lu",
-						  static_cast<unsigned long>(mm_xy[i].i));
+				          static_cast<unsigned long>(mm_xy[i].m_i));
 				continue;
 			}
 		}
@@ -348,41 +352,42 @@ void UavContourSearch<ContourSearchClass>::processContours()
 		// Filter a member by old object position
 		if (true == m_flag_old_object)
 		{
-			if (true == m_old_object.valid)
+			if (true == m_old_object.m_valid)
 			{
-				if (   std::abs(static_cast<int>(m_old_object.max_x) -
-				                static_cast<int>(mm_xy[i].max_x)) >
+				if (   std::abs(static_cast<int>(m_old_object.m_max_x) -
+				                static_cast<int>(mm_xy[i].m_max_x)) >
 				       static_cast<int>(m_delta_old_object)
-					&& std::abs(static_cast<int>(m_old_object.max_y) -
-				                static_cast<int>(mm_xy[i].max_y)) >
+				    && std::abs(static_cast<int>(m_old_object.m_max_y) -
+				                static_cast<int>(mm_xy[i].m_max_y)) >
 				       static_cast<int>(m_delta_old_object)
-					&& std::abs(static_cast<int>(m_old_object.min_x) -
-				                static_cast<int>(mm_xy[i].min_x)) >
+				    && std::abs(static_cast<int>(m_old_object.m_min_x) -
+				                static_cast<int>(mm_xy[i].m_min_x)) >
 				       static_cast<int>(m_delta_old_object)
-					&& std::abs(static_cast<int>(m_old_object.min_y) -
-				                static_cast<int>(mm_xy[i].min_y)) >
+				    && std::abs(static_cast<int>(m_old_object.m_min_y) -
+				                static_cast<int>(mm_xy[i].m_min_y)) >
 				       static_cast<int>(m_delta_old_object)
 				   )
 				{
 					PRINT_DBG(ContourSearchClass::m_debug, PREF,
 					          "stop: filter by old object, index = %lu",
-					          static_cast<unsigned long>(mm_xy[i].i));
+					          static_cast<unsigned long>(mm_xy[i].m_i));
 					continue;
 				}
 			}
 		}
 
 		PRINT_DBG(ContourSearchClass::m_debug, PREF, "detect, index = %lu",
-				  static_cast<unsigned long>(mm_xy[i].i));
+		          static_cast<unsigned long>(mm_xy[i].m_i));
 
 		// Add suitable object parameters
-		m_suitable_objects_params.push_back(ObjParameters(mm_xy[i].min_x, mm_xy[i].min_y,
-		                                                  mm_xy[i].delta_x, mm_xy[i].delta_y));
+		m_suitable_objects_params.push_back(ObjParameters(mm_xy[i].m_min_x, mm_xy[i].m_min_y,
+		                                                  mm_xy[i].m_delta_x,
+		                                                  mm_xy[i].m_delta_y));
 
 		// Choice a set with maximum size
-		if (mm_xy[i].set_size > max_set_size)
+		if (mm_xy[i].m_set_size > max_set_size)
 		{
-			max_set_size = mm_xy[i].set_size;
+			max_set_size = mm_xy[i].m_set_size;
 			index = i;
 		}
 	}
@@ -503,10 +508,10 @@ int32_t UavContourSearch<T>::getUavParameters(uint32_t& x, uint32_t& y,
 	}
 
 	// Get parameters
-	x = m_old_object.min_x;
-	y = m_old_object.min_y;
-	w = m_old_object.delta_x;
-	h = m_old_object.delta_y;
+	x = m_old_object.m_min_x;
+	y = m_old_object.m_min_y;
+	w = m_old_object.m_delta_x;
+	h = m_old_object.m_delta_y;
 
 	return 0;
 }
@@ -523,10 +528,28 @@ int32_t UavContourSearch<T>::getUavParameters(ObjParameters& obj_params) const n
 	}
 
 	// Get parameters
-	obj_params.m_x = m_old_object.min_x;
-	obj_params.m_y = m_old_object.min_y;
-	obj_params.m_w = m_old_object.delta_x;
-	obj_params.m_h = m_old_object.delta_y;
+	obj_params.m_x = m_old_object.m_min_x;
+	obj_params.m_y = m_old_object.m_min_y;
+	obj_params.m_w = m_old_object.m_delta_x;
+	obj_params.m_h = m_old_object.m_delta_y;
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+int32_t UavContourSearch<T>::getUavParameters(uint32_t& x, uint32_t& y) const noexcept
+{
+	// Check a valid of recognized object
+	if (false == m_flag_recognized)
+	{
+		x = y = 0;
+		return -1;
+	}
+
+	// Get parameters
+	x = m_old_object.m_min_x + m_old_object.m_delta_x / 2;
+	y = m_old_object.m_min_y + m_old_object.m_delta_y / 2;
 
 	return 0;
 }

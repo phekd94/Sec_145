@@ -2,7 +2,7 @@
 #include "CvCanny.h"
 
 #include <exception>             // std::exception
-#include <chrono>                //
+#include <chrono>                // std::chrono functions
 #include "opencv2/core/mat.hpp"  // cv::Mat
 #include "opencv2/imgproc.hpp"   // cv::blur(); cv::Canny(); findContours()
 
@@ -40,11 +40,11 @@ int32_t CvCanny::applyDetector(const uint8_t* const greyData,
 	findContours(image, m_contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
 	// Add points to disjoint set
-	for (uint32_t i = 0; i < m_contours.size(); ++i)
+	for (auto contour : m_contours)
 	{
-		for (uint32_t j = 0; j < m_contours[i].size(); ++j)
+		for (auto point : contour)
 		{
-			if (DisjointSet<CvPoint>::addMember(Sec_145::CvPoint(m_contours[i][j])) != 0)
+			if (DisjointSet<CvPoint>::addMember(Sec_145::CvPoint(point)) != 0)
 			{
 				PRINT_ERR(true, PREF, "addMember()");
 				return -1;

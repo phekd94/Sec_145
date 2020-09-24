@@ -6,7 +6,6 @@
 DESCRITION: Class implemets a contour search by Evgeny Nikulin
 TODO:
  * test class (logic() method)
- * defines.h
 FIXME:
 DANGER:
 NOTE:
