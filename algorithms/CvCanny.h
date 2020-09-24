@@ -7,7 +7,6 @@ DESCRITION: Class implemets a contour search by Canny contour detector from Open
 TODO:
  * test class (logic() method)
  * cv::blur(): why?
- * add volatile work flag
 FIXME:
 DANGER:
 NOTE:
@@ -47,7 +46,7 @@ public:
 
 	CvCanny() : m_cannyThreshold(20), m_kernelSize(3), m_frameType(eFrameType::Source),
 	            m_stepCannyThreshold(5), m_lowExecutionTime(15), m_highExecutionTime(25),
-	            m_threshold(130), m_frameTypeRatio(0.6)
+	            m_threshold(130), m_frameTypeRatio(0.6), m_is_working(false)
 	{
 		PRINT_DBG(DisjointSet<CvPoint>::m_debug, PREF, "");
 	}
@@ -64,6 +63,24 @@ public:
 	eFrameType getFrameType() const noexcept
 	{
 		return m_frameType;
+	}
+
+	// Gets start time
+	uint64_t getStartTime() const noexcept
+	{
+		return m_startTime;
+	}
+
+	// Gets finish time
+	uint64_t getFinishTime() const noexcept
+	{
+		return m_finishTime;
+	}
+
+	// Gets is_working flag
+	bool getIsWorking() const noexcept
+	{
+		return m_is_working;
 	}
 
 	// ***********************
@@ -126,6 +143,10 @@ private:
 	// Set of sets with contour points
 	std::vector<std::vector<cv::Point>> m_contours;
 
+	// Start and finish time
+	uint64_t m_startTime;
+	uint64_t m_finishTime;
+
 	// Threshold for Canny detector
 	uint32_t m_cannyThreshold;
 
@@ -134,9 +155,6 @@ private:
 
 	// Frame type
 	eFrameType m_frameType;
-
-	// Execution time
-	uint64_t m_execTime;
 
 	// Step for adjustment of threshold for Canny detector
 	uint32_t m_stepCannyThreshold;
@@ -151,8 +169,11 @@ private:
 	// Ratio of sky points and points with hard background
 	double m_frameTypeRatio;
 
+	// Flag; applyDetector() method is working
+	volatile bool m_is_working;
+
 	// Adjusts parameters
-	void adjustParameters(const cv::Mat& greyImage);
+	void adjustParameters();
 };
 
 //-------------------------------------------------------------------------------------------------
