@@ -67,14 +67,16 @@ public:
 	                     m_flag_set_size(false),
 	                     m_flag_size(false),
 	                     m_flag_old_object(false),
-	                     m_flag_recognized(false)
+	                     m_flag_recognized(false),
+	                     m_is_working(false)
 	{
 		PRINT_DBG(UavContourSearch<ContourSearchClass>::m_debug, PREF, "");
 	}
 
 	// Processes all contours
-	// (exception from push_back() can be thrown)
-	void processContours();
+	// (exception from push_back() can be thrown (it is unlikely))
+	void processContours(const uint8_t* const greyData,
+	                     const uint32_t width, const uint32_t height);
 
 	// Clears contours
 	void clearContours() noexcept
@@ -107,6 +109,12 @@ public:
 	const std::vector<ObjParameters>& getSuitableObjParameters() const noexcept
 	{
 		return m_suitable_objects_params;
+	}
+
+	// Gets is_working flag
+	bool getIsWorking() const noexcept
+	{
+		return m_is_working;
 	}
 
 	// ***********************
@@ -249,6 +257,9 @@ private:
 
 	// Flag; UAV was recognized
 	bool m_flag_recognized;
+
+	// Flag; applyDetector() method is working
+	volatile bool m_is_working;
 };
 
 //=================================================================================================
@@ -262,8 +273,16 @@ const char* const UavContourSearch<ContourSearchClass>::PREF = "[UavContourSearc
 
 //-------------------------------------------------------------------------------------------------
 template <typename ContourSearchClass>
-void UavContourSearch<ContourSearchClass>::processContours()
+void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const greyData,
+                                                           const uint32_t width,
+                                                           const uint32_t height)
 {
+	// Set is_working flag
+	m_is_working = true;
+
+	// Apply contours detector
+	ContourSearchClass::applyDetector(greyData, width, height);
+
 	// Get a disjoint set
 	decltype ( ContourSearchClass::getDisjointSet() ) m_d_set =
 	        ContourSearchClass::getDisjointSet();
@@ -430,6 +449,9 @@ void UavContourSearch<ContourSearchClass>::processContours()
 	}
 
 	PRINT_DBG(ContourSearchClass::m_debug, PREF, "=================");
+
+	// Clear is_working flag
+	m_is_working = false;
 }
 
 //-------------------------------------------------------------------------------------------------
