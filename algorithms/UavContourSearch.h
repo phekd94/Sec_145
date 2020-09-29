@@ -6,7 +6,6 @@
 DESCRITION: Template class for UAV contour search
 TODO: 
  * test class (logic() method)
- * add volatile work flag
 FIXME:
  * drawFilterRectangles(): boundaries works incorrect
 DANGER:
