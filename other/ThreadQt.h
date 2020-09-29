@@ -50,7 +50,7 @@ public:
 	}
 
 	// Stops the thread
-	void stop()
+	void stop() noexcept
 	{
 		m_stop = true;
 	}
