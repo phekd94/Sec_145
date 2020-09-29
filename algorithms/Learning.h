@@ -6,11 +6,11 @@
 DESCRITION: Functions for learning
 TODO:
  * test class (logic() method)
- * Eigen exceprions
- * std::chrono instead QDateTime
+ * Eigen exceptions (memory allocation)
 FIXME:
 DANGER:
-NOTE: * Access only across '*' or '[]' to data received from Eigen::MatrixXd::data() method
+NOTE:
+ * Access only across '*' or '[]' to data received from Eigen::MatrixXd::data() method
 
 +---------------+------------+
 | thread safety | reentrance |
