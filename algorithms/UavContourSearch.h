@@ -57,17 +57,7 @@ public:
 		uint32_t m_h;
 	};
 
-	UavContourSearch() : m_wihtout_recognize_cnt(0),
-	                     m_wihtout_recognize_num(0),
-	                     m_max_set_size(35), m_min_set_size(5),
-	                     m_max_delta_x(350), m_min_delta_x(100),
-	                     m_max_delta_y(300), m_min_delta_y(50),
-	                     m_delta_old_object(50),
-	                     m_flag_set_size(false),
-	                     m_flag_size(false),
-	                     m_flag_old_object(false),
-	                     m_flag_recognized(false),
-	                     m_is_working(false)
+	UavContourSearch()
 	{
 		PRINT_DBG(UavContourSearch<ContourSearchClass>::m_debug, PREF, "");
 	}
@@ -170,7 +160,7 @@ public:
 private:
 
 	// Preface in debug message
-	static const char* const PREF;
+	constexpr static const char* const PREF {"[UavContourSearch]: "};
 
 	// Struct with coordinates and some parameters of member
 	struct MinMax_XY
@@ -180,15 +170,6 @@ private:
 		static const uint32_t DEF_MAX_Y {768};
 		static const uint32_t DEF_MIN_X {0};
 		static const uint32_t DEF_MIN_Y {0};
-
-		MinMax_XY() : m_i(0),
-		              m_max_x(DEF_MIN_X), m_max_y(DEF_MIN_Y),
-		              m_min_x(DEF_MAX_X), m_min_y(DEF_MAX_Y),
-		              m_delta_x(0), m_delta_y(0),
-		              m_set_size(0),
-		              m_valid(false)
-		{
-		}
 
 		// Prints members of the struct
 		void print() const noexcept
@@ -205,25 +186,25 @@ private:
 		}
 
 		// Index
-		uint32_t m_i;
+		uint32_t m_i {0};
 
 		// Maximum x and y
-		uint32_t m_max_x;
-		uint32_t m_max_y;
+		uint32_t m_max_x {DEF_MIN_X};
+		uint32_t m_max_y {DEF_MIN_Y};
 
 		// Minimum x and y
-		uint32_t m_min_x;
-		uint32_t m_min_y;
+		uint32_t m_min_x {DEF_MAX_X};
+		uint32_t m_min_y {DEF_MAX_Y};
 
 		// Delta x and y
-		uint32_t m_delta_x;
-		uint32_t m_delta_y;
+		uint32_t m_delta_x {0};
+		uint32_t m_delta_y {0};
 
 		// Size of set
-		uint32_t m_set_size;
+		uint32_t m_set_size {0};
 
 		// Valid of the struct
-		bool m_valid;
+		bool m_valid {false};
 	};
 
 	// Old recognized object
@@ -233,42 +214,38 @@ private:
 	std::vector<ObjParameters> m_suitable_objects_params;
 
 	// For old object
-	uint32_t m_wihtout_recognize_cnt;
-	uint32_t m_wihtout_recognize_num;
+	uint32_t m_wihtout_recognize_cnt {0};
+	uint32_t m_wihtout_recognize_num {0};
 
 	// Maximum and minimum size of set
-	uint32_t m_max_set_size;
-	uint32_t m_min_set_size;
+	uint32_t m_max_set_size {35};
+	uint32_t m_min_set_size {5};
 
 	// Maximum and minimum delta x and y
-	uint32_t m_max_delta_x;
-	uint32_t m_min_delta_x;
-	uint32_t m_max_delta_y;
-	uint32_t m_min_delta_y;
+	uint32_t m_max_delta_x {350};
+	uint32_t m_min_delta_x {100};
+	uint32_t m_max_delta_y {350};
+	uint32_t m_min_delta_y {50};
 
 	// Maximum difference with old object
-	uint32_t m_delta_old_object;
+	uint32_t m_delta_old_object {50};
 
 	// Enable flags for recognition filters
-	bool m_flag_set_size;
-	bool m_flag_size;
-	bool m_flag_old_object;
+	bool m_flag_set_size    {false};
+	bool m_flag_size        {false};
+	bool m_flag_old_object  {false};
 
 	// Flag; UAV was recognized
-	bool m_flag_recognized;
+	bool m_flag_recognized {false};
 
 	// Flag; applyDetector() method is working
-	volatile bool m_is_working;
+	volatile bool m_is_working {false};
 };
 
 //=================================================================================================
 // *****************************************************
 // ******* UavContourSearch class implementation *******
 // *****************************************************
-
-//-------------------------------------------------------------------------------------------------
-template <typename ContourSearchClass>
-const char* const UavContourSearch<ContourSearchClass>::PREF = "[UavContourSearch]: ";
 
 //-------------------------------------------------------------------------------------------------
 template <typename ContourSearchClass>

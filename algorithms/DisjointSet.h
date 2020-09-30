@@ -37,7 +37,7 @@ template <typename T> class DisjointSet
 {
 public:
 
-	explicit DisjointSet(const uint32_t metric = 30) : m_debug(false), m_metric(metric)
+	explicit DisjointSet()
 	{
 		PRINT_DBG(m_debug, PREF, "");
 	}
@@ -104,18 +104,18 @@ public:
 protected:
 	
 	// Enable a debug output
-	bool m_debug;
+	bool m_debug {false};
 
 private:
 
 	// Preface in debug message
-	static const char* const PREF;
+	constexpr static const char* const PREF {"[DisjointSet]: "};
 
 	// Disjoint set
 	std::vector<std::vector<T>> m_d_set;
 
 	// Metric
-	uint32_t m_metric;
+	uint32_t m_metric {30};
 
 	// Empty set
 	const std::vector<T> empty_set;
@@ -128,10 +128,6 @@ private:
 // ************************************************
 // ******* DisjointSet class implementation *******
 // ************************************************
-
-//-------------------------------------------------------------------------------------------------
-template <typename T>
-const char* const DisjointSet<T>::PREF {"[DisjointSet]: "};
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>

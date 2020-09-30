@@ -607,7 +607,7 @@ void EllipsesNikulin::detect_copter(unsigned char*, struct obj* obj_list,
 		Sec_145::Ellipse e;
 		Sec_145::Point p;
 
-		e.id = ii;
+		e.m_id = ii;
 
 		for(jj = 0; jj < wt; jj += wt / 8) {
 
@@ -622,19 +622,19 @@ void EllipsesNikulin::detect_copter(unsigned char*, struct obj* obj_list,
 
 			p.x = x;
 			p.y = y;
-			e.points.push_back(p);
+			e.m_points.push_back(p);
 
 			if (0 == jj) {
-				e.p_1.x = x;
-				e.p_1.y = y;
+				e.m_p_1.x = x;
+				e.m_p_1.y = y;
 			} else if (4 * wt / 8 == jj) {
-				e.p_2.x = x;
-				e.p_2.y = y;
+				e.m_p_2.x = x;
+				e.m_p_2.y = y;
 			}
 		}
 
-		if (e.points.size() > 0) {
-			e.points.pop_back(); // first element repeating
+		if (e.m_points.size() > 0) {
+			e.m_points.pop_back(); // first element repeating
 			DisjointSet<Ellipse>::addMember(e);
 		}
 	}

@@ -6,8 +6,6 @@
 DESCRITION: Geometry structs and types
 TODO:
  * test class (logic() method)
- * Ellipse class: add to name of members "m_"
- * Geometry.cpp
 FIXME:
 DANGER:
 NOTE:
@@ -48,24 +46,24 @@ class Ellipse
 {
 public:
 
-	Ellipse() : id(0)
+	Ellipse()
 	{
-		p_1.x = p_2.x = 0;
-		p_1.y = p_2.y = 0;
+		m_p_1.x = m_p_2.x = 0;
+		m_p_1.y = m_p_2.y = 0;
 	}
 
 	// Compare ellipses with a given metric
 	bool compareWithMetric(const Ellipse& ell, const uint32_t metric) const noexcept
 	{
-		for (uint32_t i = 0; i < this->points.size(); ++i)
+		for (uint32_t i = 0; i < this->m_points.size(); ++i)
 		{
-			for (uint32_t j = 0; j < ell.points.size(); ++j)
+			for (uint32_t j = 0; j < ell.m_points.size(); ++j)
 			{
-				if (   std::abs(static_cast<int>(this->points[i].x) -
-				                static_cast<int>(ell.points[j].x)) <
+				if (   std::abs(static_cast<int>(this->m_points[i].x) -
+				                static_cast<int>(ell.m_points[j].x)) <
 					   static_cast<int>(metric)
-					&& std::abs(static_cast<int>(this->points[i].y) -
-				                static_cast<int>(ell.points[j].y)) <
+				    && std::abs(static_cast<int>(this->m_points[i].y) -
+				                static_cast<int>(ell.m_points[j].y)) <
 				       static_cast<int>(metric)
 				   )
 				{
@@ -83,35 +81,35 @@ public:
 	                     uint32_t& max_y, uint32_t& min_y) const noexcept
 	{
 		// Points in member
-		for (uint32_t k = 0; k < this->points.size(); ++k)
+		for (uint32_t k = 0; k < this->m_points.size(); ++k)
 		{
 			// x
 			//  max
-			if (this->points[k].x > max_x)
-				max_x = this->points[k].x;
+			if (this->m_points[k].x > max_x)
+				max_x = this->m_points[k].x;
 			//  min
-			if (this->points[k].x < min_x)
-				min_x = this->points[k].x;
+			if (this->m_points[k].x < min_x)
+				min_x = this->m_points[k].x;
 
 			// y
 			//  max
-			if (this->points[k].y > max_y)
-				max_y = this->points[k].y;
+			if (this->m_points[k].y > max_y)
+				max_y = this->m_points[k].y;
 			//  min
-			if (this->points[k].y < min_y)
-				min_y = this->points[k].y;
+			if (this->m_points[k].y < min_y)
+				min_y = this->m_points[k].y;
 		}
 	}
 
 	// The points belong to this ellipse
-	std::vector<Point> points;
+	std::vector<Point> m_points;
 
 	// Maximal and minimal points
-	Point p_1;
-	Point p_2;
+	Point m_p_1;
+	Point m_p_2;
 
 	// Ellipse id
-	uint32_t id;
+	uint32_t m_id {0};
 };
 
 //-------------------------------------------------------------------------------------------------

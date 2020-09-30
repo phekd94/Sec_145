@@ -44,9 +44,7 @@ public:
 		Differential
 	};
 
-	CvCanny() : m_cannyThreshold(20), m_kernelSize(3), m_frameType(eFrameType::Source),
-	            m_stepCannyThreshold(5), m_lowExecutionTime(15), m_highExecutionTime(25),
-	            m_threshold(130), m_frameTypeRatio(0.6), m_is_working(false)
+	CvCanny()
 	{
 		PRINT_DBG(DisjointSet<CvPoint>::m_debug, PREF, "");
 	}
@@ -138,39 +136,39 @@ private:
 	static const uint32_t highCannyThreshold {150};
 
 	// Preface in debug message
-	static const char* const PREF;
+	constexpr static const char* const PREF {"[CvCanny]: "};
 
 	// Set of sets with contour points
 	std::vector<std::vector<cv::Point>> m_contours;
 
 	// Start and finish time
-	uint64_t m_startTime;
-	uint64_t m_finishTime;
+	uint64_t m_startTime {0};
+	uint64_t m_finishTime {0};
 
 	// Threshold for Canny detector
-	uint32_t m_cannyThreshold;
+	uint32_t m_cannyThreshold {20};
 
 	// Kernel size for Sobel operator
-	uint32_t m_kernelSize;
+	uint32_t m_kernelSize {3};
 
 	// Frame type
-	eFrameType m_frameType;
+	eFrameType m_frameType {eFrameType::Source};
 
 	// Step for adjustment of threshold for Canny detector
-	uint32_t m_stepCannyThreshold;
+	uint32_t m_stepCannyThreshold {5};
 
 	// Execution time limits
-	uint32_t m_lowExecutionTime;
-	uint32_t m_highExecutionTime;
+	uint32_t m_lowExecutionTime {15};
+	uint32_t m_highExecutionTime {25};
 
 	// Threshold for threshold OpenCV function
-	uint32_t m_threshold;
+	uint32_t m_threshold {130};
 
 	// Ratio of sky points and points with hard background
-	double m_frameTypeRatio;
+	double m_frameTypeRatio {0.6};
 
 	// Flag; applyDetector() method is working
-	volatile bool m_is_working;
+	volatile bool m_is_working {false};
 
 	// Adjusts parameters
 	void adjustParameters();
