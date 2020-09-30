@@ -75,12 +75,6 @@ public:
 		return m_finishTime;
 	}
 
-	// Gets is_working flag
-	bool getIsWorking() const noexcept
-	{
-		return m_is_working;
-	}
-
 	// ***********************
 	// ******* Setters *******
 	// ***********************
@@ -166,9 +160,6 @@ private:
 
 	// Ratio of sky points and points with hard background
 	double m_frameTypeRatio {0.6};
-
-	// Flag; applyDetector() method is working
-	volatile bool m_is_working {false};
 
 	// Adjusts parameters
 	void adjustParameters();

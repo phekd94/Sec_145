@@ -100,12 +100,6 @@ public:
 		return m_suitable_objects_params;
 	}
 
-	// Gets is_working flag
-	bool getIsWorking() const noexcept
-	{
-		return m_is_working;
-	}
-
 	// ***********************
 	// ******* Setters *******
 	// ***********************
@@ -237,9 +231,6 @@ private:
 
 	// Flag; UAV was recognized
 	bool m_flag_recognized {false};
-
-	// Flag; applyDetector() method is working
-	volatile bool m_is_working {false};
 };
 
 //=================================================================================================
@@ -253,9 +244,6 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
                                                            const uint32_t width,
                                                            const uint32_t height)
 {
-	// Set is_working flag
-	m_is_working = true;
-
 	// Apply contours detector
 	ContourSearchClass::applyDetector(greyData, width, height);
 
@@ -425,9 +413,6 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 	}
 
 	PRINT_DBG(ContourSearchClass::m_debug, PREF, "=================");
-
-	// Clear is_working flag
-	m_is_working = false;
 }
 
 //-------------------------------------------------------------------------------------------------

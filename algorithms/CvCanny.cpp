@@ -23,9 +23,6 @@ int32_t CvCanny::applyDetector(const uint8_t* const greyData,
 	// For threshold result
 	cv::Mat dst;
 
-	// Set is_working flag
-	m_is_working = true;
-
 	// Get start time
 	m_startTime = std::chrono::duration_cast<std::chrono::milliseconds>(
 	                  std::chrono::system_clock::now().time_since_epoch()).count();
@@ -85,9 +82,6 @@ int32_t CvCanny::applyDetector(const uint8_t* const greyData,
 
 	// Adjust parameters
 	adjustParameters();
-
-	// Clear is_working flag
-	m_is_working = false;
 
 	return 0;
 
