@@ -18,7 +18,7 @@ namespace Sec_145 {
 
 //-------------------------------------------------------------------------------------------------
 // Preface in debug message
-const char* const PREF = "[Learning]: ";
+static const char* const PREF = "[Learning]: ";
 
 //-------------------------------------------------------------------------------------------------
 // ReLU activation function

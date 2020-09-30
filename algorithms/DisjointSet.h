@@ -134,7 +134,8 @@ template <typename T>
 int32_t DisjointSet<T>::addMember(const T& member) noexcept
 {
 	// Catch a push_back() exception
-	try {
+	try
+	{
 
 	// Flag; set for add was not found
 	bool added {false};

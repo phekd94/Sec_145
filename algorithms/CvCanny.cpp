@@ -13,7 +13,8 @@ using namespace Sec_145;
 int32_t CvCanny::applyDetector(const uint8_t* const greyData,
                                const uint32_t width, const uint32_t height) noexcept
 {
-	try {
+	try
+	{
 
 	// Matrix with image data
 	cv::Mat image_tmp(height, width, CV_8UC1, const_cast<uint8_t*>(greyData));

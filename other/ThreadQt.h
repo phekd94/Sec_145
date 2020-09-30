@@ -38,7 +38,8 @@ public:
 		PRINT_DBG(true, "[ThreadQT]: ", "Thread with id = %llu is started",
 		          reinterpret_cast<unsigned long long>(QThread::currentThreadId()));
 
-		while (false == m_stop);
+		while (false == m_stop)
+			ClassInNewThread::process();
 
 		PRINT_DBG(true, "[ThreadQT]: ", "Thread with id = %llu is stoped",
 		          reinterpret_cast<unsigned long long>(QThread::currentThreadId()));

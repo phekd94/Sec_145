@@ -16,7 +16,7 @@ namespace Sec_145 {
 
 //-------------------------------------------------------------------------------------------------
 // Preface in debug message
-const char* const PREF = "[Algorithms]: ";
+static const char* const PREF = "[Algorithms]: ";
 
 //-------------------------------------------------------------------------------------------------
 double dotProduct(const double* const d_1, const double* const d_2, const uint32_t n)

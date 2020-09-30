@@ -12,7 +12,7 @@
 
 //-------------------------------------------------------------------------------------------------
 // Application preface in debug message
-const char* const PREF = "[Sec_145]: ";
+static const char* const PREF = "[Sec_145]: ";
 
 //-------------------------------------------------------------------------------------------------
 bool CHECK_PRINTF_ERROR(const int ret, 

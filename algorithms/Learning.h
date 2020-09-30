@@ -47,7 +47,7 @@ public:
 private:
 
 	// Preface in debug message
-	static const char* const PREF;
+	constexpr static const char* const PREF {"[NeuralNetwork]: "};
 
 	// Start and finish time
 	uint64_t m_startTime;
