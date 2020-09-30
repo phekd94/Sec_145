@@ -10,9 +10,6 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-const char* const CvCanny::PREF {"[CvCanny]: "};
-
-//-------------------------------------------------------------------------------------------------
 int32_t CvCanny::applyDetector(const uint8_t* const greyData,
                                const uint32_t width, const uint32_t height) noexcept
 {

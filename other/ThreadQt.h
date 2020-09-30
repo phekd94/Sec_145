@@ -32,11 +32,6 @@ template <typename ClassInNewThread> class ThreadQt : public QThread, public Cla
 {
 public:
 
-	ThreadQt() : m_stop(false)
-	{
-
-	}
-
 	// Overrides a run() method from QThread class
 	virtual void run() override
 	{
@@ -58,7 +53,7 @@ public:
 private:
 
 	// Flag; for stop an execution thread
-	volatile bool m_stop;
+	volatile bool m_stop {false};
 };
 
 //-------------------------------------------------------------------------------------------------
