@@ -104,10 +104,10 @@ void UavContourSearchThread<ContourSearchClass>::process() noexcept
 	// Lock a mutex
 	m_mutex.lock();
 
-	// Set new data flag
+	// Clear new data flag
 	m_new_data = false;
 
-	// Set working flag
+	// Clear working flag
 	m_is_working = false;
 
 	// Unlock a mutex
