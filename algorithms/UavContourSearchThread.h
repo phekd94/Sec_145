@@ -18,7 +18,6 @@ Sec_145::UavContourSearchThread
 +---------------+------------+
 |      YES      |     YES    |
 +---------------+------------+
-(*) - set with suitable parameters is not valid after clearContours() is called
 */
 
 //-------------------------------------------------------------------------------------------------
@@ -74,8 +73,8 @@ private:
 template <typename ContourSearchClass>
 void UavContourSearchThread<ContourSearchClass>::process() noexcept
 {
-	try
-	{
+	// Catch a lock(), unlock(), processContours() exceptions
+	try {
 
 	// Lock a mutex
 	m_mutex.lock();
@@ -136,8 +135,8 @@ void UavContourSearchThread<ContourSearchClass>::process() noexcept
 template <typename ContourSearchClass>
 bool UavContourSearchThread<ContourSearchClass>::setNewData(QImage image) noexcept
 {
-	try
-	{
+	// Catch a lock() and unlock() exceptions
+	try {
 
 	// Return value
 	bool ret;

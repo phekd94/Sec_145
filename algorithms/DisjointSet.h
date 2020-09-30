@@ -134,8 +134,7 @@ template <typename T>
 int32_t DisjointSet<T>::addMember(const T& member) noexcept
 {
 	// Catch a push_back() exception
-	try
-	{
+	try {
 
 	// Flag; set for add was not found
 	bool added {false};
@@ -253,6 +252,7 @@ int32_t DisjointSet<T>::unionSets(const uint32_t index_dest, const uint32_t inde
 	}
 
 	// Unite sets
+	//  Catch an insert() exception
 	try
 	{
 		m_d_set[index_dest].insert(m_d_set[index_dest].end(),
