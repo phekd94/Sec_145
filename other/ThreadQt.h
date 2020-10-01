@@ -32,19 +32,6 @@ template <typename ClassInNewThread> class ThreadQt : public QThread, public Cla
 {
 public:
 
-	// Overrides a run() method from QThread class
-	virtual void run() override
-	{
-		PRINT_DBG(true, PREF, "Thread with id = %llu is started",
-		          reinterpret_cast<unsigned long long>(QThread::currentThreadId()));
-
-		while (false == m_stop)
-			ClassInNewThread::process();
-
-		PRINT_DBG(true, PREF, "Thread with id = %llu is stoped",
-		          reinterpret_cast<unsigned long long>(QThread::currentThreadId()));
-	}
-
 	// Stops the thread
 	void stop() noexcept
 	{
@@ -58,6 +45,19 @@ private:
 
 	// Flag; for stop an execution thread
 	volatile bool m_stop {false};
+
+	// Overrides a run() method from QThread class
+	virtual void run() override
+	{
+		PRINT_DBG(true, PREF, "Thread with id = %llu is started",
+		          reinterpret_cast<unsigned long long>(QThread::currentThreadId()));
+
+		while (false == m_stop)
+			ClassInNewThread::process();
+
+		PRINT_DBG(true, PREF, "Thread with id = %llu is stoped",
+		          reinterpret_cast<unsigned long long>(QThread::currentThreadId()));
+	}
 };
 
 //-------------------------------------------------------------------------------------------------
