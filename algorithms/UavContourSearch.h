@@ -70,7 +70,6 @@ public:
 	// Clears contours
 	void clearContours() noexcept
 	{
-		m_suitable_objects_params.clear();
 		ContourSearchClass::clearDisjointSet();
 	}
 
@@ -298,6 +297,9 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 	// Index for return value; maximal size of suitable set
 	uint32_t index {0}, max_set_size {0};
 
+	// Vector with suitable objects parameters
+	std::vector<ObjParameters> suitable_objects_params;
+
 	// Process all parameters in vector
 	for (uint32_t i = 0; i < mm_xy.size(); ++i)
 	{
@@ -363,9 +365,9 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 		          static_cast<unsigned long>(mm_xy[i].m_i));
 
 		// Add suitable object parameters
-		m_suitable_objects_params.push_back(ObjParameters(mm_xy[i].m_min_x, mm_xy[i].m_min_y,
-		                                                  mm_xy[i].m_delta_x,
-		                                                  mm_xy[i].m_delta_y));
+		suitable_objects_params.push_back(ObjParameters(mm_xy[i].m_min_x, mm_xy[i].m_min_y,
+		                                                mm_xy[i].m_delta_x,
+		                                                mm_xy[i].m_delta_y));
 
 		// Choice a set with maximum size
 		if (mm_xy[i].m_set_size > max_set_size)
@@ -374,6 +376,9 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 			index = i;
 		}
 	}
+
+	// Set vector with suitable objects parameters
+	m_suitable_objects_params = suitable_objects_params;
 
 	// Verify recognition
 	if (0 == max_set_size)
