@@ -1,9 +1,7 @@
 
-#include "Learning.h"
+#include "NeuralNetwork.h"
 
 #include <cmath>                  // std::tanh(); std::exp()
-#include <vector>                 // std::vector<> class
-#include <QImage>                 // QImage class
 #include <QFile>                  // QFile class
 #include <algorithm>              // std::max<>()
 #include <chrono>                 // std::chrono functions
@@ -16,9 +14,11 @@
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145 {
 
+/*
 //-------------------------------------------------------------------------------------------------
 // Preface in debug message
 static const char* const PREF = "[Learning]: ";
+*/
 
 //-------------------------------------------------------------------------------------------------
 // ReLU activation function
@@ -67,7 +67,7 @@ int32_t maxPooling2D(const Eigen::MatrixXd& in, Eigen::MatrixXd& out,
 	    || out.rows() / out_line_size != out_line_size
 	   )
 	{
-		PRINT_ERR(true, PREF, "Wrong size of input or output matrix");
+		PRINT_ERR(true, "PREF", "Wrong size of input or output matrix");
 		return -1;
 	}
 
@@ -92,6 +92,7 @@ int32_t maxPooling2D(const Eigen::MatrixXd& in, Eigen::MatrixXd& out,
 }
 
 //-------------------------------------------------------------------------------------------------
+/*
 // Convolute layers
 
 // Number of convolute layers
@@ -605,6 +606,233 @@ int32_t loadModel(const QString& pathToModel)
 
 		// Get biases
 		dense_biases[num_dense_layers_i] = vectors[0];
+
+		// Clears vectors with file contents
+		vectors.clear();
+	}
+
+//-----------
+	return 0;
+}
+*/
+//-------------------------------------------------------------------------------------------------
+int32_t NeuralNetwork::loadModel(const QString& pathToModel)
+{
+//-----------------------------
+	// For each convolute layer
+	for (uint32_t i = 0; i < m_num_conv_layers; ++i)
+	{
+		// Input
+		for (uint32_t j = 0; j < m_depth_of_kernels[i]; ++j)
+		{
+			m_conv_in[i].push_back(
+			            Eigen::MatrixXd((m_in_conv_size[i] - m_kernels_cols + 1) *
+			                            (m_in_conv_size[i] - m_kernels_rows + 1),
+			                            m_kernels_rows * m_kernels_cols));
+		}
+
+		// Output
+		m_conv_out[i] = Eigen::MatrixXd((m_in_conv_size[i] - m_kernels_cols + 1) *
+		                                (m_in_conv_size[i] - m_kernels_rows + 1),
+		                                m_num_of_kernels[i]);
+
+		// Kernels
+		for (uint32_t j = 0; j < m_depth_of_kernels[i]; ++j)
+		{
+			m_kernels[i].push_back(
+			            Eigen::MatrixXd(m_kernels_rows * m_kernels_cols, m_num_of_kernels[i]));
+		}
+
+		// Biases
+		m_conv_biases[i] = std::vector<double>(m_num_of_kernels[i]);
+	}
+
+//-------------------------
+	// For each dense layer
+	for (uint32_t i = 0; i < m_num_dense_layers; ++i)
+	{
+		// Input
+		m_dense_in[i] = Eigen::MatrixXd(1, m_in_dense_size[i]);
+
+		// Output
+		m_dense_out[i] = Eigen::MatrixXd(1, m_out_dense_size[i]);
+
+		// Weights
+		m_denses[i] = Eigen::MatrixXd(m_in_dense_size[i], m_out_dense_size[i]);
+
+		// Biases
+		m_dense_biases[i] = std::vector<double>(m_out_dense_size[i]);
+	}
+
+//---------------------------------------
+	// For files with kernels and weights
+	QFile f;
+
+	// For files contents
+	std::vector<std::vector<double>> vectors;
+
+//------------------------------
+	// Loop for each convolution
+	for (uint32_t num_conv_layers_i = 0;
+	     num_conv_layers_i < m_num_conv_layers;
+	     ++num_conv_layers_i)
+	{
+
+		// Loop for depth of convolution
+		for (uint32_t depth_of_kernels_i = 0;
+		     depth_of_kernels_i < m_depth_of_kernels[num_conv_layers_i];
+		     ++depth_of_kernels_i)
+		{
+
+			// Load kernels
+			//  File name with kernels
+			QString fileName =   pathToModel + "/"
+			                   + m_kernels_names[num_conv_layers_i] + "/"
+			                   + QString::number(depth_of_kernels_i)
+			                   + ".txt";
+			f.setFileName(fileName);
+
+			//  Open file
+			if (f.open(QIODevice::ReadOnly) == false)
+			{
+				PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
+				return -1;
+			}
+
+			//  Read kernels
+			if (readVectorsFromFile(f, vectors,
+			                        m_num_of_kernels[num_conv_layers_i],
+			                        m_kernels_rows * m_kernels_cols) != 0)
+			{
+				PRINT_ERR(true, PREF, "Can't read from file %s", fileName.toStdString().c_str());
+				return -1;
+			}
+
+			//  Close file
+			f.close();
+
+			// Get matrix with kernels
+			for (uint32_t i = 0; i < m_num_of_kernels[num_conv_layers_i]; ++i)
+			{
+				for (uint32_t j = 0; j < m_kernels_rows * m_kernels_cols; ++j)
+				{
+					m_kernels[num_conv_layers_i][depth_of_kernels_i](j, i) = vectors[i][j];
+				}
+			}
+
+			// Clears vectors with file contents
+			vectors.clear();
+
+		} // Loop for depth of convolution
+
+		// Load a biases
+		//  File name with kernels
+		QString fileName =   pathToModel + "/"
+		                   + m_kernels_names[num_conv_layers_i] + "/"
+		                   + "biases"
+		                   + ".txt";
+		f.setFileName(fileName);
+
+		//  Open file
+		if (f.open(QIODevice::ReadOnly) == false)
+		{
+			PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Read biases
+		if (readVectorsFromFile(f, vectors,
+		                        1,
+		                        m_num_of_kernels[num_conv_layers_i]) != 0)
+		{
+			PRINT_ERR(true, PREF, "Can't read from file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Close file
+		f.close();
+
+		// Get biases
+		m_conv_biases[num_conv_layers_i] = vectors[0];
+
+		// Clears vectors with file contents
+		vectors.clear();
+
+	} // Loop for each convolution
+
+//------------------------
+	// Loop for each dense
+	for (uint32_t num_dense_layers_i = 0;
+	     num_dense_layers_i < m_num_dense_layers;
+	     ++num_dense_layers_i)
+	{
+
+		// Load dense
+		//  File name with dense
+		QString fileName =   pathToModel + "/"
+		                   + m_denses_names[num_dense_layers_i]
+		                   + "/weights.txt";
+		f.setFileName(fileName);
+
+		//  Open file
+		if (f.open(QIODevice::ReadOnly) == false)
+		{
+			PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Read dense
+		if (readVectorsFromFile(f, vectors,
+		                        m_in_dense_size[num_dense_layers_i],
+		                        m_out_dense_size[num_dense_layers_i]) != 0)
+		{
+			PRINT_ERR(true, PREF, "Can't read from file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Close file
+		f.close();
+
+		// Get dense matrix
+		for (uint32_t row = 0; row < m_in_dense_size[num_dense_layers_i]; ++row)
+		{
+			for (uint32_t col = 0; col < m_out_dense_size[num_dense_layers_i]; ++col)
+			{
+				m_denses[num_dense_layers_i](row, col) = vectors[row][col];
+			}
+		}
+
+		// Clears vectors with file contents
+		vectors.clear();
+
+		// Load biases
+		//  File name with dense
+		fileName =   pathToModel + "/"
+		           + m_denses_names[num_dense_layers_i]
+		           + "/biases.txt";
+		f.setFileName(fileName);
+
+		//  Open file
+		if (f.open(QIODevice::ReadOnly) == false)
+		{
+			PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Read biases
+		if (readVectorsFromFile(f, vectors,
+		                        1,
+		                        m_out_dense_size[num_dense_layers_i]) != 0)
+		{
+			PRINT_ERR(true, PREF, "Can't read from file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Close file
+		f.close();
+
+		// Get biases
+		m_dense_biases[num_dense_layers_i] = vectors[0];
 
 		// Clears vectors with file contents
 		vectors.clear();

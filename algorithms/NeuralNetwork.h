@@ -21,7 +21,7 @@ NOTE:
 
 //-------------------------------------------------------------------------------------------------
 #include <cstdint>      // integer types
-#include <array>        // std::array class
+#include <vector>       // std::vector<>
 #include <QString>      // QString class
 #include <QImage>       // QImage class
 #include "Eigen/Dense"  // Eigen::MatrixXd class
@@ -35,14 +35,29 @@ class NeuralNetwork
 {
 public:
 
-	NeuralNetwork(const QString& pathToModel = QString());
-
 	// Load a neural network
-	int32_t loadModel(const QString& pathToModel); // noexcept
+	// (exception from push_back() can be thrown (it is unlikely))
+	int32_t loadModel(const QString& pathToModel);
+
+	// ***********************
+	// ******* Getters *******
+	// ***********************
 
 	// Get a recognition label from neural network
 	int32_t getRecognitionLabel(const QImage& image); // noexcept
 	int32_t getRecognitionLabel(const QString& fileName); // noexcept
+
+	// Gets start time
+	uint64_t getStartTime() const noexcept
+	{
+		return m_startTime;
+	}
+
+	// Gets finish time
+	uint64_t getFinishTime() const noexcept
+	{
+		return m_finishTime;
+	}
 
 private:
 
@@ -53,7 +68,7 @@ private:
 	uint64_t m_startTime;
 	uint64_t m_finishTime;
 
-	//
+	// Flag; model has been loaded
 	bool m_loaded;
 
 //---------------------
@@ -63,62 +78,62 @@ private:
 	uint32_t m_num_conv_layers;
 
 	// Incoming size for convolute layers
-	std::vector<uint32_t> in_conv_size;
+	std::vector<uint32_t> m_in_conv_size;
 
 	// Outgoing size for max pooling layers
-	std::vector<uint32_t> out_pooling_size;
+	std::vector<uint32_t> m_out_pooling_size;
 
 	// Rows and columns of kernels
-	uint32_t kernels_rows;
-	uint32_t kernels_cols;
+	uint32_t m_kernels_rows;
+	uint32_t m_kernels_cols;
 
 	// Number of kernels
-	std::vector<uint32_t> num_of_kernels;
+	std::vector<uint32_t> m_num_of_kernels;
 
 	// Depth of kernels
-	std::vector<uint32_t> depth_of_kernels;
+	std::vector<uint32_t> m_depth_of_kernels;
 
 	// Names of kernels layers
-	std::vector<QString> kernels_names;
+	std::vector<QString> m_kernels_names;
 
 	// Inputs for convolute layers
-	std::vector<std::vector<Eigen::MatrixXd>> conv_in;
+	std::vector<std::vector<Eigen::MatrixXd>> m_conv_in;
 
 	// Outputs for convolute layers
-	std::vector<Eigen::MatrixXd> conv_out;
+	std::vector<Eigen::MatrixXd> m_conv_out;
 
 	// Kernels
-	std::vector<std::vector<Eigen::MatrixXd>> kernels;
+	std::vector<std::vector<Eigen::MatrixXd>> m_kernels;
 
 	// Biases for convolute layers
-	std::vector<std::vector<double>> conv_biases;
+	std::vector<std::vector<double>> m_conv_biases;
 
 //-----------------
 	// Dense layers
 
 	// Number of dense layers
-	uint32_t num_dense_layers;
+	uint32_t m_num_dense_layers;
 
 	// Incoming size for dense layers
-	std::vector<uint32_t> in_dense_size;
+	std::vector<uint32_t> m_in_dense_size;
 
 	// Outgoing size for dense layers
-	std::vector<uint32_t> out_dense_size;
+	std::vector<uint32_t> m_out_dense_size;
 
 	// Names of denses layers
-	std::vector<QString> denses_names;
+	std::vector<QString> m_denses_names;
 
 	// Inputs for dense layers
-	static std::vector<Eigen::MatrixXd> dense_in;
+	std::vector<Eigen::MatrixXd> m_dense_in;
 
 	// Outputs for dense layers
-	static std::vector<Eigen::MatrixXd> dense_out;
+	std::vector<Eigen::MatrixXd> m_dense_out;
 
 	// Dense matrixes with weights
-	static std::vector<Eigen::MatrixXd> denses;
+	std::vector<Eigen::MatrixXd> m_denses;
 
 	// Biases for dense layers
-	static std::vector<std::vector<double>> dense_biases;
+	std::vector<std::vector<double>> m_dense_biases;
 
 //------------------------------------------------
 	// Get a recognition label from neural network
@@ -127,12 +142,12 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 // Get a recognition label from neural network
-int32_t getRecognitionLabel(const QImage& image);
-int32_t getRecognitionLabel(const QString& fileName);
+//int32_t getRecognitionLabel(const QImage& image);
+//int32_t getRecognitionLabel(const QString& fileName);
 
 //-------------------------------------------------------------------------------------------------
 // Load a neural network
-int32_t loadModel(const QString& pathToModel);
+//int32_t loadModel(const QString& pathToModel);
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145

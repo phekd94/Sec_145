@@ -4,7 +4,7 @@
 #include <exception>             // std::exception
 #include <chrono>                // std::chrono functions
 #include "opencv2/core/mat.hpp"  // cv::Mat
-#include "opencv2/imgproc.hpp"   // cv::blur(); cv::Canny(); findContours()
+#include "opencv2/imgproc.hpp"   // cv::blur(); cv::Canny(); findContours(); cv::threshold()
 
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;
