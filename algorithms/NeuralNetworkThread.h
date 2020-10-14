@@ -26,6 +26,7 @@ Sec_145::NeuralNetworkThread class
 #include "NeuralNetwork.h"  // NeuralNetwork class (for inheritance)
 #include <mutex>            // std::mutex
 #include <QString>          // QString class
+#include <QImage>           // QImage class
 #include <system_error>     // std::system_error
 #include <exception>        // std::exception
 
@@ -45,6 +46,7 @@ public:
 
 	// Sets new data (image)
 	bool setNewData(const QString& fileName) noexcept;
+	bool setNewData(const QImage& image) noexcept;
 
 	// ***********************
 	// ******* Getters *******
@@ -63,6 +65,12 @@ private:
 
 	// File name for process
 	QString m_fileName;
+
+	// Image
+	QImage m_image;
+	uint8_t m_r[152 * 152];
+	uint8_t m_g[152 * 152];
+	uint8_t m_b[152 * 152];
 
 	// Recognition label
 	volatile int32_t m_recognitionLabel {-1};

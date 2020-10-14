@@ -46,7 +46,9 @@ public:
 	// ***********************
 
 	// Get a recognition label from neural network
-	//int32_t getRecognitionLabel(const QImage& image); // noexcept
+	int32_t getRecognitionLabel(const uint8_t* const r,
+	                            const uint8_t* const g,
+	                            const uint8_t* const b); // noexcept
 	int32_t getRecognitionLabel(const QString& fileName); // noexcept
 
 	// Gets start time

@@ -100,8 +100,12 @@ void UavContourSearchThread<ContourSearchClass>::process() noexcept
 	UavContourSearch<ContourSearchClass>::clearContours();
 
 	// Process an image
-	UavContourSearch<ContourSearchClass>::processContours(m_image.bits(),
-	                                                      m_image.width(), m_image.height());
+	if (m_image.isNull() != true)
+	{
+		UavContourSearch<ContourSearchClass>::processContours(m_image.bits(),
+		                                                      m_image.width(),
+		                                                      m_image.height());
+	}
 
 	// Lock a mutex
 	m_mutex.lock();

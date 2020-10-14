@@ -335,6 +335,47 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t NeuralNetwork::getRecognitionLabel(const uint8_t* const r,
+                                           const uint8_t* const g,
+                                           const uint8_t* const b)
+{
+	// Check the incoming parameters
+	if (r == nullptr || g == nullptr || b == nullptr)
+	{
+		PRINT_ERR(true, PREF, "One of the color == nullptr");
+		return -1;
+	}
+
+	// Get tensors
+	for (uint32_t l_row = 0; l_row < m_in_conv_size[0] - m_kernels_rows + 1; ++l_row)
+	{
+		for (uint32_t l_col = 0; l_col < m_in_conv_size[0] - m_kernels_cols + 1; ++l_col)
+		{
+			for (uint32_t k_row = 0; k_row < m_kernels_rows; ++k_row)
+			{
+				for (uint32_t k_col = 0; k_col < m_kernels_cols; ++k_col)
+				{
+					m_conv_in[0][0](
+					        l_row * (m_in_conv_size[0] - m_kernels_cols + 1) + l_col,
+					        k_row * m_kernels_cols + k_col) =
+					    r[(l_row + k_row) * m_in_conv_size[0] + l_col + k_col];
+					m_conv_in[0][1](
+					        l_row * (m_in_conv_size[0] - m_kernels_cols + 1) + l_col,
+					        k_row * m_kernels_cols + k_col) =
+					    g[(l_row + k_row) * m_in_conv_size[0] + l_col + k_col];
+					m_conv_in[0][2](
+					        l_row * (m_in_conv_size[0] - m_kernels_cols + 1) + l_col,
+					        k_row * m_kernels_cols + k_col) =
+					    b[(l_row + k_row) * m_in_conv_size[0] + l_col + k_col];
+				}
+			}
+		}
+	}
+
+	return getRecognitionLabel();
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t NeuralNetwork::getRecognitionLabel(const QString& fileName)
 {
 	// For file with tensor data
@@ -348,18 +389,18 @@ int32_t NeuralNetwork::getRecognitionLabel(const QString& fileName)
 	     depth_of_kernels_i < m_depth_of_kernels[0];
 	     ++depth_of_kernels_i)
 	{
-		// Load tensor
+		// Load a tensor
 		//  File name with tensor
 		f.setFileName(fileName + QString::number(depth_of_kernels_i) + ".txt");
 
-		//  Open file
+		//  Open a file
 		if (f.open(QIODevice::ReadOnly) == false)
 		{
 			PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 
-		//  Read tensor
+		//  Read a tensor
 		if (readVectorsFromFile(f, vectors,
 		                        1,
 		                        m_in_conv_size[0] * m_in_conv_size[0]) != 0)
@@ -368,10 +409,10 @@ int32_t NeuralNetwork::getRecognitionLabel(const QString& fileName)
 			return -1;
 		}
 
-		//  Close file
+		//  Close a file
 		f.close();
 
-		// Get tensor
+		// Get a tensor
 		for (uint32_t l_row = 0; l_row < m_in_conv_size[0] - m_kernels_rows + 1; ++l_row)
 		{
 			for (uint32_t l_col = 0; l_col < m_in_conv_size[0] - m_kernels_cols + 1; ++l_col)
@@ -540,12 +581,16 @@ int32_t NeuralNetwork::getRecognitionLabel()
 			softmax(m_dense_out[num_dense_layers_i].data(),
 			        m_dense_out[num_dense_layers_i].size());
 
-			PRINT_DBG(false, PREF, "Index of maximal element: %lu;  value: %f",
+			PRINT_DBG(true, PREF, "Index of maximal element: %lu;  value: %f",
 			          static_cast<unsigned long>(
 			              maxArrayElementIndex(m_dense_out[num_dense_layers_i].data(),
 			                                   m_dense_out[num_dense_layers_i].size())),
 			          maxArrayElement(m_dense_out[num_dense_layers_i].data(),
 			                          m_dense_out[num_dense_layers_i].size()));
+
+			qDebug() << m_dense_out[num_dense_layers_i].data()[0]
+			         << m_dense_out[num_dense_layers_i].data()[1]
+			         << m_dense_out[num_dense_layers_i].data()[2];
 		}
 
 	} // Loop for each dense
