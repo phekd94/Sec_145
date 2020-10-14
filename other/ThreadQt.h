@@ -42,10 +42,13 @@ public:
 	// Stops the thread (with waiting for thread to stop)
 	static void stop(ThreadQt& thread) noexcept
 	{
+		// Stop a thread
+		thread.stop();
+
 		// Catch an exceptions from QThread::isRunning()
 		try {
 
-		thread.stop();
+		// Waiting
 		while (thread.isRunning() == true);
 
 		}

@@ -13,6 +13,7 @@ DANGER:
 NOTE:
  * Access only across '*' or '[]' to data received from Eigen::MatrixXd::data() method
 
+Sec_145::NeuralNetwork class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+

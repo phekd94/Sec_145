@@ -540,7 +540,7 @@ int32_t NeuralNetwork::getRecognitionLabel()
 			softmax(m_dense_out[num_dense_layers_i].data(),
 			        m_dense_out[num_dense_layers_i].size());
 
-			PRINT_DBG(true, PREF, "Index of maximal element: %lu;  value: %f",
+			PRINT_DBG(false, PREF, "Index of maximal element: %lu;  value: %f",
 			          static_cast<unsigned long>(
 			              maxArrayElementIndex(m_dense_out[num_dense_layers_i].data(),
 			                                   m_dense_out[num_dense_layers_i].size())),

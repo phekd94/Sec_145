@@ -8,6 +8,8 @@ TODO:
  * test class (logic() method)
  * skip: uint64_t + exception over
  * whole: uint64_t + exception over
+ * mutex + flag -> mutex + try_lock
+ * base class
 FIXME:
 DANGER:
 NOTE:
@@ -44,7 +46,7 @@ public:
 	void process() noexcept;
 
 	// Sets new data (image)
-	bool setNewData(QImage image) noexcept;
+	bool setNewData(const QImage& image) noexcept;
 
 private:
 
@@ -133,7 +135,7 @@ void UavContourSearchThread<ContourSearchClass>::process() noexcept
 
 //-------------------------------------------------------------------------------------------------
 template <typename ContourSearchClass>
-bool UavContourSearchThread<ContourSearchClass>::setNewData(QImage image) noexcept
+bool UavContourSearchThread<ContourSearchClass>::setNewData(const QImage& image) noexcept
 {
 	// Catch a lock() and unlock() exceptions
 	try {
