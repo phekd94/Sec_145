@@ -7,6 +7,7 @@ DESCRITION: Functions for learning
 TODO:
  * test class (logic() method)
  * Eigen exceptions (memory allocation)
+ * Qt classes exceptions
 FIXME:
 DANGER:
 NOTE:
@@ -44,7 +45,7 @@ public:
 	// ***********************
 
 	// Get a recognition label from neural network
-	int32_t getRecognitionLabel(const QImage& image); // noexcept
+	//int32_t getRecognitionLabel(const QImage& image); // noexcept
 	int32_t getRecognitionLabel(const QString& fileName); // noexcept
 
 	// Gets start time
@@ -65,11 +66,11 @@ private:
 	constexpr static const char* const PREF {"[NeuralNetwork]: "};
 
 	// Start and finish time
-	uint64_t m_startTime;
-	uint64_t m_finishTime;
+	uint64_t m_startTime {0};
+	uint64_t m_finishTime {0};
 
 	// Flag; model has been loaded
-	bool m_loaded;
+	bool m_loaded {false};
 
 //---------------------
 	// Convolute layers
@@ -137,17 +138,8 @@ private:
 
 //------------------------------------------------
 	// Get a recognition label from neural network
-	int32_t getRecognitionLabel(); // const noexcept
+	int32_t getRecognitionLabel(); // noexcept
 };
-
-//-------------------------------------------------------------------------------------------------
-// Get a recognition label from neural network
-//int32_t getRecognitionLabel(const QImage& image);
-//int32_t getRecognitionLabel(const QString& fileName);
-
-//-------------------------------------------------------------------------------------------------
-// Load a neural network
-//int32_t loadModel(const QString& pathToModel);
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
