@@ -18,7 +18,8 @@ Sec_145::ThreadQT
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <QThread>  // QThread class (for inheritance)
+#include <QThread>    // QThread class (for inheritance)
+#include <exception>  // std::exception
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -38,10 +39,29 @@ public:
 		m_stop = true;
 	}
 
+	// Stops the thread (with waiting for thread to stop)
+	static void stop(ThreadQt& thread) noexcept
+	{
+		// Catch an exceptions from QThread::isRunning()
+		try {
+
+		thread.stop();
+		while (thread.isRunning() == true);
+
+		}
+		catch (std::exception& obj)
+		{
+			PRINT_ERR(true, PREF,
+			          "Exception (%s) during call QThread::isRunning() has been occured",
+			          obj.what());
+			return;
+		}
+	}
+
 private:
 
 	// Preface in debug message
-	constexpr static const char* const PREF {"[ThreadQT]: "};
+	constexpr static const char* const PREF {"[ThreadQt]: "};
 
 	// Flag; for stop an execution thread
 	volatile bool m_stop {false};
