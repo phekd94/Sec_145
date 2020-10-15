@@ -19,6 +19,28 @@ int32_t writeVarInFile<double>(QFile& file, const double& var)
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t writeBinVarInFile(QFile& file, const uint8_t& var)
+{
+	const char* const PREF = "[Other]: ";
+	if (file.write(reinterpret_cast<const char*>(&var), 1) == -1) {
+		PRINT_ERR(true, PREF, "Bad data");
+		return -1;
+	}
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t writeBinArrayInFile(QFile& file, const uint8_t* const data, const uint32_t size)
+{
+	const char* const PREF = "[Other]: ";
+	if (file.write(reinterpret_cast<const char*>(data), size) == -1) {
+		PRINT_ERR(true, PREF, "Bad data");
+		return -1;
+	}
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t readVarFromFile(QFile& file, uint32_t& var)
 {
 	const char* const PREF = "[Other]: ";

@@ -80,6 +80,14 @@ int32_t writeMatrixInFile(QFile& file, const Matrix& m)
 }
 
 //-------------------------------------------------------------------------------------------------
+// Write binary variable in file
+int32_t writeBinVarInFile(QFile& file, const uint8_t& var);
+
+//-------------------------------------------------------------------------------------------------
+// Write binary array in file
+int32_t writeBinArrayInFile(QFile& file, const uint8_t* const data, const uint32_t size);
+
+//-------------------------------------------------------------------------------------------------
 // Read variable from file
 int32_t readVarFromFile(QFile& file, uint32_t& var);
 int32_t readVarFromFile(QFile& file, int32_t& var);
