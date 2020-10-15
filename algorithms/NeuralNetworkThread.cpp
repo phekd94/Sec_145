@@ -7,7 +7,7 @@ using namespace Sec_145;
 //-------------------------------------------------------------------------------------------------
 void NeuralNetworkThread::process() noexcept
 {
-	// Catch a lock(), unlock(), processContours() exceptions
+	// Catch a lock(), unlock() xxxxxxxxxxx exceptions
 	try {
 
 	// Lock a mutex
@@ -32,14 +32,20 @@ void NeuralNetworkThread::process() noexcept
 	if (m_image.isNull() != true)
 	{
 		m_image = m_image.scaled(152, 152);
-		auto data = m_image.bits();
-		for (uint32_t i = 0; i < 152 * 152; ++i)
+		if (m_image.isNull() != true)
 		{
-			m_r[i] = data[i * 4 + 0];
-			m_g[i] = data[i * 4 + 1];
-			m_b[i] = data[i * 4 + 2];
+			const uint8_t* const data = m_image.bits();
+			for (uint32_t i = 0; i < 152 * 152; ++i)
+			{
+	//			m_r[i] = data[i * 4 + 0];
+	//			m_g[i] = data[i * 4 + 1];
+	//			m_b[i] = data[i * 4 + 2];
+				m_r[i] = data[i * 4 + 2];
+				m_g[i] = data[i * 4 + 1];
+				m_b[i] = data[i * 4 + 0];
+			}
+			m_recognitionLabel = NeuralNetwork::getRecognitionLabel(m_r, m_g, m_b);
 		}
-		m_recognitionLabel = NeuralNetwork::getRecognitionLabel(m_r, m_g, m_b);
 	}
 
 	// Lock a mutex

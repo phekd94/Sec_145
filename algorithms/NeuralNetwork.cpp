@@ -358,15 +358,15 @@ int32_t NeuralNetwork::getRecognitionLabel(const uint8_t* const r,
 					m_conv_in[0][0](
 					        l_row * (m_in_conv_size[0] - m_kernels_cols + 1) + l_col,
 					        k_row * m_kernels_cols + k_col) =
-					    r[(l_row + k_row) * m_in_conv_size[0] + l_col + k_col];
+					    r[(l_row + k_row) * m_in_conv_size[0] + l_col + k_col] / 255.0;
 					m_conv_in[0][1](
 					        l_row * (m_in_conv_size[0] - m_kernels_cols + 1) + l_col,
 					        k_row * m_kernels_cols + k_col) =
-					    g[(l_row + k_row) * m_in_conv_size[0] + l_col + k_col];
+					    g[(l_row + k_row) * m_in_conv_size[0] + l_col + k_col] / 255.0;
 					m_conv_in[0][2](
 					        l_row * (m_in_conv_size[0] - m_kernels_cols + 1) + l_col,
 					        k_row * m_kernels_cols + k_col) =
-					    b[(l_row + k_row) * m_in_conv_size[0] + l_col + k_col];
+					    b[(l_row + k_row) * m_in_conv_size[0] + l_col + k_col] / 255.0;
 				}
 			}
 		}
@@ -588,9 +588,9 @@ int32_t NeuralNetwork::getRecognitionLabel()
 			          maxArrayElement(m_dense_out[num_dense_layers_i].data(),
 			                          m_dense_out[num_dense_layers_i].size()));
 
-			qDebug() << m_dense_out[num_dense_layers_i].data()[0]
-			         << m_dense_out[num_dense_layers_i].data()[1]
-			         << m_dense_out[num_dense_layers_i].data()[2];
+//			qDebug() << m_dense_out[num_dense_layers_i].data()[0]
+//			         << m_dense_out[num_dense_layers_i].data()[1]
+//			         << m_dense_out[num_dense_layers_i].data()[2];
 		}
 
 	} // Loop for each dense

@@ -10,6 +10,7 @@ TODO:
  * whole: uint64_t + exception over
  * mutex + flag -> mutex + try_lock
  * base class
+ * replace 152 magic number
 FIXME:
 DANGER:
 NOTE:
