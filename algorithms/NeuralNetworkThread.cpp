@@ -31,15 +31,16 @@ void NeuralNetworkThread::process() noexcept
 	// Get a label
 	if (m_image.isNull() != true)
 	{
-		m_image = m_image.scaled(152, 152);
+		uint32_t magic_number = 70; // 152
+		m_image = m_image.scaled(magic_number, magic_number);
 		if (m_image.isNull() != true)
 		{
 			const uint8_t* const data = m_image.bits();
-			for (uint32_t i = 0; i < 152 * 152; ++i)
+			for (uint32_t i = 0; i < magic_number * magic_number; ++i)
 			{
-	//			m_r[i] = data[i * 4 + 0];
-	//			m_g[i] = data[i * 4 + 1];
-	//			m_b[i] = data[i * 4 + 2];
+				// m_r[i] = data[i * 4 + 0];
+				// m_g[i] = data[i * 4 + 1];
+				// m_b[i] = data[i * 4 + 2];
 				m_r[i] = data[i * 4 + 2];
 				m_g[i] = data[i * 4 + 1];
 				m_b[i] = data[i * 4 + 0];

@@ -50,6 +50,17 @@ void softmax(DataType* const data, const uint32_t size)
 }
 
 //-------------------------------------------------------------------------------------------------
+// Sigmoid activation function
+template <typename DataType>
+void sigmoid(DataType* const data, const uint32_t size)
+{
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		data[i] = std::exp(data[i]) / (std::exp(data[i]) + 1);
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
 // Max pooling 2D (2x2, step 2)
 int32_t maxPooling2D(const Eigen::MatrixXd& in, Eigen::MatrixXd& out,
                      const uint32_t in_line_size, const uint32_t out_line_size)
@@ -88,6 +99,7 @@ int32_t maxPooling2D(const Eigen::MatrixXd& in, Eigen::MatrixXd& out,
 //-------------------------------------------------------------------------------------------------
 int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 {
+	/*
 	m_num_conv_layers = 4;
 	m_in_conv_size = {152, 75, 36, 17};
 	m_out_pooling_size = {75, 36, 17, 7};
@@ -96,15 +108,34 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 	m_num_of_kernels = {32, 64, 128, 128};
 	m_depth_of_kernels = {3, 32, 64, 128};
 	m_kernels_names = {"conv2d_12", "conv2d_13", "conv2d_14", "conv2d_15"};
+	*/
+
+	m_num_conv_layers = 2;
+	m_in_conv_size = {70, 34};
+	m_out_pooling_size = {34, 16};
+	m_kernels_rows = 3;
+	m_kernels_cols = 3;
+	m_num_of_kernels = {32, 64};
+	m_depth_of_kernels = {3, 32};
+	m_kernels_names = {"conv2d_21", "conv2d_22"};
+
 	m_conv_in = std::vector<std::vector<Eigen::MatrixXd>>(m_num_conv_layers);
 	m_conv_out = std::vector<Eigen::MatrixXd>(m_num_conv_layers);
 	m_kernels = std::vector<std::vector<Eigen::MatrixXd>>(m_num_conv_layers);
 	m_conv_biases = std::vector<std::vector<double>>(m_num_conv_layers);
 
+	/*
 	m_num_dense_layers = 2;
 	m_in_dense_size = {7 * 7 * 128, 512};
 	m_out_dense_size = {512, 3};
 	m_denses_names = {"dense_6", "dense_7"};
+	*/
+
+	m_num_dense_layers = 2;
+	m_in_dense_size = {16 * 16 * 64, 64};
+	m_out_dense_size = {64, 1};
+	m_denses_names = {"dense_24", "dense_25"};
+
 	m_dense_in = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
 	m_dense_out = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
 	m_denses = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
@@ -578,7 +609,13 @@ int32_t NeuralNetwork::getRecognitionLabel()
 		else
 		{
 			// Softmax
+			/*
 			softmax(m_dense_out[num_dense_layers_i].data(),
+			        m_dense_out[num_dense_layers_i].size());
+			*/
+
+			// Sigmoid
+			sigmoid(m_dense_out[num_dense_layers_i].data(),
 			        m_dense_out[num_dense_layers_i].size());
 
 			PRINT_DBG(true, PREF, "Index of maximal element: %lu;  value: %f",
@@ -599,6 +636,10 @@ int32_t NeuralNetwork::getRecognitionLabel()
 	// Get finish time
 	m_finishTime = std::chrono::duration_cast<std::chrono::milliseconds>(
 	                   std::chrono::system_clock::now().time_since_epoch()).count();
+
+	// Get a recognition value
+	m_recognitionValue = maxArrayElement(m_dense_out[m_num_dense_layers - 1].data(),
+	                                     m_dense_out[m_num_dense_layers - 1].size());
 
 	return maxArrayElementIndex(m_dense_out[m_num_dense_layers - 1].data(),
 	                            m_dense_out[m_num_dense_layers - 1].size());

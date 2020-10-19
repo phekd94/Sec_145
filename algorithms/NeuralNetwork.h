@@ -45,11 +45,17 @@ public:
 	// ******* Getters *******
 	// ***********************
 
-	// Get a recognition label from neural network
+	// Gets a recognition label from neural network
 	int32_t getRecognitionLabel(const uint8_t* const r,
 	                            const uint8_t* const g,
 	                            const uint8_t* const b); // noexcept
 	int32_t getRecognitionLabel(const QString& fileName); // noexcept
+
+	// Gets a recognition value from neural network
+	double getRecognitionValue() noexcept
+	{
+		return m_recognitionValue;
+	}
 
 	// Gets start time
 	uint64_t getStartTime() const noexcept
@@ -69,8 +75,11 @@ private:
 	constexpr static const char* const PREF {"[NeuralNetwork]: "};
 
 	// Start and finish time
-	uint64_t m_startTime {0};
-	uint64_t m_finishTime {0};
+	volatile uint64_t m_startTime {0};
+	volatile uint64_t m_finishTime {0};
+
+	// Recognition value
+	volatile double m_recognitionValue {0};
 
 	// Flag; model has been loaded
 	bool m_loaded {false};
