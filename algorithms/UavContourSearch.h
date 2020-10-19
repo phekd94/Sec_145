@@ -21,9 +21,10 @@ Sec_145::UavContourSearch
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <cstdint>  // integer types
-#include <vector>   // std::vector
-#include <cstdlib>  // std::abs()
+#include <cstdint>    // integer types
+#include <vector>     // std::vector
+#include <cstdlib>    // std::abs()
+#include <algorithm>  // std::sort()
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -46,8 +47,9 @@ public:
 	// Object parameters
 	struct ObjParameters
 	{
-		ObjParameters(uint32_t x = 0, uint32_t y = 0,
-		              uint32_t w = 0, uint32_t h = 0) : m_x(x), m_y(y), m_w(w), m_h(h)
+		ObjParameters(uint32_t x, uint32_t y,
+		              uint32_t w, uint32_t h,
+		              uint32_t numPoints) : m_x(x), m_y(y), m_w(w), m_h(h), m_numPoints(numPoints)
 		{
 		}
 
@@ -55,6 +57,7 @@ public:
 		uint32_t m_y;
 		uint32_t m_w;
 		uint32_t m_h;
+		uint32_t m_numPoints;
 	};
 
 	UavContourSearch()
@@ -94,8 +97,14 @@ public:
 	int32_t getUavParameters(uint32_t& x, uint32_t& y) const noexcept;
 
 	// Gets set with suitable objects parameters
-	const std::vector<ObjParameters>& getSuitableObjParameters() const noexcept
+	const std::vector<ObjParameters>& getSuitableObjParameters() noexcept
 	{
+		// Sorting by number of points in contour
+		std::sort(m_suitable_objects_params.begin(), m_suitable_objects_params.end(),
+		          [](const ObjParameters& obj_params_1, const ObjParameters& obj_params_2) {
+			          return obj_params_1.m_numPoints > obj_params_2.m_numPoints;
+		          });
+
 		return m_suitable_objects_params;
 	}
 
@@ -366,8 +375,8 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 
 		// Add suitable object parameters
 		suitable_objects_params.push_back(ObjParameters(mm_xy[i].m_min_x, mm_xy[i].m_min_y,
-		                                                mm_xy[i].m_delta_x,
-		                                                mm_xy[i].m_delta_y));
+		                                                mm_xy[i].m_delta_x, mm_xy[i].m_delta_y,
+		                                                mm_xy[i].m_set_size));
 
 		// Choice a set with maximum size
 		if (mm_xy[i].m_set_size > max_set_size)
