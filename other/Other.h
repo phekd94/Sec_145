@@ -4,9 +4,10 @@
 //-------------------------------------------------------------------------------------------------
 /*
 DESCRITION: Helper functions
-TODO: * PREF
-	  * One readVarFromFile() function. Use type_id
-	  * test functions
+TODO:
+ * PREF
+ * One readVarFromFile() function. Use type_id
+ * test functions
 FIXME:
 DANGER:
 NOTE:

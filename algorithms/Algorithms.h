@@ -4,11 +4,16 @@
 //-------------------------------------------------------------------------------------------------
 /*
 DESCRITION: Functions with algoritms
-TODO: * test class (logic() method)
+TODO:
+ * test class (logic() method)
 FIXME:
 DANGER:
-NOTE: * "const" in lambda function definition: "const" makes the linkage internal by default,
-		 which means it is only accessible in one translation unit, thereby avoiding the problem.
+NOTE:
+ * "const" in lambda function definition: "const" makes the linkage internal by default,
+   which means it is only accessible in one translation unit, thereby avoiding the problem.
+
+ * !!! Next functions have been deleted: dotProduct(); correlationCoefficient();
+   convertPixelLimits !!!
 
 +---------------+------------+
 | thread safety | reentrance |
@@ -101,7 +106,7 @@ uint32_t minArrayElementIndex(Array* const array, const uint32_t size)
 }
 
 //-------------------------------------------------------------------------------------------------
-// Summary of array elements
+// Sum of array elements
 template <typename DataType>
 double sumArrayElements(DataType* const data, const uint32_t size)
 {
@@ -113,7 +118,7 @@ double sumArrayElements(DataType* const data, const uint32_t size)
 }
 
 //-------------------------------------------------------------------------------------------------
-// Summary of array elements
+// Summary of exponents of array elements
 template <typename DataType>
 double sumArrayExpElements(DataType* const data, const uint32_t size)
 {
