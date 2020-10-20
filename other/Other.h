@@ -4,9 +4,10 @@
 //-------------------------------------------------------------------------------------------------
 /*
 DESCRITION: Helper functions
-TODO: * PREF
-	  * One readVarFromFile() function. Use type_id
-	  * test functions
+TODO:
+ * PREF
+ * One readVarFromFile() function. Use type_id
+ * test functions
 FIXME:
 DANGER:
 NOTE:
@@ -22,6 +23,7 @@ NOTE:
 #include <cstdint>     // integer types
 #include <QFile>       // QFile class
 #include <QByteArray>  // QByteArray class
+#include <QString>     // QString class
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -92,6 +94,7 @@ int32_t writeBinArrayInFile(QFile& file, const uint8_t* const data, const uint32
 int32_t readVarFromFile(QFile& file, uint32_t& var);
 int32_t readVarFromFile(QFile& file, int32_t& var);
 int32_t readVarFromFile(QFile& file, double& var);
+int32_t readVarFromFile(QFile& file, QString& var);
 
 //-------------------------------------------------------------------------------------------------
 // Read matrix from file

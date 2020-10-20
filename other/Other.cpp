@@ -95,6 +95,27 @@ int32_t readVarFromFile(QFile& file, double& var)
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t readVarFromFile(QFile& file, QString& var)
+{
+	const char* const PREF = "[Other]: ";
+	QByteArray ar = file.readLine();
+	if (ar.isEmpty() == true) {
+		PRINT_ERR(true, PREF, "Bad data");
+		return -1;
+	}
+	var = QString(ar);
+	if (var.isEmpty() == true) {
+		PRINT_ERR(true, PREF, "Bad data");
+		return -1;
+	}
+
+	// Remove "\r\n" from result string
+	var.remove(var.size() - 2, 2);
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t readVectorsFromFile(QFile& file, std::vector<std::vector<double>>& vectors,
                             const uint32_t vectors_num, const uint32_t vector_size)
 {
