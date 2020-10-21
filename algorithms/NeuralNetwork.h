@@ -151,6 +151,9 @@ private:
 //------------------------------------------------
 	// Get a recognition label from neural network
 	int32_t getRecognitionLabel(); // noexcept
+
+	// Read neural network parameters
+	int32_t readParameters(const QString& pathToModel); // noexcept
 };
 
 //-------------------------------------------------------------------------------------------------

@@ -106,143 +106,12 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 		return -1;
 	}
 
-	// For files with network parameters, kernels, weights
-	QFile f;
 
-	// Variable for file content
-	uint32_t var;
-
-	// Get network parameters
-	//  Set a file name
-	QString fileName(pathToModel + "/parameters.txt");
-	f.setFileName(fileName);
-
-	//  Open a file
-	if (f.open(QIODevice::ReadOnly) == false)
+	if (readParameters(pathToModel) != 0)
 	{
-		PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
+		PRINT_ERR(true, PREF, "readParameters(%s)", pathToModel.toStdString().c_str());
 		return -1;
 	}
-
-	// Read a number of convolute layers
-	if (readVarFromFile(f, m_num_conv_layers) != 0)
-	{
-		PRINT_ERR(true, PREF, "Can't read a m_num_conv_layers from file %s",
-		          fileName.toStdString().c_str());
-		return -1;
-	}
-	if (0 == m_num_conv_layers)
-	{
-		PRINT_ERR(true, PREF, "m_num_conv_layers == 0");
-		return -1;
-	}
-
-	// Read m_in_conv_size
-	for (uint32_t i = 0; i < m_num_conv_layers; ++i)
-	{
-		if (readVarFromFile(f, var) != 0)
-		{
-			PRINT_ERR(true, PREF, "Can't read m_in_conv_size from file %s",
-			          fileName.toStdString().c_str());
-			return -1;
-		}
-		m_in_conv_size.push_back(var);
-	}
-
-	// Get m_out_pooling_size from m_in_conv_size
-	std::copy(m_in_conv_size.begin() + 1, m_in_conv_size.end(),
-	          std::back_insert_iterator<std::vector<uint32_t>>(m_out_pooling_size));
-
-	// Read m_out_pooling_size
-	if (readVarFromFile(f, var) != 0)
-	{
-		PRINT_ERR(true, PREF, "Can't read a m_out_pooling_size from file %s",
-		          fileName.toStdString().c_str());
-		return -1;
-	}
-	m_out_pooling_size.push_back(var);
-
-	// Read m_num_of_kernels
-	for (uint32_t i = 0; i < m_num_conv_layers; ++i)
-	{
-		if (readVarFromFile(f, var) != 0)
-		{
-			PRINT_ERR(true, PREF, "Can't read m_in_conv_size from file %s",
-			          fileName.toStdString().c_str());
-			return -1;
-		}
-		m_num_of_kernels.push_back(var);
-	}
-
-	// Get m_depth_of_kernels
-	//  Only for RGB
-	m_depth_of_kernels.push_back(3);
-
-	//  Get m_depth_of_kernels from m_num_of_kernels
-	std::copy(m_num_of_kernels.begin(), m_num_of_kernels.end() - 1,
-	          std::back_insert_iterator<std::vector<uint32_t>>(m_depth_of_kernels));
-
-	// Read m_kernels_names
-	for (uint32_t i = 0; i < m_num_conv_layers; ++i)
-	{
-		QString str;
-		if (readVarFromFile(f, str) != 0)
-		{
-			PRINT_ERR(true, PREF, "Can't read m_kernels_names from file %s",
-			          fileName.toStdString().c_str());
-			return -1;
-		}
-		m_kernels_names.push_back(str);
-	}
-
-	// Close file
-	f.close();
-
-	// Only kernels 3x3
-	m_kernels_rows = 3;
-	m_kernels_cols = 3;
-
-
-	// TODO: read parameters in private method
-
-
-//	m_num_conv_layers = 4;
-//	m_in_conv_size = {152, 75, 36, 17};
-//	m_out_pooling_size = {75, 36, 17, 7};
-//	m_kernels_rows = 3;
-//	m_kernels_cols = 3;
-//	m_num_of_kernels = {32, 64, 128, 128};
-//	m_depth_of_kernels = {3, 32, 64, 128};
-//	m_kernels_names = {"conv2d_12", "conv2d_13", "conv2d_14", "conv2d_15"};
-
-//	m_num_conv_layers = 2;
-//	m_in_conv_size = {70, 34};
-//	m_out_pooling_size = {34, 16};
-//	m_kernels_rows = 3;
-//	m_kernels_cols = 3;
-//	m_num_of_kernels = {32, 64};
-//	m_depth_of_kernels = {3, 32};
-//	m_kernels_names = {"conv2d_21", "conv2d_22"};
-
-	m_conv_in = std::vector<std::vector<Eigen::MatrixXd>>(m_num_conv_layers);
-	m_conv_out = std::vector<Eigen::MatrixXd>(m_num_conv_layers);
-	m_kernels = std::vector<std::vector<Eigen::MatrixXd>>(m_num_conv_layers);
-	m_conv_biases = std::vector<std::vector<double>>(m_num_conv_layers);
-
-//	m_num_dense_layers = 2;
-//	m_in_dense_size = {7 * 7 * 128, 512};
-//	m_out_dense_size = {512, 3};
-//	m_denses_names = {"dense_6", "dense_7"};
-
-	m_num_dense_layers = 2;
-	m_in_dense_size = {16 * 16 * 64, 64};
-	m_out_dense_size = {64, 1};
-	m_denses_names = {"dense_24", "dense_25"};
-
-	m_dense_in = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
-	m_dense_out = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
-	m_denses = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
-	m_dense_biases = std::vector<std::vector<double>>(m_num_dense_layers);
 
 //-----------------------------
 	// For each convolute layer
@@ -290,7 +159,10 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 		m_dense_biases[i] = std::vector<double>(m_out_dense_size[i]);
 	}
 
-//-----------------------
+//---------------------------------------
+	// For files with kernels and weights
+	QFile f;
+
 	// For files contents
 	std::vector<std::vector<double>> vectors;
 
@@ -708,15 +580,19 @@ int32_t NeuralNetwork::getRecognitionLabel()
 		}
 		else
 		{
-			// Softmax
-			/*
-			softmax(m_dense_out[num_dense_layers_i].data(),
-			        m_dense_out[num_dense_layers_i].size());
-			*/
-
-			// Sigmoid
-			sigmoid(m_dense_out[num_dense_layers_i].data(),
-			        m_dense_out[num_dense_layers_i].size());
+			// Choice an activation function
+			if (m_out_dense_size.back() == 1)
+			{
+				// Sigmoid
+				sigmoid(m_dense_out[num_dense_layers_i].data(),
+				        m_dense_out[num_dense_layers_i].size());
+			}
+			else
+			{
+				// Softmax
+				softmax(m_dense_out[num_dense_layers_i].data(),
+				        m_dense_out[num_dense_layers_i].size());
+			}
 
 			PRINT_DBG(true, PREF, "Index of maximal element: %lu;  value: %f",
 			          static_cast<unsigned long>(
@@ -743,6 +619,225 @@ int32_t NeuralNetwork::getRecognitionLabel()
 
 	return maxArrayElementIndex(m_dense_out[m_num_dense_layers - 1].data(),
 	                            m_dense_out[m_num_dense_layers - 1].size());
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t NeuralNetwork::readParameters(const QString& pathToModel)
+{
+	// For files with network parameters
+	QFile f;
+
+	// Variable for file content
+	uint32_t var;
+
+	// --- Get network parameters ---
+
+	// Set a file name
+	QString fileName(pathToModel + "/parameters.txt");
+	f.setFileName(fileName);
+
+	// Open a file
+	if (f.open(QIODevice::ReadOnly) == false)
+	{
+		PRINT_ERR(true, PREF, "Can't open a file %s", fileName.toStdString().c_str());
+		return -1;
+	}
+
+	// --- Get convolute layers ---
+
+	// Read a number of convolute layers
+	if (readVarFromFile(f, m_num_conv_layers) != 0)
+	{
+		PRINT_ERR(true, PREF, "Can't read a m_num_conv_layers from file %s",
+		          fileName.toStdString().c_str());
+		return -1;
+	}
+	if (0 == m_num_conv_layers)
+	{
+		PRINT_ERR(true, PREF, "m_num_conv_layers == 0");
+		return -1;
+	}
+
+	// Read m_in_conv_size
+	for (uint32_t i = 0; i < m_num_conv_layers; ++i)
+	{
+		if (readVarFromFile(f, var) != 0)
+		{
+			PRINT_ERR(true, PREF, "Can't read m_in_conv_size from file %s",
+			          fileName.toStdString().c_str());
+			return -1;
+		}
+		m_in_conv_size.push_back(var);
+	}
+
+	// Get m_out_pooling_size from m_in_conv_size
+	std::copy(m_in_conv_size.begin() + 1, m_in_conv_size.end(),
+	          std::back_insert_iterator<std::vector<uint32_t>>(m_out_pooling_size));
+
+	// Read m_out_pooling_size
+	if (readVarFromFile(f, var) != 0)
+	{
+		PRINT_ERR(true, PREF, "Can't read a m_out_pooling_size from file %s",
+		          fileName.toStdString().c_str());
+		return -1;
+	}
+	m_out_pooling_size.push_back(var);
+
+	// Read m_num_of_kernels
+	for (uint32_t i = 0; i < m_num_conv_layers; ++i)
+	{
+		if (readVarFromFile(f, var) != 0)
+		{
+			PRINT_ERR(true, PREF, "Can't read m_in_conv_size from file %s",
+			          fileName.toStdString().c_str());
+			return -1;
+		}
+		m_num_of_kernels.push_back(var);
+	}
+
+	// Get m_depth_of_kernels
+	//  Only for RGB
+	m_depth_of_kernels.push_back(3);
+
+	//  Get m_depth_of_kernels from m_num_of_kernels
+	std::copy(m_num_of_kernels.begin(), m_num_of_kernels.end() - 1,
+	          std::back_insert_iterator<std::vector<uint32_t>>(m_depth_of_kernels));
+
+	// Read m_kernels_names
+	for (uint32_t i = 0; i < m_num_conv_layers; ++i)
+	{
+		QString str;
+		if (readVarFromFile(f, str) != 0)
+		{
+			PRINT_ERR(true, PREF, "Can't read m_kernels_names from file %s",
+			          fileName.toStdString().c_str());
+			return -1;
+		}
+		m_kernels_names.push_back(str);
+	}
+
+	// Only kernels 3x3
+	m_kernels_rows = 3;
+	m_kernels_cols = 3;
+
+	m_conv_in = std::vector<std::vector<Eigen::MatrixXd>>(m_num_conv_layers);
+	m_conv_out = std::vector<Eigen::MatrixXd>(m_num_conv_layers);
+	m_kernels = std::vector<std::vector<Eigen::MatrixXd>>(m_num_conv_layers);
+	m_conv_biases = std::vector<std::vector<double>>(m_num_conv_layers);
+
+	// --- Get dense layers ---
+
+	// Read a number of dense layers
+	if (readVarFromFile(f, m_num_dense_layers) != 0)
+	{
+		PRINT_ERR(true, PREF, "Can't read a m_num_dense_layers from file %s",
+		          fileName.toStdString().c_str());
+		return -1;
+	}
+	if (0 == m_num_dense_layers)
+	{
+		PRINT_ERR(true, PREF, "m_num_dense_layers == 0");
+		return -1;
+	}
+
+	qDebug() << m_num_dense_layers;
+
+	for (auto el : m_out_pooling_size)
+		qDebug() << el;
+
+	// Read m_in_dense_size
+	for (uint32_t i = 1; i < m_num_dense_layers; ++i)
+	{
+		if (readVarFromFile(f, var) != 0)
+		{
+			PRINT_ERR(true, PREF, "Can't read a m_in_dense_size from file %s",
+			          fileName.toStdString().c_str());
+			return -1;
+		}
+
+		if (1 == i)
+		{
+			ERROR
+			m_in_dense_size.push_back(m_out_pooling_size.back() * m_out_pooling_size.back() *
+			                          var);
+			m_in_dense_size.push_back(var);
+			ERROR
+			qDebug() << var << m_out_pooling_size.back();
+		}
+		else
+		{
+			m_in_dense_size.push_back(var);
+			qDebug() << var;
+		}
+	}
+
+	// Get m_out_dense_size
+	std::copy(m_in_dense_size.begin() + 1, m_in_dense_size.end(),
+	          std::back_insert_iterator<std::vector<uint32_t>>(m_out_dense_size));
+
+	// Read m_out_dense_size last element
+	if (readVarFromFile(f, var) != 0)
+	{
+		PRINT_ERR(true, PREF, "Can't read a m_out_dense_size from file %s",
+		          fileName.toStdString().c_str());
+		return -1;
+	}
+	m_out_dense_size.push_back(var);
+
+	for (auto el : m_out_dense_size)
+		qDebug() << el;
+
+	// Read m_denses_names
+	for (uint32_t i = 0; i < m_num_dense_layers; ++i)
+	{
+		QString str;
+		if (readVarFromFile(f, str) != 0)
+		{
+			PRINT_ERR(true, PREF, "Can't read m_denses_names from file %s",
+			          fileName.toStdString().c_str());
+			return -1;
+		}
+		m_denses_names.push_back(str);
+		qDebug() << str;
+	}
+
+	m_dense_in = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
+	m_dense_out = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
+	m_denses = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
+	m_dense_biases = std::vector<std::vector<double>>(m_num_dense_layers);
+
+//	m_num_conv_layers = 4;
+//	m_in_conv_size = {152, 75, 36, 17};
+//	m_out_pooling_size = {75, 36, 17, 7};
+//	m_kernels_rows = 3;
+//	m_kernels_cols = 3;
+//	m_num_of_kernels = {32, 64, 128, 128};
+//	m_depth_of_kernels = {3, 32, 64, 128};
+//	m_kernels_names = {"conv2d_12", "conv2d_13", "conv2d_14", "conv2d_15"};
+
+//	m_num_dense_layers = 2;
+//	m_in_dense_size = {7 * 7 * 128, 512};
+//	m_out_dense_size = {512, 3};
+//	m_denses_names = {"dense_6", "dense_7"};
+
+//	m_num_conv_layers = 2;
+//	m_in_conv_size = {70, 34};
+//	m_out_pooling_size = {34, 16};
+//	m_kernels_rows = 3;
+//	m_kernels_cols = 3;
+//	m_num_of_kernels = {32, 64};
+//	m_depth_of_kernels = {3, 32};
+//	m_kernels_names = {"conv2d_21", "conv2d_22"};
+
+//	m_num_dense_layers = 2;
+//	m_in_dense_size = {16 * 16 * 64, 64};
+//	m_out_dense_size = {64, 1};
+//	m_denses_names = {"dense_24", "dense_25"};
+
+	// Close file
+	f.close();
+
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------------------
