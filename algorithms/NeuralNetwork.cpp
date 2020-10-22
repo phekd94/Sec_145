@@ -9,8 +9,6 @@
 #include "Algorithms.h"           // sumArrayExpElements<>();
                                   // maxArrayElement<>(); maxArrayElementIndex<>()
 
-#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
-
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145 {
 
@@ -740,10 +738,9 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 		return -1;
 	}
 
-	qDebug() << m_num_dense_layers;
-
-	for (auto el : m_out_pooling_size)
-		qDebug() << el;
+	// Get first element of m_in_dense_size
+	m_in_dense_size.push_back(m_out_pooling_size.back() * m_out_pooling_size.back() *
+	                          m_num_of_kernels.back());
 
 	// Read m_in_dense_size
 	for (uint32_t i = 1; i < m_num_dense_layers; ++i)
@@ -754,21 +751,7 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 			          fileName.toStdString().c_str());
 			return -1;
 		}
-
-		if (1 == i)
-		{
-			ERROR
-			m_in_dense_size.push_back(m_out_pooling_size.back() * m_out_pooling_size.back() *
-			                          var);
-			m_in_dense_size.push_back(var);
-			ERROR
-			qDebug() << var << m_out_pooling_size.back();
-		}
-		else
-		{
-			m_in_dense_size.push_back(var);
-			qDebug() << var;
-		}
+		m_in_dense_size.push_back(var);
 	}
 
 	// Get m_out_dense_size
@@ -784,9 +767,6 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 	}
 	m_out_dense_size.push_back(var);
 
-	for (auto el : m_out_dense_size)
-		qDebug() << el;
-
 	// Read m_denses_names
 	for (uint32_t i = 0; i < m_num_dense_layers; ++i)
 	{
@@ -798,7 +778,6 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 			return -1;
 		}
 		m_denses_names.push_back(str);
-		qDebug() << str;
 	}
 
 	m_dense_in = std::vector<Eigen::MatrixXd>(m_num_dense_layers);

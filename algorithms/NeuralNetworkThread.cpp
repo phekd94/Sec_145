@@ -29,23 +29,50 @@ void NeuralNetworkThread::process() noexcept
 	m_mutex.unlock();
 
 	// Get a label
+	//  Check the image
 	if (m_image.isNull() != true)
 	{
-		uint32_t magic_number = 70; // 152
-		m_image = m_image.scaled(magic_number, magic_number);
-		if (m_image.isNull() != true)
+		// Get size of input layer
+		int32_t image_size = NeuralNetwork::getInputLayerSize();
+
+		if (image_size > 0)
 		{
-			const uint8_t* const data = m_image.bits();
-			for (uint32_t i = 0; i < magic_number * magic_number; ++i)
+			// Allocate a memory for RGB data
+			if (static_cast<uint32_t>(image_size) != m_image_size)
 			{
-				// m_r[i] = data[i * 4 + 0];
-				// m_g[i] = data[i * 4 + 1];
-				// m_b[i] = data[i * 4 + 2];
-				m_r[i] = data[i * 4 + 2];
-				m_g[i] = data[i * 4 + 1];
-				m_b[i] = data[i * 4 + 0];
+				m_image_size = static_cast<uint32_t>(image_size);
+				m_r = new (std::nothrow) uint8_t[m_image_size * m_image_size];
+				m_g = new (std::nothrow) uint8_t[m_image_size * m_image_size];
+				m_b = new (std::nothrow) uint8_t[m_image_size * m_image_size];
+				if (nullptr == m_r || nullptr == m_g || nullptr == m_b)
+				{
+					PRINT_ERR(true, PREF, "Can not allocate a memory for RGB data");
+				}
 			}
-			m_recognitionLabel = NeuralNetwork::getRecognitionLabel(m_r, m_g, m_b);
+
+			// Check an allocation of memory
+			if (nullptr != m_r && nullptr != m_g && nullptr != m_b)
+			{
+				// Scale an image
+				m_image = m_image.scaled(m_image_size, m_image_size);
+				if (m_image.isNull() != true)
+				{
+					// Get an image data (RGB)
+					const uint8_t* const data = m_image.bits();
+					for (uint32_t i = 0; i < m_image_size * m_image_size; ++i)
+					{
+						// m_r[i] = data[i * 4 + 0];
+						// m_g[i] = data[i * 4 + 1];
+						// m_b[i] = data[i * 4 + 2];
+						m_r[i] = data[i * 4 + 2];
+						m_g[i] = data[i * 4 + 1];
+						m_b[i] = data[i * 4 + 0];
+					}
+
+					// Get a recognition label
+					m_recognitionLabel = NeuralNetwork::getRecognitionLabel(m_r, m_g, m_b);
+				}
+			}
 		}
 	}
 
@@ -137,7 +164,7 @@ bool NeuralNetworkThread::setNewData(const QImage& image) noexcept
 	// Add new data
 	if (false == m_is_working)
 	{
-		// Set new file name
+		// Set image
 		m_image = image;
 
 		// Set new data flag

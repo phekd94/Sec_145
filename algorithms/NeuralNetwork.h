@@ -28,6 +28,8 @@ Sec_145::NeuralNetwork class
 #include <QImage>       // QImage class
 #include "Eigen/Dense"  // Eigen::MatrixXd class
 
+#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
+
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
 {
@@ -52,7 +54,7 @@ public:
 	int32_t getRecognitionLabel(const QString& fileName); // noexcept
 
 	// Gets a recognition value from neural network
-	double getRecognitionValue() noexcept
+	double getRecognitionValue() const noexcept
 	{
 		return m_recognitionValue;
 	}
@@ -67,6 +69,20 @@ public:
 	uint64_t getFinishTime() const noexcept
 	{
 		return m_finishTime;
+	}
+
+	// Gets input layer size
+	int32_t getInputLayerSize() const
+	{
+		if (m_in_conv_size.empty() == true)
+		{
+			PRINT_ERR(true, PREF, "m_in_conv_size is empty");
+			return -1;
+		}
+		else
+		{
+			return m_in_conv_size[0];
+		}
 	}
 
 private:

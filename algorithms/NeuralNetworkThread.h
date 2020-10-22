@@ -11,6 +11,8 @@ TODO:
  * mutex + flag -> mutex + try_lock
  * base class
  * replace 152 magic number
+ * xxxxxxxxxxx
+ * int32_t image_size -> try {} catch
 FIXME:
 DANGER:
 NOTE:
@@ -69,9 +71,10 @@ private:
 
 	// Image
 	QImage m_image;
-	uint8_t m_r[152 * 152];
-	uint8_t m_g[152 * 152];
-	uint8_t m_b[152 * 152];
+	uint32_t m_image_size {0};
+	uint8_t* m_r {nullptr};
+	uint8_t* m_g {nullptr};
+	uint8_t* m_b {nullptr};
 
 	// Recognition label
 	volatile int32_t m_recognitionLabel {-1};
