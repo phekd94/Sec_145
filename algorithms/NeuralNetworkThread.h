@@ -44,6 +44,17 @@ class NeuralNetworkThread : public NeuralNetwork
 {
 public:
 
+	~NeuralNetworkThread()
+	{
+		// Delete memory for RGB data
+		if (m_r != nullptr)
+			delete [] m_r;
+		if (m_g != nullptr)
+			delete [] m_g;
+		if (m_b != nullptr)
+			delete [] m_b;
+	}
+
 	// Processes image
 	void process() noexcept;
 
