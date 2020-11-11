@@ -44,7 +44,7 @@ class NeuralNetworkThread : public NeuralNetwork
 {
 public:
 
-	~NeuralNetworkThread()
+	virtual ~NeuralNetworkThread()
 	{
 		// Delete memory for RGB data
 		if (m_r != nullptr)
