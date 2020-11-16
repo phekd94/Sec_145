@@ -5,8 +5,9 @@
 /*
 DESCRITION: class for storing data
 TODO:
-	* checksum (with sensitive to the order of the blocks (bytes) in the data word (message))
-	* mutex test
+ * checksum (with sensitive to the order of the blocks (bytes) in the data word (message))
+ * mutex test
+ * exceptions
 FIXME:
 DANGER:
 NOTE:
@@ -28,6 +29,7 @@ Sec_145::DSrv_Storage class
 namespace Sec_145 {
 
 //-------------------------------------------------------------------------------------------------
+// Class for storing data
 class DSrv_Storage
 {
 	friend class DSrv_Storage_test;
@@ -65,26 +67,27 @@ protected:
 private:
 
 	// Preface in debug message
-	static const char* const PREF;
+	constexpr static const char* const PREF {"[DSrv_Storage]: "};
 
 	// Pointers to the data
-	uint8_t* m_completeData;
-	uint8_t* m_fillingData;
+	uint8_t* m_completeData {nullptr};
+	uint8_t* m_fillingData {nullptr};
 
 	// Index in the array of filling data
-	uint32_t m_fillingIndex;
+	uint32_t m_fillingIndex {0};
 
 	// Size of the complete data
-	uint32_t m_completeSize;
+	uint32_t m_completeSize {0};
 
 	// Mutex
 	std::mutex m_mutex;
 
 	// Enable/disable a debug output via printDebug.cpp/.h
-	bool m_debug;
+	bool m_debug {true};
 };
 
 //-------------------------------------------------------------------------------------------------
+// Class for test a DSrv_Storage class
 class DSrv_Storage_test
 {
 public:
@@ -101,7 +104,7 @@ public:
 private:
 
 	// Preface in debug message
-	static const char* const PREF;
+	constexpr static const char* const PREF {"[DSrv_Storage_test]: "};
 };
 
 //-------------------------------------------------------------------------------------------------

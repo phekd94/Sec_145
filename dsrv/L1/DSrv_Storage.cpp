@@ -11,24 +11,18 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-const char* const DSrv_Storage::PREF      = "[DSrv_Storage]: ";
-const char* const DSrv_Storage_test::PREF = "[DSrv_Storage_test]: ";
-
-//-------------------------------------------------------------------------------------------------
-DSrv_Storage::DSrv_Storage() : m_completeData(nullptr),
-                               m_fillingData(nullptr),
-                               m_fillingIndex(0),
-                               m_completeSize(0),
-                               m_debug(true)
+DSrv_Storage::DSrv_Storage()
 {
 	// Allocate a memory for the data
 	m_completeData = new (std::nothrow) uint8_t[MAX_DATA_SIZE];
-	if (nullptr == m_completeData) {
+	if (nullptr == m_completeData)
+	{
 		PRINT_ERR(true, PREF, "Can not allocate a memory (m_completeData)");
 		return;
 	}
 	m_fillingData = new (std::nothrow) uint8_t[MAX_DATA_SIZE];
-	if (nullptr == m_fillingData) {
+	if (nullptr == m_fillingData)
+	{
 		PRINT_ERR(true, PREF, "Can not allocate a memory (m_fillingData)");
 		return;
 	}
@@ -40,10 +34,12 @@ DSrv_Storage::DSrv_Storage() : m_completeData(nullptr),
 DSrv_Storage::~DSrv_Storage()
 {
 	// Delete a memory for the data
-	if (m_completeData != nullptr) {
+	if (m_completeData != nullptr)
+	{
 		delete [] m_completeData;
 	}
-	if (m_fillingData != nullptr) {
+	if (m_fillingData != nullptr)
+	{
 		delete [] m_fillingData;
 	}
 
@@ -54,13 +50,15 @@ DSrv_Storage::~DSrv_Storage()
 int32_t DSrv_Storage::setData(const uint8_t* const data, const uint32_t size, const bool add)
 {
 	// Check the incoming parameter
-	if (nullptr == data) {
+	if (nullptr == data)
+	{
 		PRINT_ERR(true, PREF, "nullptr == data");
 		return -1;
 	}
 
 	// Check the data pointers
-	if (nullptr == m_completeData || nullptr == m_fillingData) {
+	if (nullptr == m_completeData || nullptr == m_fillingData)
+	{
 		PRINT_ERR(true, PREF, "Memory for data have not been allocated");
 		return -1;
 	}
@@ -70,7 +68,8 @@ int32_t DSrv_Storage::setData(const uint8_t* const data, const uint32_t size, co
 
 	// Check the size of the input data
 	if (   (true == add && m_fillingIndex + size > MAX_DATA_SIZE)
-	    || (false == add && size > MAX_DATA_SIZE)) {
+	    || (false == add && size > MAX_DATA_SIZE))
+	{
 		PRINT_ERR(true, PREF, "Size of the data is too much "
 		          "(size = %lu, fillingIndex = %lu, add = %s)",
 		          static_cast<unsigned long>(size),
