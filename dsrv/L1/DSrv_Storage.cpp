@@ -47,7 +47,8 @@ DSrv_Storage::~DSrv_Storage()
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage::setData(const uint8_t* const data, const uint32_t size, const bool add)
+int32_t DSrv_Storage::setData(const uint8_t* const data, const uint32_t size,
+                              const bool add) noexcept
 {
 	// Check the incoming parameter
 	if (nullptr == data)
@@ -64,17 +65,24 @@ int32_t DSrv_Storage::setData(const uint8_t* const data, const uint32_t size, co
 	}
 
 	// Lock a mutex
-	std::lock_guard<std::mutex> lock(m_mutex);
+	try {
+		std::lock_guard<std::mutex> lock(m_mutex);
+	}
+	catch (std::system_error& obj)
+	{
+		PRINT_ERR(true, PREF, "Exception from mutex.lock() has been occured: %s", obj.what());
+		return -1;
+	}
 
 	// Check the size of the input data
 	if (   (true == add && m_fillingIndex + size > MAX_DATA_SIZE)
 	    || (false == add && size > MAX_DATA_SIZE))
 	{
 		PRINT_ERR(true, PREF, "Size of the data is too much "
-		          "(size = %lu, fillingIndex = %lu, add = %s)",
-		          static_cast<unsigned long>(size),
-		          static_cast<unsigned long>(m_fillingIndex),
-		          true == add ? "true" : "false");
+		                      "(size = %lu, fillingIndex = %lu, add = %s)",
+		                      static_cast<unsigned long>(size),
+		                      static_cast<unsigned long>(m_fillingIndex),
+		                      true == add ? "true" : "false");
 		return -1;
 	}
 
@@ -92,20 +100,23 @@ int32_t DSrv_Storage::setData(const uint8_t* const data, const uint32_t size, co
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage::getData(uint8_t** const data, uint32_t* const size)
+int32_t DSrv_Storage::getData(uint8_t** const data, uint32_t* const size) noexcept
 {
 	// Check the incoming parameters
-	if (nullptr == data) {
+	if (nullptr == data)
+	{
 		PRINT_ERR(true, PREF, "nullptr == data");
 		return -1;
 	}
-	if (nullptr == size) {
+	if (nullptr == size)
+	{
 		PRINT_ERR(true, PREF, "nullptr == size");
 		return -1;
 	}
 
 	// Check the data pointers
-	if (nullptr == m_completeData || nullptr == m_fillingData) {
+	if (nullptr == m_completeData || nullptr == m_fillingData)
+	{
 		PRINT_ERR(true, PREF, "Memory for data have not been allocated");
 		*data = nullptr;
 		*size = 0;
@@ -113,7 +124,14 @@ int32_t DSrv_Storage::getData(uint8_t** const data, uint32_t* const size)
 	}
 
 	// Lock a mutex
-	std::lock_guard<std::mutex> lock(m_mutex);
+	try {
+		std::lock_guard<std::mutex> lock(m_mutex);
+	}
+	catch (std::system_error& obj)
+	{
+		PRINT_ERR(true, PREF, "Exception from mutex.lock() has been occured: %s", obj.what());
+		return -1;
+	}
 
 	PRINT_DBG(m_debug, PREF, "Data for geter: 0x%p with size(%5lu)",
 	                         m_completeData,
@@ -127,29 +145,46 @@ int32_t DSrv_Storage::getData(uint8_t** const data, uint32_t* const size)
 }
 
 //-------------------------------------------------------------------------------------------------
-void DSrv_Storage::clearData()
+int32_t DSrv_Storage::clearData() noexcept
 {
 	// Lock a mutex
-	std::lock_guard<std::mutex> lock(m_mutex);
+	try {
+		std::lock_guard<std::mutex> lock(m_mutex);
+	}
+	catch (std::system_error& obj)
+	{
+		PRINT_ERR(true, PREF, "Exception from mutex.lock() has been occured: %s", obj.what());
+		return -1;
+	}
 
 	// Set the fillingIndex and the completeSize to 0
 	m_fillingIndex = 0;
 	m_completeSize = 0;
 
 	PRINT_DBG(m_debug, PREF, "Data have cleared");
+
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage::completeData()
+int32_t DSrv_Storage::completeData() noexcept
 {
 	// Check the data pointers
-	if (nullptr == m_completeData || nullptr == m_fillingData) {
+	if (nullptr == m_completeData || nullptr == m_fillingData)
+	{
 		PRINT_ERR(true, PREF, "Memory for data have not been allocated");
 		return -1;
 	}
 
 	// Lock a mutex
-	std::lock_guard<std::mutex> lock(m_mutex);
+	try {
+		std::lock_guard<std::mutex> lock(m_mutex);
+	}
+	catch (std::system_error& obj)
+	{
+		PRINT_ERR(true, PREF, "Exception from mutex.lock() has been occured: %s", obj.what());
+		return -1;
+	}
 
 	// Exchange pointers
 	std::swap(m_fillingData, m_completeData);
@@ -168,21 +203,24 @@ int32_t DSrv_Storage::completeData()
 }
 
 //=================================================================================================
-int32_t DSrv_Storage_test::pNull(DSrv_Storage& obj)
+int32_t DSrv_Storage_test::pNull(DSrv_Storage& obj) noexcept
 {
 	uint8_t* data;
 	uint32_t size = 1;
 
 	// Test all methods which utilize input pointers
-	if (obj.setData(nullptr, size, true) == 0) {
+	if (obj.setData(nullptr, size, true) == 0)
+	{
 		PRINT_ERR(true, PREF, "setData(nullptr, size, true)");
 		return -1;
 	}
-	if (obj.getData(nullptr, &size) == 0) {
+	if (obj.getData(nullptr, &size) == 0)
+	{
 		PRINT_ERR(true, PREF, "getData(nullptr, &size)");
 		return -1;
 	}
-	if (obj.getData(&data, nullptr) == 0) {
+	if (obj.getData(&data, nullptr) == 0)
+	{
 		PRINT_ERR(true, PREF, "getData(&data, nullptr)");
 		return -1;
 	}
@@ -192,15 +230,18 @@ int32_t DSrv_Storage_test::pNull(DSrv_Storage& obj)
 	uint8_t* m_fillingData = obj.m_fillingData;
 	obj.m_completeData = obj.m_fillingData = nullptr;
 
-	if (obj.setData(data, size, true) == 0) {
+	if (obj.setData(data, size, true) == 0)
+	{
 		PRINT_ERR(true, PREF, "setData(data, size, true) with nullptr == m_...Data");
 		return -1;
 	}
-	if (obj.getData(&data, &size) == 0) {
+	if (obj.getData(&data, &size) == 0)
+	{
 		PRINT_ERR(true, PREF, "getData(&data, &size) with nullptr == m_...Data");
 		return -1;
 	}
-	if (obj.completeData() == 0) {
+	if (obj.completeData() == 0)
+	{
 		PRINT_ERR(true, PREF, "completeData() with nullptr == m_...Data");
 		return -1;
 	}
@@ -212,7 +253,7 @@ int32_t DSrv_Storage_test::pNull(DSrv_Storage& obj)
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage_test::data(DSrv_Storage& obj)
+int32_t DSrv_Storage_test::data(DSrv_Storage& obj) noexcept
 {
 	uint8_t data_1[1] = {1};
 	uint8_t data_2[1] = {2};
@@ -221,79 +262,107 @@ int32_t DSrv_Storage_test::data(DSrv_Storage& obj)
 	uint32_t size_r;
 
 	// Get if data is not complete
-	if (obj.setData(data_1, size, false) != 0) {
+	if (obj.setData(data_1, size, false) != 0)
+	{
 		PRINT_ERR(true, PREF, "setData(data_1, ...)");
 		return -1;
 	}
-	if (obj.getData(&data_r, &size_r) != 0) {
+	if (obj.getData(&data_r, &size_r) != 0)
+	{
 		PRINT_ERR(true, PREF, "getData()");
 		return -1;
-	} else {
-		if (size_r != 0) {
+	}
+	else
+	{
+		if (size_r != 0)
+		{
 			PRINT_ERR(true, PREF, "size_r after first setData()");
 			return -1;
 		}
 	}
-	if (obj.completeData() != 0) {
+	if (obj.completeData() != 0)
+	{
 		PRINT_ERR(true, PREF, "completeData() after first setData()");
 		return -1;
 	}
-	if (obj.getData(&data_r, &size_r) != 0) {
+	if (obj.getData(&data_r, &size_r) != 0)
+	{
 		PRINT_ERR(true, PREF, "getData() after first completeData()");
 		return -1;
-	} else {
-		if (size_r != 1 || data_r[0] != 1) {
+	}
+	else
+	{
+		if (size_r != 1 || data_r[0] != 1)
+		{
 			PRINT_ERR(true, PREF, "size_r or data_r after first completeData()");
 			return -1;
 		}
 	}
 
 	// Two setData
-	if (obj.setData(data_2, size, false) != 0) {
+	if (obj.setData(data_2, size, false) != 0)
+	{
 		PRINT_ERR(true, PREF, "setData(data_2, ...)");
 		return -1;
 	}
-	if (obj.setData(data_1, size, true) != 0) {
+	if (obj.setData(data_1, size, true) != 0)
+	{
 		PRINT_ERR(true, PREF, "setData(data_1, ...)");
 		return -1;
 	}
-	if (obj.completeData() != 0) {
+	if (obj.completeData() != 0)
+	{
 		PRINT_ERR(true, PREF, "completeData() for two setData()");
 		return -1;
 	}
-	if (obj.getData(&data_r, &size_r) != 0) {
+	if (obj.getData(&data_r, &size_r) != 0)
+	{
 		PRINT_ERR(true, PREF, "getData() for two setData()");
 		return -1;
-	} else {
-		if (size_r != 2 || data_r[0] != 2 || data_r[1] != 1) {
+	}
+	else
+	{
+		if (size_r != 2 || data_r[0] != 2 || data_r[1] != 1)
+		{
 			PRINT_ERR(true, PREF, "size_r or data_r for two setData()");
 			return -1;
 		}
 	}
 
 	// MAX_DATA_SIZE + 1 (new data)
-	if (obj.setData(data_1, MAX_DATA_SIZE + 1, false) == 0) {
+	if (obj.setData(data_1, MAX_DATA_SIZE + 1, false) == 0)
+	{
 		PRINT_ERR(true, PREF, "setData(..., MAX_DATA_SIZE + 1, false)");
 		return -1;
 	}
 
 	// MAX_DATA_SIZE (add data)
-	if (obj.setData(data_1, size, true) != 0) {
+	if (obj.setData(data_1, size, true) != 0)
+	{
 		PRINT_ERR(true, PREF, "setData(data_1, ...)");
 		return -1;
 	}
-	if (obj.setData(data_1, MAX_DATA_SIZE, true) == 0) {
+	if (obj.setData(data_1, MAX_DATA_SIZE, true) == 0)
+	{
 		PRINT_ERR(true, PREF, "setData(..., MAX_DATA_SIZE, true)");
 		return -1;
 	}
 
 	// Clear method
-	obj.clearData();
-	if (obj.getData(&data_r, &size_r) != 0) {
+	if (obj.clearData() != 0)
+	{
+		PRINT_ERR(true, PREF, "clearData()");
+		return -1;
+	}
+	if (obj.getData(&data_r, &size_r) != 0)
+	{
 		PRINT_ERR(true, PREF, "getData()");
 		return -1;
-	} else {
-		if (size_r != 0) {
+	}
+	else
+	{
+		if (size_r != 0)
+		{
 			PRINT_ERR(true, PREF, "size_r after clearData()");
 			return -1;
 		}
@@ -303,17 +372,19 @@ int32_t DSrv_Storage_test::data(DSrv_Storage& obj)
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage_test::fullTest()
+int32_t DSrv_Storage_test::fullTest() noexcept
 {
 	DSrv_Storage obj;
 	obj.setDebug(true);
 
-	if (pNull(obj) != 0) {
+	if (pNull(obj) != 0)
+	{
 		PRINT_ERR(true, PREF, "pNull");
 		return -1;
 	}
 
-	if (data(obj) != 0) {
+	if (data(obj) != 0)
+	{
 		PRINT_ERR(true, PREF, "data");
 		return -1;
 	}

@@ -44,7 +44,7 @@ int32_t DSrv_USART_QT::start()
 	}
 
 	// Set a port name
-	m_serialPort->setPortName("COM10");
+	m_serialPort->setPortName("COM17");
 	// "COM10" - Nucleo
 	// "COM11" - Discovery
 	// "COM13" - FT232
@@ -179,7 +179,11 @@ void DSrv_USART_QT::onReadyRead()
 	}
 	if (dataParser(reinterpret_cast<uint8_t*>(data_read.data()), data_read.size()) != 0) {
 		PRINT_ERR(true, PREF, "");
-		clearData();
+		if (clearData() != 0)
+		{
+			PRINT_ERR(true, PREF, "clearData()");
+			return;
+		}
 		return;
 	}
 

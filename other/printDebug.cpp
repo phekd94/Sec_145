@@ -99,7 +99,9 @@ void Sec_145::printDebug(const char* pref,
 	std::cout << out << std::endl;
     #endif  // SEC_145_QT_EN
 
-	} catch (std::exception& obj) {
+	}
+	catch (std::exception& obj)
+	{
         #ifdef SEC_145_QT_EN
 		qDebug() << PREF << pref << func << "(): " << __FUNCTION__ << "(): "
 		         << "Exception from mutex.lock() or from Qt functions has been occured: "

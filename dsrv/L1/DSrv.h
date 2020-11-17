@@ -3,7 +3,7 @@
 
 //-------------------------------------------------------------------------------------------------
 /*
-DESCRITION: pure virtual data server class
+DESCRITION: pure virtual data data server class
 TODO:
 	* sendData(..., address, port, and other parameters) for the all protocols
 FIXME:
@@ -14,20 +14,22 @@ Sec_145::DSrv class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
-|     YES(*)    |     YES    |
+|     YES(*)    |   YES(**)  |
 +---------------+------------+
-(*) - NO for the m_debug, m_storage.m_debug
+(*)  - NO for the m_debug, DSrv_Storage::setDebug()
+(**) - see DSrv_Storage class definition
 */
 
 //-------------------------------------------------------------------------------------------------
 #include "DSrv_Storage.h"           // DSrv_Storage class (for inheritance)
 #include <cstdint>                  // integer types
-#include "../other/DSrv_Defines.h"  // MAX_NAME_SIZE
+#include "../other/DSrv_Defines.h"  // MAX_DATA_SIZE
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145 {
 
 //-------------------------------------------------------------------------------------------------
+// Pure virtual data data server class
 class DSrv : protected DSrv_Storage
 {
 	friend class DSrv_test;
@@ -36,8 +38,11 @@ public:
 
 	// Enable/disable a debug output via printDebug.cpp/.h
 	// (probably the method will be called from another thread)
-	void setDebug(const bool d, const bool d_storage)
-	{ m_debug = d; DSrv_Storage::setDebug(d_storage); }
+	void setDebug(const bool d, const bool d_storage) noexcept
+	{
+		m_debug = d;
+		DSrv_Storage::setDebug(d_storage);
+	}
 
 protected:
 
@@ -45,10 +50,10 @@ protected:
 	virtual ~DSrv();
 
 	// Enable/disable a debug output via printDebug.cpp/.h
-	bool m_debug;
+	bool m_debug {true};
 
 	// Size of remaining data
-	uint32_t m_pktRemSize;
+	uint32_t m_pktRemSize {0};
 
 	// Sends data (pure virtual function)
 	// (protocol class should realize this function)
@@ -65,20 +70,25 @@ protected:
 private:
 
 	// Preface in debug message
-	static const char* PREF;
+	constexpr static const char* PREF {"[DSrv]: "};
 };
 
-//-------------------------------------------------------------------------------------------------
+//=================================================================================================
+// Class for test a DSrv class
 class DSrv_for_test : public DSrv
 {
 	virtual int32_t sendData(const uint8_t* const,
 	                         const uint32_t,
 	                         const char* const,
 	                         const uint16_t) override final
-	{ return 0; }
+	{
+		return 0;
+	}
 
 	virtual int32_t dataParser(uint8_t*, uint32_t) override final
-	{ return 0; }
+	{
+		return 0;
+	}
 };
 
 class DSrv_test
@@ -86,15 +96,15 @@ class DSrv_test
 public:
 
 	// Tests a work with data
-	static int32_t data(DSrv_for_test& obj);
+	static int32_t data(DSrv_for_test& obj) noexcept;
 
 	// Runs all tests
-	static int32_t fullTest();
+	static int32_t fullTest() noexcept;
 
 private:
 
 	// Preface in debug message
-	static const char* PREF;
+	constexpr static const char* PREF {"[DSrv_test]: "};
 };
 
 //-------------------------------------------------------------------------------------------------

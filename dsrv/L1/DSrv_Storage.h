@@ -7,7 +7,6 @@ DESCRITION: class for storing data
 TODO:
  * checksum (with sensitive to the order of the blocks (bytes) in the data word (message))
  * mutex test
- * exceptions
 FIXME:
 DANGER:
 NOTE:
@@ -16,9 +15,10 @@ Sec_145::DSrv_Storage class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
-|      YES      |    YES(*)  |
+|     YES(*)    |   YES(**)  |
 +---------------+------------+
-(*) - take into account that only two buffers are available
+(*)  - NO for the m_debug
+(**) - take into account that only two buffers are available
 */
 
 //-------------------------------------------------------------------------------------------------
@@ -44,25 +44,30 @@ protected:
 	DSrv_Storage& operator=(const DSrv_Storage&) = delete;
 
 	// Sets data in the storage
-	int32_t setData(const uint8_t* const data, const uint32_t size, const bool add);
+	int32_t setData(const uint8_t* const data, const uint32_t size,
+	                const bool add) noexcept;
 
 	// Gets complete data from the storage
 	// (probably the method will be called from another thread)
-	int32_t getData(uint8_t** const data, uint32_t* const size);
+	int32_t getData(uint8_t** const data, uint32_t* const size) noexcept;
 
 	// Deletes all data in the storage
-	void clearData();
+	int32_t clearData() noexcept;
 
 	// Exchanges the m_fillingData and the m_completeData pointers (filling data is complete)
-	int32_t completeData();
+	int32_t completeData() noexcept;
 
 	// Enable/disable debug messages
-	void setDebug(const bool d)
-	{ m_debug = d; }
+	void setDebug(const bool d) noexcept
+	{
+		m_debug = d;
+	}
 
 	// Gets a number of the nodes
-	uint32_t getNodeNum() const
-	{ return 2; }
+	uint32_t getNodeNum() const noexcept
+	{
+		return 2;
+	}
 
 private:
 
@@ -86,20 +91,20 @@ private:
 	bool m_debug {true};
 };
 
-//-------------------------------------------------------------------------------------------------
+//=================================================================================================
 // Class for test a DSrv_Storage class
 class DSrv_Storage_test
 {
 public:
 
 	// Tests methods which utilize pointers
-	static int32_t pNull(DSrv_Storage& obj);
+	static int32_t pNull(DSrv_Storage& obj) noexcept;
 
 	// Tests a work with data
-	static int32_t data(DSrv_Storage& obj);
+	static int32_t data(DSrv_Storage& obj) noexcept;
 
 	// Runs all tests
-	static int32_t fullTest();
+	static int32_t fullTest() noexcept;
 
 private:
 
