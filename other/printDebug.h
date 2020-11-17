@@ -5,7 +5,6 @@
 /*
 DESCRITION: macroses and function for print debug messages
 TODO:
- * add noexcept
 FIXME:
 DANGER:
 NOTE:
@@ -13,7 +12,11 @@ NOTE:
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <QDebug>  // qDebug()
+#ifdef SEC_145_QT_EN
+#include <QDebug>    // qDebug()
+#else
+#include <iostream>  // std::cout; std::endl
+#endif  // SEC_145_QT_EN
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -34,7 +37,11 @@ namespace Sec_145
 	} while(0)
 
 //-------------------------------------------------------------------------------------------------
-void printDebug(const char* pref, const char* func, const bool err, const char* format, ...);
+void printDebug(const char* pref,
+                const char* func,
+                const bool err,
+                const char* format,
+                ...) noexcept;
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
