@@ -8,6 +8,9 @@ TODO:
 FIXME:
 DANGER:
 NOTE:
+ * Recommendation: 
+   ThreadQt_object.start(); // for start a run() method 
+   while (ThreadQt_object.isRunning() != true);
 
 Sec_145::ThreadQT
 +---------------+------------+

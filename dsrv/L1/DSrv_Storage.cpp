@@ -2,8 +2,9 @@
 #include "DSrv_Storage.h"
 #include "../other/DSrv_Defines.h"  // MAX_DATA_SIZE
 
-#include <cstring>                  // std::memcpy
-#include <utility>                  // std::swap
+#include <cstring>       // std::memcpy
+#include <utility>       // std::swap
+#include <system_error>  // std::system_error
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 

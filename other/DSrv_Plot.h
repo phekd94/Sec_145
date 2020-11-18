@@ -29,7 +29,8 @@ Sec_145::DSrv_Plot class
 #include <string>         // std::string class
 
 //-----------------------------------------------------------------------------
-namespace Sec_145 {
+namespace Sec_145
+{
 
 //-----------------------------------------------------------------------------
 class DSrv_Plot : public QObject

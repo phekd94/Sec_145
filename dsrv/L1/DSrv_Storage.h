@@ -26,7 +26,8 @@ Sec_145::DSrv_Storage class
 #include <mutex>    // std::mutex, std::lock_guard
 
 //-------------------------------------------------------------------------------------------------
-namespace Sec_145 {
+namespace Sec_145
+{
 
 //-------------------------------------------------------------------------------------------------
 // Class for storing data
@@ -40,6 +41,7 @@ protected:
 	virtual ~DSrv_Storage();
 
 	// Without copy constructor and override an assignment operator
+	// (due to class members as pointer are presented)
 	DSrv_Storage(DSrv_Storage&) = delete;
 	DSrv_Storage& operator=(const DSrv_Storage&) = delete;
 

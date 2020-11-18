@@ -5,7 +5,7 @@
 /*
 DESCRITION: pure virtual data data server class
 TODO:
-	* sendData(..., address, port, and other parameters) for the all protocols
+ * sendData(..., address, port, and other parameters) for the all protocols
 FIXME:
 DANGER:
 NOTE:
@@ -26,7 +26,8 @@ Sec_145::DSrv class
 #include "../other/DSrv_Defines.h"  // MAX_DATA_SIZE
 
 //-------------------------------------------------------------------------------------------------
-namespace Sec_145 {
+namespace Sec_145
+{
 
 //-------------------------------------------------------------------------------------------------
 // Pure virtual data data server class
@@ -61,7 +62,7 @@ protected:
 	virtual int32_t sendData(const uint8_t* const data,
 	                         const uint32_t size,
 	                         const char* const address,
-	                         const uint16_t port) = 0;
+	                         const uint16_t port) noexcept = 0;
 
 	// Parser of the accepted data (pure virtual function)
 	// (concrete class should realize this function)
@@ -80,7 +81,7 @@ class DSrv_for_test : public DSrv
 	virtual int32_t sendData(const uint8_t* const,
 	                         const uint32_t,
 	                         const char* const,
-	                         const uint16_t) override final
+	                         const uint16_t) noexcept override final
 	{
 		return 0;
 	}
@@ -91,6 +92,7 @@ class DSrv_for_test : public DSrv
 	}
 };
 
+//-------------------------------------------------------------------------------------------------
 class DSrv_test
 {
 public:
