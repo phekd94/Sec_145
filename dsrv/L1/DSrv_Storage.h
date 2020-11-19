@@ -110,6 +110,11 @@ public:
 
 private:
 
+	// Only via public static methods
+	DSrv_Storage_test()
+	{
+	}
+
 	// Preface in debug message
 	constexpr static const char* const PREF {"[DSrv_Storage_test]: "};
 };

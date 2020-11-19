@@ -75,7 +75,7 @@ private:
 };
 
 //=================================================================================================
-// Class for test a DSrv class
+// Class for test a DSrv class (with override methods)
 class DSrv_for_test : public DSrv
 {
 	virtual int32_t sendData(const uint8_t* const,
@@ -93,6 +93,7 @@ class DSrv_for_test : public DSrv
 };
 
 //-------------------------------------------------------------------------------------------------
+// Class for test a DSrv class (with test methods)
 class DSrv_test
 {
 public:
@@ -104,6 +105,11 @@ public:
 	static int32_t fullTest() noexcept;
 
 private:
+
+	// Only via public static methods
+	DSrv_test()
+	{
+	}
 
 	// Preface in debug message
 	constexpr static const char* PREF {"[DSrv_test]: "};

@@ -5,15 +5,20 @@
 /*
 DESCRITION: class for work with hexapod
 TODO:
+ * constants: how they are placed?
 FIXME:
 DANGER:
+ *	for (uint32_t i = m_data_size[m_cmd_id]; i < sizeof(uint32_t); ++i)
+	{
+		data_res[i] = 0; // => minimal size for storage data is sizeof(uint32_t)
+	}
 NOTE:
 
 Sec_145::Dsrv_Hexapod_v2 class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
-|      NO       |    YES     |
+|   ***NO***    | ***YES***  |
 +---------------+------------+
 */
 
@@ -76,37 +81,37 @@ public:
 	virtual ~DSrv_Hexapod_v2();
 	
 	// Flag of complete
-	volatile bool m_stop_ok;
+	volatile bool m_stop_ok {false};
 
 	// Gets a vector with data sizes
-	const std::vector<uint32_t>& getDataSize() const;
+	const std::vector<uint32_t>& getDataSize() const noexcept;
 
 private:
 
 	// Preface in debug message
-	static const char* PREF;
+	constexpr static const char* PREF {"[DSrv_Hexapod_v2]: "};
 
 	// Packet parameters
-	int32_t m_motor_id;
-	uint32_t m_cmd_id;
+	int32_t m_motor_id {-1};
+	uint32_t m_cmd_id {0};
 	std::vector<uint32_t> m_data_size;
 
 	// Calls start() method from DSrv_USART_QT class and connects signals
-	int32_t start();
+	int32_t start() noexcept;
 
 	// Calls stop() method from DSrv_USART_QT class
-	int32_t stop();
+	int32_t stop() noexcept;
 
 	// Parser of the accepted data (override method)
-	int32_t dataParser(uint8_t* data, uint32_t size) override final;
+	int32_t dataParser(uint8_t* data, uint32_t size) noexcept override final;
 
-public slots:
+public slots: // They should not generate exeptions
 
 	// Handles error occured signal
-	void onErrorOccured(QSerialPort::SerialPortError err);
+	void onErrorOccured(QSerialPort::SerialPortError err) noexcept;
 
 	// Handles a command request
-	void onSendCommand(const uint32_t cmd, const uint32_t* data, const uint32_t size);
+	void onSendCommand(const uint32_t cmd, const uint32_t* data, const uint32_t size) noexcept;
 
 signals:
 
@@ -114,7 +119,8 @@ signals:
 	void stateChanged(const uint32_t motor, const uint32_t state, const uint32_t value);
 };
 
-//-------------------------------------------------------------------------------------------------
+//=================================================================================================
+// Class for test a DSrv_Hexapod_v2 class (with test methods)
 class DSrv_Hexapod_v2_test : public QObject
 {
 	Q_OBJECT
@@ -122,7 +128,7 @@ class DSrv_Hexapod_v2_test : public QObject
 public:
 
 	// Tests a logic of functions
-	static int32_t logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& obj_test);
+	static int32_t logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& obj_test) noexcept;
 
 	// Tests methods which utilize pointers
 	static int32_t pNull(DSrv_Hexapod_v2& obj);
@@ -132,20 +138,23 @@ public:
 
 private:
 
-	DSrv_Hexapod_v2_test() : m_slot_ok(false)
+	// Only via public static methods
+	DSrv_Hexapod_v2_test()
 	{
 	}
 
 	// Preface in debug message
-	static const char* PREF;
+	constexpr static const char* PREF {"[DSrv_Hexapod_v2_test]: "};
 
 	// Flag when values in slot are successful
-	volatile bool m_slot_ok;
+	volatile bool m_slot_ok {false};
 
 public slots:
 
 	// Handles state changed signal from DSrv_Hexapod_v2 class
-	void onStateChanged(const uint32_t motor, const uint32_t state, const uint32_t value);
+	void onStateChanged(const uint32_t motor,
+	                    const uint32_t state,
+	                    const uint32_t value) noexcept;
 };
 
 //-------------------------------------------------------------------------------------------------

@@ -34,6 +34,7 @@ namespace Sec_145
 {
 
 //-------------------------------------------------------------------------------------------------
+// Class implements work with USART
 class DSrv_USART_QT : public QObject, public DSrv
 {
 	Q_OBJECT
@@ -79,7 +80,7 @@ private:
 	// Mutex
 	std::mutex m_mutex;
 
-private slots:
+private slots: // They should not can generate an exeption
 
 	// Handles ready read signal
 	void onReadyRead() noexcept;
@@ -92,6 +93,7 @@ private slots:
 };
 
 //=================================================================================================
+// Class for test a DSrv_USART_QT class (with override method)
 class DSrv_USART_QT_for_test : public DSrv_USART_QT
 {
 	virtual int32_t dataParser(uint8_t*, uint32_t) override final
@@ -101,6 +103,7 @@ class DSrv_USART_QT_for_test : public DSrv_USART_QT
 };
 
 //-------------------------------------------------------------------------------------------------
+// Class for test a DSrv_USART_QT class (with test methods)
 class DSrv_USART_QT_test
 {
 public:
@@ -112,6 +115,11 @@ public:
 	static int32_t fullTest() noexcept;
 
 private:
+
+	// Only via public static methods
+	DSrv_USART_QT_test()
+	{
+	}
 
 	// Preface in debug message
 	constexpr static const char* PREF {"[DSrv_USART_QT_test]: "};
