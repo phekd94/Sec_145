@@ -5,7 +5,6 @@
 /*
 DESCRITION: class for work with hexapod
 TODO:
- * constants: how they are placed?
 FIXME:
 DANGER:
  *	for (uint32_t i = m_data_size[m_cmd_id]; i < sizeof(uint32_t); ++i)
@@ -18,8 +17,9 @@ Sec_145::Dsrv_Hexapod_v2 class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
-|   ***NO***    | ***YES***  |
+|     YES(*)    |    YES(*)  |
 +---------------+------------+
+(*) - see DSrv_USART_QT class definition
 */
 
 //-------------------------------------------------------------------------------------------------
@@ -31,38 +31,38 @@ Sec_145::Dsrv_Hexapod_v2 class
 
 //-------------------------------------------------------------------------------------------------
 // Constants
-const uint32_t HEXAPOD_POS       = 0;
-const uint32_t HEXAPOD_SPEED     = 1;
-const uint32_t HEXAPOD_ERR       = 2;
-const uint32_t HEXAPOD_START     = 3;
-const uint32_t HEXAPOD_STOP      = 4;
-const uint32_t HEXAPOD_FREQUENCY = 5;
-const uint32_t HEXAPOD_SPEED_TO  = 6;
-const uint32_t HEXAPOD_START_POS = 7;
-const uint32_t HEXAPOD_MODE      = 8;
-const uint32_t HEXAPOD_SIZE      = 9;
-const uint32_t HEXAPOD_VALUE     = 10;
-const uint32_t HEXAPOD_REINIT    = 11;
-const uint32_t HEXAPOD_ANSWER    = 12;
+[[maybe_unused]] const uint32_t HEXAPOD_POS       = 0;
+[[maybe_unused]] const uint32_t HEXAPOD_SPEED     = 1;
+[[maybe_unused]] const uint32_t HEXAPOD_ERR       = 2;
+[[maybe_unused]] const uint32_t HEXAPOD_START     = 3;
+[[maybe_unused]] const uint32_t HEXAPOD_STOP      = 4;
+[[maybe_unused]] const uint32_t HEXAPOD_FREQUENCY = 5;
+[[maybe_unused]] const uint32_t HEXAPOD_SPEED_TO  = 6;
+[[maybe_unused]] const uint32_t HEXAPOD_START_POS = 7;
+[[maybe_unused]] const uint32_t HEXAPOD_MODE      = 8;
+[[maybe_unused]] const uint32_t HEXAPOD_SIZE      = 9;
+[[maybe_unused]] const uint32_t HEXAPOD_VALUE     = 10;
+[[maybe_unused]] const uint32_t HEXAPOD_REINIT    = 11;
+[[maybe_unused]] const uint32_t HEXAPOD_ANSWER    = 12;
 
-const uint32_t HEXAPOD_NUM_OF_CMD = 13;
+[[maybe_unused]] const uint32_t HEXAPOD_NUM_OF_CMD = 13;
 
-const uint32_t HEXAPOD_ERR_USART_OPEN  = 100;
-const uint32_t HEXAPOD_ERR_USART_IO    = 101;
-const uint32_t HEXAPOD_DEV_OPENED      = 102;
-const uint32_t HEXAPOD_DEV_CLOSED      = 103;
-const uint32_t HEXAPOD_ERR_USART_CLOSE = 104;
+[[maybe_unused]] const uint32_t HEXAPOD_ERR_USART_OPEN  = 100;
+[[maybe_unused]] const uint32_t HEXAPOD_ERR_USART_IO    = 101;
+[[maybe_unused]] const uint32_t HEXAPOD_DEV_OPENED      = 102;
+[[maybe_unused]] const uint32_t HEXAPOD_DEV_CLOSED      = 103;
+[[maybe_unused]] const uint32_t HEXAPOD_ERR_USART_CLOSE = 104;
 
-const uint32_t HEXAPOD_CMD_CON    = 200;
-const uint32_t HEXAPOD_CMD_DISCON = 201;
-const uint32_t HEXAPOD_CMD_SEND   = 202;
+[[maybe_unused]] const uint32_t HEXAPOD_CMD_CON    = 200;
+[[maybe_unused]] const uint32_t HEXAPOD_CMD_DISCON = 201;
+[[maybe_unused]] const uint32_t HEXAPOD_CMD_SEND   = 202;
 
-const uint32_t HEXAPOD_NUM_OF_MOTORS = 6;
+[[maybe_unused]] const uint32_t HEXAPOD_NUM_OF_MOTORS = 6;
 
-const uint32_t PKT_HEADER_SIZE = 2;
+[[maybe_unused]] const uint32_t PKT_HEADER_SIZE = 2;
 
-const uint32_t PKT_HEADER_MOTOR_INDEX = 0;
-const uint32_t PKT_HEADER_CMD_INDEX   = 1;
+[[maybe_unused]] const uint32_t PKT_HEADER_MOTOR_INDEX = 0;
+[[maybe_unused]] const uint32_t PKT_HEADER_CMD_INDEX   = 1;
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -84,7 +84,10 @@ public:
 	volatile bool m_stop_ok {false};
 
 	// Gets a vector with data sizes
-	const std::vector<uint32_t>& getDataSize() const noexcept;
+	const std::vector<uint32_t>& getDataSize() const noexcept
+	{
+		return m_data_size;
+	}
 
 private:
 
@@ -131,10 +134,10 @@ public:
 	static int32_t logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& obj_test) noexcept;
 
 	// Tests methods which utilize pointers
-	static int32_t pNull(DSrv_Hexapod_v2& obj);
+	static int32_t pNull(DSrv_Hexapod_v2& obj) noexcept;
 
 	// Runs all tests
-	static int32_t fullTest();
+	static int32_t fullTest() noexcept;
 
 private:
 

@@ -12,19 +12,21 @@ using namespace Sec_145;
 DSrv_Hexapod_v2::DSrv_Hexapod_v2()
 {
 	// Filling a vector with data size
-	m_data_size.push_back(2);  //   0 - position value            (from)
-	m_data_size.push_back(2);  //   1 - speed value               (from)
-	m_data_size.push_back(1);  //   2 - error state               (from)
-	m_data_size.push_back(1);  //   3 - start                     (to)
-	m_data_size.push_back(1);  //   4 - stop                      (to)
-	m_data_size.push_back(2);  //   5 - frequency       (osc)     (to)
-	m_data_size.push_back(2);  //   6 - speed           (osc)     (to)
-	m_data_size.push_back(2);  //   7 - start position  (osc)     (to)
-	m_data_size.push_back(1);  //   8 - mode            (osc)     (to)
-	m_data_size.push_back(2);  //   9 - size            (script)  (to)
-	m_data_size.push_back(2);  //  10 - value           (script)  (to)
-	m_data_size.push_back(1);  //  11 - reinitialize              (to)
-	m_data_size.push_back(3);  //  12 - answer                    (from)
+	m_data_size = {
+	    2,  //   0 - position value            (from)
+	    2,  //   1 - speed value               (from)
+	    1,  //   2 - error state               (from)
+	    1,  //   3 - start                     (to)
+	    1,  //   4 - stop                      (to)
+	    2,  //   5 - frequency       (osc)     (to)
+	    2,  //   6 - speed           (osc)     (to)
+	    2,  //   7 - start position  (osc)     (to)
+	    1,  //   8 - mode            (osc)     (to)
+	    2,  //   9 - size            (script)  (to)
+	    2,  //  10 - value           (script)  (to)
+	    1,  //  11 - reinitialize              (to)
+	    3   //  12 - answer                    (from)
+	};
 
 	PRINT_DBG(m_debug, PREF, "");
 }
@@ -33,12 +35,6 @@ DSrv_Hexapod_v2::DSrv_Hexapod_v2()
 DSrv_Hexapod_v2::~DSrv_Hexapod_v2()
 {
 	PRINT_DBG(m_debug, PREF, "");
-}
-
-//-------------------------------------------------------------------------------------------------
-const std::vector<uint32_t>& DSrv_Hexapod_v2::getDataSize() const noexcept
-{
-	return m_data_size;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -315,12 +311,12 @@ void DSrv_Hexapod_v2_test::onStateChanged(const uint32_t motor,
 		    || motor != 0)
 		{
 			PRINT_ERR(true, PREF, "Error value: "
-			                      "value != HEXAPOD_START and "
-			                      "value != HEXAPOD_STOP and "
-			                      "value != HEXAPOD_FREQUENCY and "
-			                      "value != HEXAPOD_SPEED_TO and "
-			                      "value != HEXAPOD_START_POS and "
-			                      "value != HEXAPOD_MODE "
+			                      "value_cmd != HEXAPOD_START and "
+			                      "value_cmd != HEXAPOD_STOP and "
+			                      "value_cmd != HEXAPOD_FREQUENCY and "
+			                      "value_cmd != HEXAPOD_SPEED_TO and "
+			                      "value_cmd != HEXAPOD_START_POS and "
+			                      "value_cmd != HEXAPOD_MODE "
 			                      "or motor != 0");
 		}
 		else
@@ -476,23 +472,28 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	data[PKT_HEADER_SIZE + 1] = 0;
 	data[PKT_HEADER_SIZE + 2] = 0;
 	obj_test.m_slot_ok = false;
-	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0) {
+	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0)
+	{
 		PRINT_ERR(true, PREF, "State error: dataParser()");
 		return -1;
 	}
-	if (false == obj_test.m_slot_ok) {
+	if (false == obj_test.m_slot_ok)
+	{
 		PRINT_ERR(true, PREF, "State error: bad value in slot");
 		return -1;
 	}
-	if (obj.m_motor_id != -1) {
+	if (obj.m_motor_id != -1)
+	{
 		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
 		return -1;
 	}
-	if (obj.m_cmd_id != HEXAPOD_ANSWER) {
+	if (obj.m_cmd_id != HEXAPOD_ANSWER)
+	{
 		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ANSWER");
 		return -1;
 	}
-	if (obj.m_pktRemSize != 0) {
+	if (obj.m_pktRemSize != 0)
+	{
 		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
 		return -1;
 	}
@@ -503,23 +504,28 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	data[PKT_HEADER_SIZE + 1] = 0;
 	data[PKT_HEADER_SIZE + 2] = 0;
 	obj_test.m_slot_ok = false;
-	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0) {
+	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0)
+	{
 		PRINT_ERR(true, PREF, "State error: dataParser()");
 		return -1;
 	}
-	if (false == obj_test.m_slot_ok) {
+	if (false == obj_test.m_slot_ok)
+	{
 		PRINT_ERR(true, PREF, "State error: bad value in slot");
 		return -1;
 	}
-	if (obj.m_motor_id != -1) {
+	if (obj.m_motor_id != -1)
+	{
 		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
 		return -1;
 	}
-	if (obj.m_cmd_id != HEXAPOD_ANSWER) {
+	if (obj.m_cmd_id != HEXAPOD_ANSWER)
+	{
 		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ANSWER");
 		return -1;
 	}
-	if (obj.m_pktRemSize != 0) {
+	if (obj.m_pktRemSize != 0)
+	{
 		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
 		return -1;
 	}
@@ -530,23 +536,28 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	data[PKT_HEADER_SIZE + 1] = 7;
 	data[PKT_HEADER_SIZE + 2] = 6;
 	obj_test.m_slot_ok = false;
-	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0) {
+	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0)
+	{
 		PRINT_ERR(true, PREF, "State error: dataParser()");
 		return -1;
 	}
-	if (false == obj_test.m_slot_ok) {
+	if (false == obj_test.m_slot_ok)
+	{
 		PRINT_ERR(true, PREF, "State error: bad value in slot");
 		return -1;
 	}
-	if (obj.m_motor_id != -1) {
+	if (obj.m_motor_id != -1)
+	{
 		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
 		return -1;
 	}
-	if (obj.m_cmd_id != HEXAPOD_ANSWER) {
+	if (obj.m_cmd_id != HEXAPOD_ANSWER)
+	{
 		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ANSWER");
 		return -1;
 	}
-	if (obj.m_pktRemSize != 0) {
+	if (obj.m_pktRemSize != 0)
+	{
 		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
 		return -1;
 	}
@@ -557,23 +568,28 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	data[PKT_HEADER_SIZE + 1] = 6;
 	data[PKT_HEADER_SIZE + 2] = 8;
 	obj_test.m_slot_ok = false;
-	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0) {
+	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0)
+	{
 		PRINT_ERR(true, PREF, "State error: dataParser()");
 		return -1;
 	}
-	if (false == obj_test.m_slot_ok) {
+	if (false == obj_test.m_slot_ok)
+	{
 		PRINT_ERR(true, PREF, "State error: bad value in slot");
 		return -1;
 	}
-	if (obj.m_motor_id != -1) {
+	if (obj.m_motor_id != -1)
+	{
 		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
 		return -1;
 	}
-	if (obj.m_cmd_id != HEXAPOD_ANSWER) {
+	if (obj.m_cmd_id != HEXAPOD_ANSWER)
+	{
 		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ANSWER");
 		return -1;
 	}
-	if (obj.m_pktRemSize != 0) {
+	if (obj.m_pktRemSize != 0)
+	{
 		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
 		return -1;
 	}
@@ -584,23 +600,28 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	data[PKT_HEADER_SIZE + 1] = 31;
 	data[PKT_HEADER_SIZE + 2] = 8;
 	obj_test.m_slot_ok = false;
-	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0) {
+	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0)
+	{
 		PRINT_ERR(true, PREF, "State error: dataParser()");
 		return -1;
 	}
-	if (false == obj_test.m_slot_ok) {
+	if (false == obj_test.m_slot_ok)
+	{
 		PRINT_ERR(true, PREF, "State error: bad value in slot");
 		return -1;
 	}
-	if (obj.m_motor_id != -1) {
+	if (obj.m_motor_id != -1)
+	{
 		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
 		return -1;
 	}
-	if (obj.m_cmd_id != HEXAPOD_ANSWER) {
+	if (obj.m_cmd_id != HEXAPOD_ANSWER)
+	{
 		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ANSWER");
 		return -1;
 	}
-	if (obj.m_pktRemSize != 0) {
+	if (obj.m_pktRemSize != 0)
+	{
 		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
 		return -1;
 	}
@@ -609,10 +630,11 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Hexapod_v2_test::pNull(DSrv_Hexapod_v2& obj)
+int32_t DSrv_Hexapod_v2_test::pNull(DSrv_Hexapod_v2& obj) noexcept
 {
 	// Check data == nullptr
-	if (obj.dataParser(nullptr, 4) != -2) {
+	if (obj.dataParser(nullptr, 4) != -2)
+	{
 		PRINT_ERR(true, PREF, "dataParser(nullptr, ...)");
 		return -1;
 	}
@@ -621,7 +643,7 @@ int32_t DSrv_Hexapod_v2_test::pNull(DSrv_Hexapod_v2& obj)
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Hexapod_v2_test::fullTest()
+int32_t DSrv_Hexapod_v2_test::fullTest() noexcept
 {
 	DSrv_Hexapod_v2 obj;
 	obj.setDebug(true, true);
@@ -629,12 +651,14 @@ int32_t DSrv_Hexapod_v2_test::fullTest()
 	connect(&obj, &DSrv_Hexapod_v2::stateChanged,
 	        &obj_test, &DSrv_Hexapod_v2_test::onStateChanged);
 
-	if (pNull(obj) != 0) {
+	if (pNull(obj) != 0)
+	{
 		PRINT_ERR(true, PREF, "pNull");
 		return -1;
 	}
 
-	if (logic(obj, obj_test) != 0) {
+	if (logic(obj, obj_test) != 0)
+	{
 		PRINT_ERR(true, PREF, "logic");
 		return -1;
 	}
