@@ -7,6 +7,7 @@ DESCRITION: class implements work with USART
 TODO:
  * sendData(): blockSignals() (race condition sendData() and slotReadyRead()); also stop()
  * mutex test
+ * Q_INVOKABLE instead slots
 FIXME:
 DANGER:
 NOTE:
