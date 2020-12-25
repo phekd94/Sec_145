@@ -8,9 +8,12 @@ TODO:
  * PREF
  * One readVarFromFile() function. Use type_id
  * test functions
+ * handle exceptions
 FIXME:
 DANGER:
 NOTE:
+ * reflection() need a Q_DECLARE_METATYPE(type), where type is a type of user-defined type (or
+   Qt-defined type)
 
 +---------------+------------+
 | thread safety | reentrance |
@@ -24,6 +27,7 @@ NOTE:
 #include <QFile>       // QFile class
 #include <QByteArray>  // QByteArray class
 #include <QString>     // QString class
+#include <QObject>     // QObjects classes and macroses
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -37,7 +41,8 @@ template <typename T>
 int32_t writeVarInFile(QFile& file, const T& var)
 {
 	const char* const PREF = "[Other]: ";
-	if (file.write(QByteArray::number(var) + "\n") == -1) {
+	if (file.write(QByteArray::number(var) + "\n") == -1)
+	{
 		PRINT_ERR(true, PREF, "Bad data");
 		return -1;
 	}
@@ -55,8 +60,10 @@ template <typename Array>
 int32_t writeArrayInFile(QFile& file, const Array* const data, const uint32_t size)
 {
 	const char* const PREF = "[Other]: ";
-	for (uint32_t i = 0; i < size; ++i) {
-		if (writeVarInFile(file, data[i]) != 0) {
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		if (writeVarInFile(file, data[i]) != 0)
+		{
 			PRINT_ERR(true, PREF, "writeVarInFile()");
 			return -1;
 		}
@@ -70,9 +77,12 @@ template <typename Matrix>
 int32_t writeMatrixInFile(QFile& file, const Matrix& m)
 {
 	const char* const PREF = "[Other]: ";
-	for (uint32_t i = 0; i < m.rows(); ++i) {
-		for (uint32_t j = 0; j < m.cols(); ++j) {
-			if (writeVarInFile(file, m(i, j)) != 0) {
+	for (uint32_t i = 0; i < m.rows(); ++i)
+	{
+		for (uint32_t j = 0; j < m.cols(); ++j)
+		{
+			if (writeVarInFile(file, m(i, j)) != 0)
+			{
 				PRINT_ERR(true, PREF, "writeVarInFile()");
 				return -1;
 			}
@@ -102,9 +112,12 @@ template <typename Matrix>
 int32_t readMatrixFromFile(QFile& file, Matrix& m)
 {
 	const char* const PREF = "[Other]: ";
-	for (uint32_t i = 0; i < m.rows(); ++i) {
-		for (uint32_t j = 0; j < m.cols(); ++j) {
-			if (readVarFromFile(file, m(i, j)) != 0) {
+	for (uint32_t i = 0; i < m.rows(); ++i)
+	{
+		for (uint32_t j = 0; j < m.cols(); ++j)
+		{
+			if (readVarFromFile(file, m(i, j)) != 0)
+			{
 				PRINT_ERR(true, PREF, "readVarFromFile()");
 				return -1;
 			}
@@ -121,6 +134,22 @@ int32_t readVectorsFromFile(QFile& file, std::vector<std::vector<double>>& vecto
 //-------------------------------------------------------------------------------------------------
 // Compare two files with double numbers
 int32_t compareFiles(QFile& file_1, QFile& file_2, const uint32_t num, bool& res);
+
+//-------------------------------------------------------------------------------------------------
+// Calls method by name from given class
+int32_t reflection(QObject *obj,
+                   QString methodName,
+                   QGenericReturnArgument returnValue,
+                   QGenericArgument val0 = QGenericArgument(),
+                   QGenericArgument val1 = QGenericArgument(),
+                   QGenericArgument val2 = QGenericArgument(),
+                   QGenericArgument val3 = QGenericArgument(),
+                   QGenericArgument val4 = QGenericArgument(),
+                   QGenericArgument val5 = QGenericArgument(),
+                   QGenericArgument val6 = QGenericArgument(),
+                   QGenericArgument val7 = QGenericArgument(),
+                   QGenericArgument val8 = QGenericArgument(),
+                   QGenericArgument val9 = QGenericArgument());
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
