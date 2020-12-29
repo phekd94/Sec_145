@@ -201,7 +201,7 @@ int32_t compareFiles(QFile& file_1, QFile& file_2, const uint32_t num, bool& res
 
 //-------------------------------------------------------------------------------------------------
 int32_t reflection(QObject *obj,
-                   QString methodName,
+                   const QString methodName,
                    QGenericReturnArgument returnValue,
                    QGenericArgument val0,
                    QGenericArgument val1,
@@ -215,6 +215,13 @@ int32_t reflection(QObject *obj,
                    QGenericArgument val9)
 {
 	QMetaMethod method;
+
+	// Check the incoming parameter
+	if (nullptr == obj)
+	{
+		PRINT_ERR(true, PREF, "nullptr == obj");
+		return -1;
+	}
 
 	// Look for a method
 	for (int32_t i = obj->metaObject()->methodOffset();

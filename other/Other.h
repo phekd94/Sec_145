@@ -12,8 +12,8 @@ TODO:
 FIXME:
 DANGER:
 NOTE:
- * reflection() need a Q_DECLARE_METATYPE(type), where type is a type of user-defined type (or
-   Qt-defined type)
+ * reflection() and property() need a Q_DECLARE_METATYPE(type), where type is a type of
+   user-defined type (or Qt-defined type)
 
 +---------------+------------+
 | thread safety | reentrance |
@@ -136,9 +136,9 @@ int32_t readVectorsFromFile(QFile& file, std::vector<std::vector<double>>& vecto
 int32_t compareFiles(QFile& file_1, QFile& file_2, const uint32_t num, bool& res);
 
 //-------------------------------------------------------------------------------------------------
-// Calls method by name from given class
+// Calls a method by name from given class
 int32_t reflection(QObject *obj,
-                   QString methodName,
+                   const QString methodName,
                    QGenericReturnArgument returnValue,
                    QGenericArgument val0 = QGenericArgument(),
                    QGenericArgument val1 = QGenericArgument(),
@@ -150,6 +150,99 @@ int32_t reflection(QObject *obj,
                    QGenericArgument val7 = QGenericArgument(),
                    QGenericArgument val8 = QGenericArgument(),
                    QGenericArgument val9 = QGenericArgument());
+
+//-------------------------------------------------------------------------------------------------
+// Gets a property by name from given class
+template<typename T>
+int32_t property(QObject *obj,
+                 const QString propertyName,
+                 T** property)
+{
+	const char* const PREF = "[Other]: ";
+
+	// Check the incoming parameter
+	if (nullptr == obj)
+	{
+		PRINT_ERR(true, PREF, "nullptr == obj");
+		return -1;
+	}
+
+	// Get a QVariant class object
+	QVariant v = obj->property(propertyName.toStdString().c_str());
+
+	// Get a property itself from QVariant class object
+	if (v.isValid() == false)
+	{
+		PRINT_ERR(true, PREF, "%s does not exist in the given class",
+		          propertyName.toStdString().c_str());
+		return -1;
+	}
+	else
+	{
+		// Check the match of the property and parameter types
+		if (v.userType() == QMetaType::type((std::string(typeid(T).name()) + "*").c_str()))
+		{
+			if (nullptr != property)
+			{
+				*property = v.value<T*>();
+				return 0;
+			}
+			else
+			{
+				PRINT_ERR(true, PREF, "nullptr == property");
+				return -1;
+			}
+		}
+		else
+		{
+			PRINT_ERR(true, PREF, "Property and parameter types do not match");
+			return -1;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+// Gets a property by name from given class
+template<typename T>
+int32_t property(QObject *obj,
+                 const QString propertyName,
+                 T& property)
+{
+	const char* const PREF = "[Other]: ";
+
+	// Check the incoming parameter
+	if (nullptr == obj)
+	{
+		PRINT_ERR(true, PREF, "nullptr == obj");
+		return -1;
+	}
+
+	// Get a QVariant class object
+	QVariant v = obj->property(propertyName.toStdString().c_str());
+
+	// Get a property itself from QVariant class object
+	if (v.isValid() == false)
+	{
+		PRINT_ERR(true, PREF, "%s does not exist in the given class",
+		          propertyName.toStdString().c_str());
+		return -1;
+	}
+	else
+	{
+		// Check the match of the property and parameter types
+		if (v.userType() == QMetaType::type(typeid(T).name()))
+		{
+			property = v.value<T>();
+			return 0;
+		}
+		else
+		{
+			PRINT_ERR(true, PREF, "Property and parameter types do not match");
+			return -1;
+		}
+	}
+}
+
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145
