@@ -11,7 +11,7 @@ TODO:
 FIXME:
 DANGER:
 NOTE:
- * Doesn't suit for large data stream due to slot for read data
+ * Doesn't suit for large data stream due to slot is used for read data
 
 Sec_145::DSrv_USART_QT class
 +---------------+------------+

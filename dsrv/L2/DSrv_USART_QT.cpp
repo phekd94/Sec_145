@@ -54,13 +54,13 @@ int32_t DSrv_USART_QT::start() noexcept
 	try {
 
 	// Set a port name
-	m_serialPort->setPortName("COM17");
+	m_serialPort->setPortName("COM19");
 	// "COM10" - Nucleo
 	// "COM11" - Discovery
 	// "COM13" - FT232
 
 	// Set a baud rate
-	if (m_serialPort->setBaudRate(QSerialPort::Baud9600) == false)
+	if (m_serialPort->setBaudRate(QSerialPort::Baud19200) == false)
 	{
 		PRINT_ERR(true, PREF, "setBaudRate(9600)");
 		stop(false);
@@ -68,6 +68,14 @@ int32_t DSrv_USART_QT::start() noexcept
 	}
 	// m_serialPort->setBaudRate(QSerialPort::Baud9600)
 	// m_serialPort->setBaudRate(QSerialPort::Baud19200)
+
+	// Set a parity checking mode
+	if (m_serialPort->setParity(QSerialPort::EvenParity) == false)
+	{
+		PRINT_ERR(true, PREF, "setParity(EvenParity)");
+		stop(false);
+		return -1;
+	}
 
 	// Set a number of bits in the packet
 	if (m_serialPort->setDataBits(QSerialPort::Data8) == false)
@@ -148,6 +156,10 @@ int32_t DSrv_USART_QT::stop(const bool lock_mutex) noexcept
 		m_serialPort = nullptr;  /// race condition !?!?!?
 
 		PRINT_DBG(m_debug, PREF, "Serial port has deleted");
+	}
+	else
+	{
+		PRINT_DBG(m_debug, PREF, "QSerialPort class object has not been created");
 	}
 
 	return 0;
@@ -249,11 +261,10 @@ void DSrv_USART_QT::onReadyRead() noexcept
 	}
 	if (dataParser(reinterpret_cast<uint8_t*>(data_read.data()), data_read.size()) != 0)
 	{
-		PRINT_ERR(true, PREF, "");
+		PRINT_ERR(true, PREF, "dataParser()");
 		if (DSrv_Storage::clearData() != 0)
 		{
 			PRINT_ERR(true, PREF, "clearData()");
-			return;
 		}
 		return;
 	}
