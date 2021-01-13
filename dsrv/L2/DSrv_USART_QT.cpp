@@ -1,13 +1,42 @@
 
 #include "DSrv_USART_QT.h"
 
-#include <system_error>  // std::system_error
-#include <exception>     // std::exception
+#include <system_error>     // std::system_error
+#include <exception>        // std::exception
+#include <QSerialPortInfo>  // availablePorts()
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;
+
+//-------------------------------------------------------------------------------------------------
+const std::list<std::string> DSrv_USART_QT::getPortNames()
+{
+	std::list<std::string> res;
+
+	try {
+
+		// Get list with information about serial ports
+		QList<QSerialPortInfo> list {QSerialPortInfo::availablePorts()};
+
+		// Fill the result list
+		for (const QSerialPortInfo& node : list)
+		{
+			res.push_back(node.portName().toStdString());
+		}
+
+	} // Catch an exception from Qt functions or from push_back()
+	catch (std::exception& obj)
+	{
+		PRINT_ERR(true, PREF,
+		          "Exception from Qt functions or during push_back() has been occured: %s",
+		          obj.what());
+		res.clear();
+	}
+
+	return res;
+}
 
 //-------------------------------------------------------------------------------------------------
 DSrv_USART_QT::DSrv_USART_QT()

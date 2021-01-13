@@ -26,9 +26,11 @@ Sec_145::DSrv_USART_QT class
 #include <QObject>       // QObject class (for inheritance); Q_OBJECT macros
 #include "../L1/DSrv.h"  // DSrv class (for inheritance)
 
-#include <cstdint>       // integer types
-#include <QSerialPort>   // QSerialPort class
-#include <mutex>         // std::mutex, std::lock_guard
+#include <cstdint>      // integer types
+#include <QSerialPort>  // QSerialPort class
+#include <list>         // std::list
+#include <string>       // std::string
+#include <mutex>        // std::mutex, std::lock_guard
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -41,6 +43,11 @@ class DSrv_USART_QT : public QObject, public DSrv
 	Q_OBJECT
 
 	friend class DSrv_USART_QT_test;
+
+public:
+
+	// Gets available port names
+	static const std::list<std::string> getPortNames();
 
 protected:
 
