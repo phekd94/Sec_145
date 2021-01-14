@@ -39,21 +39,10 @@ const std::list<std::string> DSrv_USART_QT::getPortNames()
 }
 
 //-------------------------------------------------------------------------------------------------
-DSrv_USART_QT::DSrv_USART_QT()
-{
-	PRINT_DBG(m_debug, PREF, "");
-}
-
-//-------------------------------------------------------------------------------------------------
-DSrv_USART_QT::~DSrv_USART_QT()
-{
-	stop(true);
-
-	PRINT_DBG(m_debug, PREF, "");
-}
-
-//-------------------------------------------------------------------------------------------------
-int32_t DSrv_USART_QT::start() noexcept
+int32_t DSrv_USART_QT::start(const QString& name,
+                             const QSerialPort::BaudRate baudRate,
+                             const QSerialPort::Parity parity,
+                             const QSerialPort::DataBits dataBits) noexcept
 {
 	// Lock a mutex
 	try {
@@ -83,33 +72,32 @@ int32_t DSrv_USART_QT::start() noexcept
 	try {
 
 	// Set a port name
-	m_serialPort->setPortName("COM19");
+	m_serialPort->setPortName(name);
 	// "COM10" - Nucleo
 	// "COM11" - Discovery
 	// "COM13" - FT232
+	// "COM19" - Moxa
 
 	// Set a baud rate
-	if (m_serialPort->setBaudRate(QSerialPort::Baud19200) == false)
+	if (m_serialPort->setBaudRate(baudRate) == false)
 	{
-		PRINT_ERR(true, PREF, "setBaudRate(9600)");
+		PRINT_ERR(true, PREF, "setBaudRate(%d)", static_cast<int>(baudRate));
 		stop(false);
 		return -1;
 	}
-	// m_serialPort->setBaudRate(QSerialPort::Baud9600)
-	// m_serialPort->setBaudRate(QSerialPort::Baud19200)
 
 	// Set a parity checking mode
-	if (m_serialPort->setParity(QSerialPort::EvenParity) == false)
+	if (m_serialPort->setParity(parity) == false)
 	{
-		PRINT_ERR(true, PREF, "setParity(EvenParity)");
+		PRINT_ERR(true, PREF, "setParity(%d)", static_cast<int>(parity));
 		stop(false);
 		return -1;
 	}
 
 	// Set a number of bits in the packet
-	if (m_serialPort->setDataBits(QSerialPort::Data8) == false)
+	if (m_serialPort->setDataBits(dataBits) == false)
 	{
-		PRINT_ERR(true, PREF, "setDataBits(Data8)");
+		PRINT_ERR(true, PREF, "setDataBits(%d)", static_cast<int>(dataBits));
 		stop(false);
 		return -1;
 	}
@@ -117,7 +105,7 @@ int32_t DSrv_USART_QT::start() noexcept
 	// Open a port for read and write
 	if (m_serialPort->open(QIODevice::ReadWrite) == false)
 	{
-		PRINT_ERR(true, PREF, "open(ReadWrite)");
+		PRINT_ERR(true, PREF, "open(ReadWrite) port %s", name.toStdString().c_str());
 		stop(false);
 		return -1;
 	}
@@ -192,6 +180,20 @@ int32_t DSrv_USART_QT::stop(const bool lock_mutex) noexcept
 	}
 
 	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+DSrv_USART_QT::DSrv_USART_QT()
+{
+	PRINT_DBG(m_debug, PREF, "");
+}
+
+//-------------------------------------------------------------------------------------------------
+DSrv_USART_QT::~DSrv_USART_QT()
+{
+	stop(true);
+
+	PRINT_DBG(m_debug, PREF, "");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -314,26 +316,6 @@ void DSrv_USART_QT::onReadyRead() noexcept
 	PRINT_DBG(m_debug, PREF, "Data was read and parsed");
 }
 
-//-------------------------------------------------------------------------------------------------
-void DSrv_USART_QT::onStart() noexcept
-{
-	if (start() != 0)
-	{
-		PRINT_ERR(true, PREF, "start()");
-		return;
-	}
-}
-
-//-------------------------------------------------------------------------------------------------
-void DSrv_USART_QT::onStop() noexcept
-{
-	if (stop(true) != 0)
-	{
-		PRINT_ERR(true, PREF, "stop(true)");
-		return;
-	}
-}
-
 //=================================================================================================
 int32_t DSrv_USART_QT_test::pNull(DSrv_USART_QT_for_test& obj) noexcept
 {
@@ -351,7 +333,8 @@ int32_t DSrv_USART_QT_test::pNull(DSrv_USART_QT_for_test& obj) noexcept
 
 	QSerialPort tmp;
 	obj.m_serialPort = &tmp;
-	if (obj.start() != 0)
+	if (obj.start(QString(),
+	              QSerialPort::Baud19200, QSerialPort::NoParity, QSerialPort::Data8) != 0)
 	{
 		PRINT_ERR(true, PREF, "start() when m_serialPort != nullptr");
 		return -1;

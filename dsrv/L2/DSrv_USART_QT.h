@@ -7,7 +7,6 @@ DESCRITION: class implements work with USART
 TODO:
  * sendData(): blockSignals() (race condition sendData() and slotReadyRead()); also stop()
  * mutex test
- * Q_INVOKABLE instead slots
 FIXME:
 DANGER:
 NOTE:
@@ -27,7 +26,7 @@ Sec_145::DSrv_USART_QT class
 #include "../L1/DSrv.h"  // DSrv class (for inheritance)
 
 #include <cstdint>      // integer types
-#include <QSerialPort>  // QSerialPort class
+#include <QSerialPort>  // QSerialPort class; QSerialPort enumerations
 #include <list>         // std::list
 #include <string>       // std::string
 #include <mutex>        // std::mutex, std::lock_guard
@@ -49,6 +48,15 @@ public:
 	// Gets available port names
 	static const std::list<std::string> getPortNames();
 
+	// Creates a seriral port
+	Q_INVOKABLE int32_t start(const QString& name,
+	                          const QSerialPort::BaudRate baudRate,
+	                          const QSerialPort::Parity parity,
+	                          const QSerialPort::DataBits dataBits) noexcept;
+
+	// Deletes a seriral port
+	Q_INVOKABLE int32_t stop(const bool lock_mutex = true) noexcept;
+
 protected:
 
 	DSrv_USART_QT();
@@ -58,12 +66,6 @@ protected:
 	// (due to class members as pointer are presented)
 	DSrv_USART_QT(DSrv_USART_QT&) = delete;
 	DSrv_USART_QT& operator=(const DSrv_USART_QT&) = delete;
-
-	// Creates a seriral port
-	int32_t start() noexcept;
-
-	// Deletes a seriral port
-	int32_t stop(const bool lock_mutex = true) noexcept;
 
 	// Gets a serial port member pointer
 	const QSerialPort* getSerialPort() const noexcept
@@ -92,12 +94,6 @@ private slots: // They should not can generate an exeption
 
 	// Handles ready read signal
 	void onReadyRead() noexcept;
-
-	// Handles signal for start an USART server
-	void onStart() noexcept;
-
-	// Handles signal for stop an USART server
-	void onStop() noexcept;
 };
 
 //=================================================================================================
