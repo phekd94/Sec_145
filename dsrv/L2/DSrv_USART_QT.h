@@ -5,7 +5,6 @@
 /*
 DESCRITION: class implements work with USART
 TODO:
- * sendData(): blockSignals() (race condition sendData() and slotReadyRead()); also stop()
  * mutex test
 FIXME:
 DANGER:
@@ -52,7 +51,8 @@ public:
 	Q_INVOKABLE int32_t start(const QString& name,
 	                          const QSerialPort::BaudRate baudRate,
 	                          const QSerialPort::Parity parity,
-	                          const QSerialPort::DataBits dataBits) noexcept;
+	                          const QSerialPort::DataBits dataBits,
+	                          const QSerialPort::FlowControl flowControl) noexcept;
 
 	// Deletes a seriral port
 	Q_INVOKABLE int32_t stop(const bool lock_mutex = true) noexcept;
@@ -74,10 +74,10 @@ protected:
 	}
 
 	// Sends data (override method)
-	virtual int32_t sendData(const uint8_t* const data,
-	                         const uint32_t size,
-	                         const char* const address,
-	                         const uint16_t port) noexcept override final;
+	Q_INVOKABLE virtual int32_t sendData(const uint8_t* const data,
+	                                     const uint32_t size,
+	                                     const char* const address,
+	                                     const uint16_t port) noexcept override final;
 
 private:
 

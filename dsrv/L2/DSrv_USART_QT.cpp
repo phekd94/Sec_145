@@ -42,7 +42,8 @@ const std::list<std::string> DSrv_USART_QT::getPortNames()
 int32_t DSrv_USART_QT::start(const QString& name,
                              const QSerialPort::BaudRate baudRate,
                              const QSerialPort::Parity parity,
-                             const QSerialPort::DataBits dataBits) noexcept
+                             const QSerialPort::DataBits dataBits,
+                             const QSerialPort::FlowControl flowControl) noexcept
 {
 	// Lock a mutex
 	try {
@@ -98,6 +99,14 @@ int32_t DSrv_USART_QT::start(const QString& name,
 	if (m_serialPort->setDataBits(dataBits) == false)
 	{
 		PRINT_ERR(true, PREF, "setDataBits(%d)", static_cast<int>(dataBits));
+		stop(false);
+		return -1;
+	}
+
+	// Set a flow control
+	if (m_serialPort->setFlowControl(flowControl) == false)
+	{
+		PRINT_ERR(true, PREF, "setFlowControl(%d)", static_cast<int>(flowControl));
 		stop(false);
 		return -1;
 	}
@@ -168,9 +177,9 @@ int32_t DSrv_USART_QT::stop(const bool lock_mutex) noexcept
 			PRINT_ERR(true, PREF, "Exception from Qt functions has been occured: %s", obj.what());
 		}
 
-		// Delete a QSerialPort class object
-		delete m_serialPort;     /// race condition !?!?!?
-		m_serialPort = nullptr;  /// race condition !?!?!?
+		// Delete (with close) a QSerialPort class object
+		delete m_serialPort;
+		m_serialPort = nullptr;
 
 		PRINT_DBG(m_debug, PREF, "Serial port has deleted");
 	}
@@ -226,9 +235,6 @@ int32_t DSrv_USART_QT::sendData(const uint8_t* const data,
 		return -1;
 	}
 
-	// Block a readyRead() signal
-	m_serialPort->blockSignals(true);
-
 	// Write a data
 	qint64 sizeWrite;
 
@@ -253,12 +259,12 @@ int32_t DSrv_USART_QT::sendData(const uint8_t* const data,
 		return -1;
 	}
 
+	// Flush the device at COM port
+	m_serialPort->flush();
+
 	PRINT_DBG(m_debug, PREF, "Data(0x%p) with size(%lu) has sent",
 	                         data,
 	                         static_cast<unsigned long>(size));
-
-	// Unblock a readyRead() signal
-	m_serialPort->blockSignals(false);
 
 	return 0;
 }
@@ -290,6 +296,7 @@ void DSrv_USART_QT::onReadyRead() noexcept
 		PRINT_ERR(true, PREF, "data_read.isEmpty() == true");
 		return;
 	}
+
 	if (dataParser(reinterpret_cast<uint8_t*>(data_read.data()), data_read.size()) != 0)
 	{
 		PRINT_ERR(true, PREF, "dataParser()");
@@ -334,7 +341,8 @@ int32_t DSrv_USART_QT_test::pNull(DSrv_USART_QT_for_test& obj) noexcept
 	QSerialPort tmp;
 	obj.m_serialPort = &tmp;
 	if (obj.start(QString(),
-	              QSerialPort::Baud19200, QSerialPort::NoParity, QSerialPort::Data8) != 0)
+	              QSerialPort::Baud19200, QSerialPort::NoParity,
+	              QSerialPort::Data8, QSerialPort::NoFlowControl) != 0)
 	{
 		PRINT_ERR(true, PREF, "start() when m_serialPort != nullptr");
 		return -1;
