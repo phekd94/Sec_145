@@ -9,6 +9,7 @@ TODO:
  * One readVarFromFile() function. Use type_id
  * test functions
  * handle exceptions
+ * property(): try use <type_traits> for type identification
 FIXME:
 DANGER:
 NOTE:
