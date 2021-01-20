@@ -40,6 +40,18 @@ class ThreadQt : public QThread, public ClassInNewThread
 {
 public:
 
+	ThreadQt()
+	{
+		PRINT_DBG(true, PREF, "");
+	}
+
+	// Uses move constructor for ClassInNewThread class
+	ThreadQt(ClassInNewThread && ClassInNewThread_obj) :
+	    ClassInNewThread(std::move(ClassInNewThread_obj))
+	{
+		PRINT_DBG(true, PREF, "ClassInNewThread move constructor");
+	}
+
 	// Stops the thread
 	void stop() noexcept
 	{
