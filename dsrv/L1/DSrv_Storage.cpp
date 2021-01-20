@@ -39,10 +39,12 @@ DSrv_Storage::~DSrv_Storage()
 	if (m_completeData != nullptr)
 	{
 		delete [] m_completeData;
+		m_completeData = nullptr;
 	}
 	if (m_fillingData != nullptr)
 	{
 		delete [] m_fillingData;
+		m_fillingData = nullptr;
 	}
 
 	PRINT_DBG(m_debug, PREF, "");
