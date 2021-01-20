@@ -6,6 +6,7 @@
 DESCRITION: pure virtual data data server class
 TODO:
  * sendData(..., address, port, and other parameters) for the all protocols
+ * move constructor: is need a mutex?
 FIXME:
 DANGER:
 NOTE:
@@ -49,6 +50,9 @@ protected:
 
 	DSrv();
 	virtual ~DSrv();
+
+	// Move constructor
+	DSrv(DSrv && obj);
 
 	// Enable/disable a debug output via printDebug.cpp/.h
 	bool m_debug {true};
@@ -100,6 +104,9 @@ public:
 
 	// Tests a work with data
 	static int32_t data(DSrv_for_test& obj) noexcept;
+
+	// Tests a move constructor
+	static int32_t move() noexcept;
 
 	// Runs all tests
 	static int32_t fullTest() noexcept;

@@ -72,7 +72,7 @@ DSrv_Storage::DSrv_Storage(DSrv_Storage && obj)
 	m_completeSize = obj.m_completeSize;
 	m_debug = obj.m_debug;
 
-	PRINT_DBG(m_debug, PREF, "");
+	PRINT_DBG(m_debug, PREF, "Move constructor");
 }
 
 //-------------------------------------------------------------------------------------------------

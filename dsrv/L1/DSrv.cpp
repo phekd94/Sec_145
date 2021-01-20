@@ -18,6 +18,15 @@ DSrv::~DSrv()
 	PRINT_DBG(m_debug, PREF, "");
 }
 
+//-------------------------------------------------------------------------------------------------
+DSrv::DSrv(DSrv && obj) : DSrv_Storage(std::move(obj))
+{
+	m_pktRemSize = obj.m_pktRemSize;
+	obj.m_pktRemSize = 0;
+
+	PRINT_DBG(m_debug, PREF, "Move constructor");
+}
+
 //=================================================================================================
 int32_t DSrv_test::data(DSrv_for_test& obj) noexcept
 {
@@ -138,6 +147,35 @@ int32_t DSrv_test::data(DSrv_for_test& obj) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t DSrv_test::move() noexcept
+{
+	DSrv_for_test obj_1;
+	obj_1.m_pktRemSize = 1;
+
+	// Save value of pointer
+	const auto m_pktRemSize {obj_1.m_pktRemSize};
+
+	// Apply move constructor
+	DSrv_for_test obj_2 {std::move(obj_1)};
+
+	// Check obj_1 pointers
+	if (obj_1.m_pktRemSize != 0)
+	{
+		PRINT_ERR(true, PREF, "obj_1.m_pktRemSize != 0");
+		return -1;
+	}
+
+	// Check obj_2 pointers
+	if (obj_2.m_pktRemSize != m_pktRemSize)
+	{
+		PRINT_ERR(true, PREF, "obj_2.m_pktRemSize != m_pktRemSize");
+		return -1;
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t DSrv_test::fullTest() noexcept
 {
 	DSrv_for_test obj;
@@ -146,6 +184,12 @@ int32_t DSrv_test::fullTest() noexcept
 	if (data(obj) != 0)
 	{
 		PRINT_ERR(true, PREF, "data");
+		return -1;
+	}
+
+	if (move() != 0)
+	{
+		PRINT_ERR(true, PREF, "move");
 		return -1;
 	}
 
