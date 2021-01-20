@@ -21,8 +21,11 @@ DSrv::~DSrv()
 //-------------------------------------------------------------------------------------------------
 DSrv::DSrv(DSrv && obj) : DSrv_Storage(std::move(obj))
 {
+	// Copy all fields
 	m_pktRemSize = obj.m_pktRemSize;
 	obj.m_pktRemSize = 0;
+
+	m_debug = obj.m_debug;
 
 	PRINT_DBG(m_debug, PREF, "Move constructor");
 }
