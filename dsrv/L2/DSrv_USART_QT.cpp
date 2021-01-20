@@ -11,24 +11,6 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-DSrv_USART_QT::DSrv_USART_QT(DSrv_USART_QT && obj)
-{
-	// Lock a mutex
-	try {
-		std::lock_guard<std::mutex> lock(m_mutex);
-	}
-	catch (std::system_error& obj)
-	{
-		PRINT_ERR(true, PREF, "Exception from mutex.lock() has been occured: %s", obj.what());
-		return;
-	}
-
-	// Copy all fields
-	m_serialPort = obj.m_serialPort;
-	obj.m_serialPort = nullptr;
-}
-
-//-------------------------------------------------------------------------------------------------
 const std::list<std::string> DSrv_USART_QT::getPortNames()
 {
 	std::list<std::string> res;
@@ -221,6 +203,26 @@ DSrv_USART_QT::~DSrv_USART_QT()
 	stop(true);
 
 	PRINT_DBG(m_debug, PREF, "");
+}
+
+//-------------------------------------------------------------------------------------------------
+DSrv_USART_QT::DSrv_USART_QT(DSrv_USART_QT && obj) : DSrv(std::move(obj))
+{
+	// Lock a mutex
+	try {
+		std::lock_guard<std::mutex> lock(m_mutex);
+	}
+	catch (std::system_error& obj)
+	{
+		PRINT_ERR(true, PREF, "Exception from mutex.lock() has been occured: %s", obj.what());
+		return;
+	}
+
+	// Copy all fields
+	m_serialPort = obj.m_serialPort;
+	obj.m_serialPort = nullptr;
+
+	PRINT_DBG(m_debug, PREF, "Move constructor");
 }
 
 //-------------------------------------------------------------------------------------------------

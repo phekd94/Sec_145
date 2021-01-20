@@ -6,6 +6,7 @@
 DESCRITION: class implements work with USART
 TODO:
  * mutex test
+ * QObject in move constructor
 FIXME:
 DANGER:
 NOTE:
