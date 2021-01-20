@@ -5,6 +5,7 @@
 #include <cstring>       // std::memcpy
 #include <utility>       // std::swap
 #include <system_error>  // std::system_error
+#include <utility>       // std::move
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -43,6 +44,33 @@ DSrv_Storage::~DSrv_Storage()
 	{
 		delete [] m_fillingData;
 	}
+
+	PRINT_DBG(m_debug, PREF, "");
+}
+
+//-------------------------------------------------------------------------------------------------
+DSrv_Storage::DSrv_Storage(DSrv_Storage && obj)
+{
+	// Lock a mutex
+	try {
+		std::lock_guard<std::mutex> lock(m_mutex);
+	}
+	catch (std::system_error& obj)
+	{
+		PRINT_ERR(true, PREF, "Exception from mutex.lock() has been occured: %s", obj.what());
+		return;
+	}
+
+	// Copy all fields
+	m_completeData = obj.m_completeData;
+	obj.m_completeData = nullptr;
+
+	m_fillingData = obj.m_fillingData;
+	obj.m_fillingData = nullptr;
+
+	m_fillingIndex = obj.m_fillingIndex;
+	m_completeSize = obj.m_completeSize;
+	m_debug = obj.m_debug;
 
 	PRINT_DBG(m_debug, PREF, "");
 }
@@ -373,6 +401,36 @@ int32_t DSrv_Storage_test::data(DSrv_Storage& obj) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t DSrv_Storage_test::move() noexcept
+{
+	DSrv_Storage obj_1;
+
+	// Save values of pointers
+	const auto m_completeData {obj_1.m_completeData};
+	const auto m_fillingData {obj_1.m_fillingData};
+
+	// Apply move constructor
+	DSrv_Storage obj_2 {std::move(obj_1)};
+
+	// Check obj_1 pointers
+	if (obj_1.m_completeData != nullptr || obj_1.m_fillingData != nullptr)
+	{
+		PRINT_ERR(true, PREF, "m_completeData or m_fillingData of obj_1 is not equal nullptr");
+		return -1;
+	}
+
+	// Check obj_2 pointers
+	if (obj_2.m_completeData != m_completeData || obj_2.m_fillingData != m_fillingData)
+	{
+		PRINT_ERR(true, PREF,
+		          "m_completeData or m_fillingData of obj_1 is not equal saved pointers");
+		return -1;
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t DSrv_Storage_test::fullTest() noexcept
 {
 	DSrv_Storage obj;
@@ -387,6 +445,12 @@ int32_t DSrv_Storage_test::fullTest() noexcept
 	if (data(obj) != 0)
 	{
 		PRINT_ERR(true, PREF, "data");
+		return -1;
+	}
+
+	if (move() != 0)
+	{
+		PRINT_ERR(true, PREF, "move");
 		return -1;
 	}
 

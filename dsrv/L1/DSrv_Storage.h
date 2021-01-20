@@ -45,6 +45,9 @@ protected:
 	DSrv_Storage(DSrv_Storage&) = delete;
 	DSrv_Storage& operator=(const DSrv_Storage&) = delete;
 
+	// Move constructor
+	DSrv_Storage(DSrv_Storage && obj);
+
 	// Sets data in the storage
 	int32_t setData(const uint8_t* const data, const uint32_t size,
 	                const bool add) noexcept;
@@ -104,6 +107,9 @@ public:
 
 	// Tests a work with data
 	static int32_t data(DSrv_Storage& obj) noexcept;
+
+	// Tests a move constructor
+	static int32_t move() noexcept;
 
 	// Runs all tests
 	static int32_t fullTest() noexcept;
