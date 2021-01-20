@@ -11,6 +11,24 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
+DSrv_USART_QT::DSrv_USART_QT(DSrv_USART_QT && obj)
+{
+	// Lock a mutex
+	try {
+		std::lock_guard<std::mutex> lock(m_mutex);
+	}
+	catch (std::system_error& obj)
+	{
+		PRINT_ERR(true, PREF, "Exception from mutex.lock() has been occured: %s", obj.what());
+		return;
+	}
+
+	// Copy all fields
+	m_serialPort = obj.m_serialPort;
+	obj.m_serialPort = nullptr;
+}
+
+//-------------------------------------------------------------------------------------------------
 const std::list<std::string> DSrv_USART_QT::getPortNames()
 {
 	std::list<std::string> res;
@@ -360,6 +378,34 @@ int32_t DSrv_USART_QT_test::pNull(DSrv_USART_QT_for_test& obj) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t DSrv_USART_QT_test::move() noexcept
+{
+	DSrv_USART_QT_for_test obj_1;
+
+	// Save value of pointer
+	const auto m_serialPort {obj_1.m_serialPort};
+
+	// Apply move constructor
+	DSrv_USART_QT_for_test obj_2 {std::move(obj_1)};
+
+	// Check obj_1 pointers
+	if (obj_1.m_serialPort != nullptr)
+	{
+		PRINT_ERR(true, PREF, "obj_1.m_serialPort != nullptr");
+		return -1;
+	}
+
+	// Check obj_2 pointers
+	if (obj_2.m_serialPort != m_serialPort)
+	{
+		PRINT_ERR(true, PREF, "obj_2.m_serialPort != m_serialPort");
+		return -1;
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t DSrv_USART_QT_test::fullTest() noexcept
 {
 	DSrv_USART_QT_for_test obj;
@@ -368,6 +414,12 @@ int32_t DSrv_USART_QT_test::fullTest() noexcept
 	if (pNull(obj) != 0)
 	{
 		PRINT_ERR(true, PREF, "pNull");
+		return -1;
+	}
+
+	if (move() != 0)
+	{
+		PRINT_ERR(true, PREF, "move");
 		return -1;
 	}
 

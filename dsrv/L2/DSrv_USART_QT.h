@@ -67,6 +67,9 @@ protected:
 	DSrv_USART_QT(DSrv_USART_QT&) = delete;
 	DSrv_USART_QT& operator=(const DSrv_USART_QT&) = delete;
 
+	// Move constructor
+	DSrv_USART_QT(DSrv_USART_QT && obj);
+
 	// Gets a serial port member pointer
 	const QSerialPort* getSerialPort() const noexcept
 	{
@@ -114,6 +117,9 @@ public:
 
 	// Tests methods which utilize pointers
 	static int32_t pNull(DSrv_USART_QT_for_test& obj) noexcept;
+
+	// Tests a move constructor
+	static int32_t move() noexcept;
 
 	// Runs all tests
 	static int32_t fullTest() noexcept;
