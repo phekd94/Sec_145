@@ -56,6 +56,7 @@ DSrv_Storage::DSrv_Storage(DSrv_Storage && obj)
 	// Lock a mutex
 	try {
 		std::lock_guard<std::mutex> lock(m_mutex);
+		std::lock_guard<std::mutex> lock_obj(obj.m_mutex);
 	}
 	catch (std::system_error& obj)
 	{
