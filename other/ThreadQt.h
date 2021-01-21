@@ -40,10 +40,7 @@ class ThreadQt : public QThread, public ClassInNewThread
 {
 public:
 
-	ThreadQt()
-	{
-		PRINT_DBG(true, PREF, "");
-	}
+	ThreadQt() = default;
 
 	// Uses move constructor for ClassInNewThread class
 	ThreadQt(ClassInNewThread && ClassInNewThread_obj) :

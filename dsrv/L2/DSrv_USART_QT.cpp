@@ -125,9 +125,11 @@ int32_t DSrv_USART_QT::start(const QString& name,
 		PRINT_ERR(true, PREF, "m_serialPort->clear() was not successful");
 	}
 
-	// Connect a signal slot for read input message
+	// Connect a signal slot for read input message and for handle an error
 	connect(m_serialPort, &QSerialPort::readyRead,
 	        this, &DSrv_USART_QT::onReadyRead);
+	connect(m_serialPort, &QSerialPort::errorOccurred,
+	        this, &DSrv_USART_QT::onErrorOccured);
 
 	} // Catch an exception from Qt functions
 	catch (std::exception& obj)
@@ -342,6 +344,12 @@ void DSrv_USART_QT::onReadyRead() noexcept
 	}
 
 	PRINT_DBG(m_debug, PREF, "Data was read and parsed");
+}
+
+//-------------------------------------------------------------------------------------------------
+void DSrv_USART_QT::onErrorOccured(QSerialPort::SerialPortError err) noexcept
+{
+	PRINT_ERR(true, PREF, "Error signal from QSerialPort with error: %d", static_cast<int>(err));
 }
 
 //=================================================================================================

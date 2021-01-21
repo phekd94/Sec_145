@@ -98,6 +98,9 @@ private slots: // They should not can generate an exeption
 
 	// Handles ready read signal
 	void onReadyRead() noexcept;
+
+	// Handles error occured signal
+	void onErrorOccured(QSerialPort::SerialPortError err) noexcept;
 };
 
 //=================================================================================================
