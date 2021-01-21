@@ -7,6 +7,7 @@ DESCRITION: class for storing data
 TODO:
  * checksum (with sensitive to the order of the blocks (bytes) in the data word (message))
  * mutex test
+ * setData(): add parameter
 FIXME:
 DANGER:
 NOTE:
