@@ -5,9 +5,7 @@
 /*
 DESCRITION: class for work with TTX080 series motor
 TODO:
- * wait the answer via watchdog timer
  * test for dataParser()
- * without static vars in methods
 FIXME:
 DANGER:
 NOTE:
@@ -26,6 +24,7 @@ Sec_145::Dsrv_Hexapod_v2 class
 
 #include <QObject>  // Q_OBJECT macros
 #include <cstdint>  // integer types
+#include <QTimer>   // QTimer class
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -67,16 +66,40 @@ private:
 	uint8_t m_motor_id;
 
 	// Function code, address, data, number of bytes for request
-	uint8_t m_funcCode {0};
-	uint16_t m_addressReq {0};
-	uint16_t m_val {0};
-	uint8_t m_numOfBytesReq {0};
+	uint8_t m_funcCode_req {0};
+	uint16_t m_address_req {0};
+	uint16_t m_val_req {0};
+	uint8_t m_numOfBytes_req {0};
+
+	// For data parser
+	  // For all type message
+	std::pair<bool, uint8_t> m_motor_id_pars {false, 0};
+	std::pair<bool, uint8_t> m_funcCode_pars {false, 0};
+	std::pair<bool, uint8_t> m_crc_l_pars {false, 0};
+	std::pair<bool, uint8_t> m_crc_h_pars {false, 0};
+	  // For read
+	std::pair<bool, uint8_t> m_count_pars {false, 0};
+	  // For write
+	std::pair<bool, uint8_t> m_address_l_pars {false, 0};
+	std::pair<bool, uint8_t> m_address_h_pars {false, 0};
+	std::pair<bool, uint8_t> m_val_l_pars {false, 0};
+	std::pair<bool, uint8_t> m_val_h_pars {false, 0};
+
+	// Watchdog timer
+	QTimer m_watchdog;
 
 	// Parser of the accepted data (override method)
 	int32_t dataParser(uint8_t* data, uint32_t size) noexcept override final;
 
 public slots: // They should not generate exeptions
 
+	// Slot for watchdog timer
+	void onWatchdog() noexcept;
+
+signals:
+
+	// Signal for watchdog timer
+	void toWatchdog(uint32_t motor_id);
 };
 
 //=================================================================================================

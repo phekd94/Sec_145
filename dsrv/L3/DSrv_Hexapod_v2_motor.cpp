@@ -13,6 +13,12 @@ using namespace Sec_145;
 //-------------------------------------------------------------------------------------------------
 DSrv_Hexapod_v2_motor::DSrv_Hexapod_v2_motor(uint8_t motor_id) : m_motor_id(motor_id)
 {
+	// Set timer in single shot mode
+	m_watchdog.setSingleShot(true);
+
+	// Connect slot to timer
+	connect(&m_watchdog, SIGNAL(timeout()), this, SLOT(onWatchdog()));
+
 	PRINT_DBG(m_debug, "");
 }
 
@@ -28,9 +34,29 @@ DSrv_Hexapod_v2_motor::DSrv_Hexapod_v2_motor(DSrv_Hexapod_v2_motor && obj) :
 {
 	// Copy all fields
 	m_motor_id = obj.m_motor_id;
-	m_addressReq = obj.m_addressReq;
-	m_val = obj.m_val;
-	m_numOfBytesReq = obj.m_numOfBytesReq;
+
+	m_address_req = obj.m_address_req;
+	m_val_req = obj.m_val_req;
+	m_numOfBytes_req = obj.m_numOfBytes_req;
+
+	m_motor_id_pars = obj.m_motor_id_pars;
+	m_funcCode_pars = obj.m_funcCode_pars;
+	m_crc_l_pars = obj.m_crc_l_pars;
+	m_crc_h_pars = obj.m_crc_h_pars;
+	m_count_pars = obj.m_count_pars;
+	m_address_l_pars = obj.m_address_l_pars;
+	m_address_h_pars = obj.m_address_h_pars;
+	m_val_l_pars = obj.m_val_l_pars;
+	m_val_h_pars = obj.m_val_h_pars;
+
+	// Stop old watchdog timer
+	obj.m_watchdog.stop();
+
+	// Set new timer in single shot mode
+	m_watchdog.setSingleShot(true);
+
+	// Connect slot to the new timer
+	connect(&m_watchdog, SIGNAL(timeout()), this, SLOT(onWatchdog()));
 
 	PRINT_DBG(m_debug, "Move constructor");
 }
@@ -82,12 +108,18 @@ int32_t DSrv_Hexapod_v2_motor::readHoldingRegs(const uint16_t address,
 	data[sizeof(data) - 1] = crc >> 8;
 
 	// Set the request parameters
-	m_funcCode = funcCode;
+	m_funcCode_req = funcCode;
 
-	m_numOfBytesReq = 2 * count + 5;
+	m_numOfBytes_req = 2 * count + 5;
 	// 5 bits = id(1 bit) + function code(1 bit) + byte count(1 bit) + CRC(2 bits)
 
-	return sendData(data, sizeof(data), "", 0);
+	// Send data
+	int32_t ret = sendData(data, sizeof(data), "", 0);
+
+	// Run a watchdog timer
+	m_watchdog.start(500);
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -110,14 +142,20 @@ int32_t DSrv_Hexapod_v2_motor::writeSingleReg(const uint16_t address, const uint
 	data[sizeof(data) - 1] = crc >> 8;
 
 	// Set the request parameters
-	m_funcCode = funcCode;
-	m_addressReq = address;
-	m_val = val;
+	m_funcCode_req = funcCode;
+	m_address_req = address;
+	m_val_req = val;
 
-	m_numOfBytesReq = 8;
+	m_numOfBytes_req = 8;
 	// 8 bits = id(1 bit) + function code(1 bit) + address(2 bits) + value(2 bits) + CRC(2 bits)
 
-	return sendData(data, sizeof(data), "", 0);
+	// Send data
+	int32_t ret = sendData(data, sizeof(data), "", 0);
+
+	// Run a watchdog timer
+	m_watchdog.start(500);
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -133,20 +171,8 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 	const uint8_t read {0x03};
 	const uint8_t write {0x06};
 
-	// For all type message
-	static std::pair<bool, uint8_t> id {false, 0};
-	static std::pair<bool, uint8_t> funcCode {false, 0};
-	static std::pair<bool, uint8_t> crc_l {false, 0};
-	static std::pair<bool, uint8_t> crc_h {false, 0};
-
-	// For read
-	static std::pair<bool, uint8_t> count {false, 0};
-
-	// For write
-	static std::pair<bool, uint8_t> address_l {false, 0};
-	static std::pair<bool, uint8_t> address_h {false, 0};
-	static std::pair<bool, uint8_t> regVal_l {false, 0};
-	static std::pair<bool, uint8_t> regVal_h {false, 0};
+	// Stop the watchdog timer
+	m_watchdog.stop();
 
 	// Check the incomming parameters
 	if (nullptr == data)
@@ -159,128 +185,130 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 	{
 		if (0 == m_pktRemSize)
 		{
-			// First byte in message
+			// === First byte in message ===
 
 			// Reset all pairs
-			id.first = false;
-			funcCode.first = false;
-			count.first = false;
-			address_l.first = address_h.first = false;
-			regVal_l.first = regVal_h.first = false;
-			crc_l.first = crc_h.first = false;
+			m_motor_id_pars.first = false;
+			m_funcCode_pars.first = false;
+			m_count_pars.first = false;
+			m_address_l_pars.first = m_address_h_pars.first = false;
+			m_val_l_pars.first = m_val_h_pars.first = false;
+			m_crc_l_pars.first = m_crc_h_pars.first = false;
 
 			// Set a remaining size
-			m_pktRemSize = m_numOfBytesReq;
+			m_pktRemSize = m_numOfBytes_req;
 
 			// Get a motor id
-			id.first = true;
-			id.second = *data;
+			m_motor_id_pars.first = true;
+			m_motor_id_pars.second = *data;
+
+			PRINT_DBG(m_debug, "[0]: 0x%x", *data);
 
 			// Check a motor id
-			if (id.second != m_motor_id)
+			if (m_motor_id_pars.second != m_motor_id)
 			{
 				PRINT_ERR(true, "Motor id is not correct");
 				m_pktRemSize = 0;
 				updataParams();
 				continue;
 			}
-
-			PRINT_DBG(m_debug, "[0]: 0x%x", *data);
 		}
 		else
 		{
-			if (false == funcCode.first)
+			if (false == m_funcCode_pars.first)
 			{
-				// Second byte in message
+				// === Second byte in message ===
+
+				// Get a function code
+				m_funcCode_pars.first = true;
+				m_funcCode_pars.second = *data;
+
+				PRINT_DBG(m_debug, "[1]: 0x%x", *data);
 
 				// Check a function code
-				if (*data != m_funcCode)
+				if (m_funcCode_pars.second != m_funcCode_req)
 				{
 					PRINT_ERR(true, "Function code is not correct");
 					m_pktRemSize = 0;
 					updataParams();
 					continue;
 				}
-
-				// Get a function code
-				funcCode.first = true;
-				funcCode.second = *data;
-
-				PRINT_DBG(m_debug, "[1]: 0x%x", *data);
 			}
-			else if (read == funcCode.second && false == count.first)
+			else if (read == m_funcCode_pars.second && false == m_count_pars.first)
 			{
+				// Get a count of bytes
+				m_count_pars.first = true;
+				m_count_pars.second = *data;
+
+				PRINT_DBG(m_debug, "[2]: 0x%x", *data);
+
 				// Check the count of bytes
-				if (*data > 20)
+				if (m_count_pars.second > 20)
 				{
 					PRINT_ERR(true, "Count of bytes more than 20");
 					m_pktRemSize = 0;
 					updataParams();
 					continue;
 				}
-
-				// Get a count of bytes
-				count.first = true;
-				count.second = *data;
-
-				PRINT_DBG(m_debug, "[2]: 0x%x", *data);
 			}
-			else if (write == funcCode.second && false == address_h.first)
+			else if (write == m_funcCode_pars.second && false == m_address_h_pars.first)
 			{
 				// Get an high address
-				address_h.first = true;
-				address_h.second = *data;
+				m_address_h_pars.first = true;
+				m_address_h_pars.second = *data;
 
 				PRINT_DBG(m_debug, "[3]: 0x%x", *data);
 			}
-			else if (write == funcCode.second && false == address_l.first)
+			else if (write == m_funcCode_pars.second && false == m_address_l_pars.first)
 			{
+				// Get an low address
+				m_address_l_pars.first = true;
+				m_address_l_pars.second = *data;
+
+				PRINT_DBG(m_debug, "[4]: 0x%x", *data);
+
 				// Check the address
-				if ((m_addressReq & 0xFF) != *data || (m_addressReq >> 8) != address_h.second)
+				if (   (m_address_req & 0xFF) != m_address_l_pars.second
+				    || (m_address_req >> 8) != m_address_h_pars.second)
 				{
 					PRINT_ERR(true, "Address is not correct");
 					m_pktRemSize = 0;
 					updataParams();
 					continue;
 				}
-
-				// Get an low address
-				address_l.first = true;
-				address_l.second = *data;
-
-				PRINT_DBG(m_debug, "[4]: 0x%x", *data);
 			}
-			else if (write == funcCode.second && false == regVal_h.first)
+			else if (write == m_funcCode_pars.second && false == m_val_h_pars.first)
 			{
-				regVal_h.first = true;
-				regVal_h.second = *data;
+				m_val_h_pars.first = true;
+				m_val_h_pars.second = *data;
 
 				PRINT_DBG(m_debug, "[5]: 0x%x", *data);
 			}
-			else if (write == funcCode.second && false == regVal_l.first)
+			else if (write == m_funcCode_pars.second && false == m_val_l_pars.first)
 			{
+				m_val_l_pars.first = true;
+				m_val_l_pars.second = *data;
+
+				PRINT_DBG(m_debug, "[6]: 0x%x", *data);
+
 				// Check the value
-				if ((m_val & 0xFF) != *data || (m_val >> 8) != regVal_h.second)
+				if (   (m_val_req & 0xFF) != m_val_l_pars.second
+				    || (m_val_req >> 8) != m_val_h_pars.second)
 				{
 					PRINT_ERR(true, "Register value is not correct");
 					m_pktRemSize = 0;
 					updataParams();
 					continue;
 				}
-
-				regVal_l.first = true;
-				regVal_l.second = *data;
-
-				PRINT_DBG(m_debug, "[6]: 0x%x", *data);
 			}
-			else if (write == funcCode.second && m_pktRemSize > 2)
+			else if (write == m_funcCode_pars.second && m_pktRemSize > 2)
 			{
 				PRINT_ERR(true, "Write response is not correct");
 				m_pktRemSize = 0;
 				updataParams();
 				continue;
 			}
-			else if (read == funcCode.second && m_pktRemSize > 2)
+			else if (read == m_funcCode_pars.second && m_pktRemSize > 2)
 			{
 				// Set data for read type message
 				if (DSrv_Storage::setData(data, 1, add) != 0)
@@ -291,23 +319,23 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 
 				PRINT_DBG(m_debug, "[+]: 0x%x", *data);
 			}
-			else if (false == crc_l.first)
+			else if (false == m_crc_l_pars.first)
 			{
-				crc_l.first = true;
-				crc_l.second = *data;
+				m_crc_l_pars.first = true;
+				m_crc_l_pars.second = *data;
 
 				PRINT_DBG(m_debug, "[*]: 0x%x", *data);
 			}
-			else if (false == crc_h.first)
+			else if (false == m_crc_h_pars.first)
 			{
-				crc_h.first = true;
-				crc_h.second = *data;
+				m_crc_h_pars.first = true;
+				m_crc_h_pars.second = *data;
 
 				PRINT_DBG(m_debug, "[*]: 0x%x", *data);
 			}
 			else
 			{
-				PRINT_ERR(true, "message format error; data = 0x%x", *data);
+				PRINT_ERR(true, "Message format error; [-]: 0x%x", *data);
 				m_pktRemSize = 0;
 				updataParams();
 				continue;
@@ -340,20 +368,20 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			uint16_t crc;
 
 			// Parse data
-			switch (funcCode.second)
+			switch (m_funcCode_pars.second)
 			{
 			    case write:
 				    // Check the CRC
 				    data_for_crc = new (std::nothrow) uint8_t[6];
 					  // 6 bits = id(1 bit) + func code(1 bit) + address(2 bits) + val(2 bits)
-					data_for_crc[0] = id.second;
-					data_for_crc[1] = funcCode.second;
-					data_for_crc[2] = address_h.second;
-					data_for_crc[3] = address_l.second;
-					data_for_crc[4] = regVal_h.second;
-					data_for_crc[5] = regVal_l.second;
+					data_for_crc[0] = m_motor_id_pars.second;
+					data_for_crc[1] = m_funcCode_pars.second;
+					data_for_crc[2] = m_address_h_pars.second;
+					data_for_crc[3] = m_address_l_pars.second;
+					data_for_crc[4] = m_val_h_pars.second;
+					data_for_crc[5] = m_val_l_pars.second;
 					crc = calcCRC(data_for_crc, 6);
-					if ((crc & 0xFF) != crc_l.second || (crc >> 8) != crc_h.second)
+					if ((crc & 0xFF) != m_crc_l_pars.second || (crc >> 8) != m_crc_h_pars.second)
 					{
 						PRINT_ERR(true, "CRC is not correct");
 						return -1;
@@ -364,7 +392,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 
 			    case read:
 				    // Check the data size of result
-				    if (size_res != count.second)
+				    if (size_res != m_count_pars.second)
 					{
 						PRINT_ERR(true, "Data size is not match");
 						return -1;
@@ -373,12 +401,12 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 					// Check the CRC
 					data_for_crc = new (std::nothrow) uint8_t[size_res + 3];
 					  // 3 bits = id(1 bit) + func code(1 bit) + count(1 bit)
-					data_for_crc[0] = id.second;
-					data_for_crc[1] = funcCode.second;
-					data_for_crc[2] = count.second;
+					data_for_crc[0] = m_motor_id_pars.second;
+					data_for_crc[1] = m_funcCode_pars.second;
+					data_for_crc[2] = m_count_pars.second;
 					memcpy(data_for_crc + 3, data_res, size_res);
 					crc = calcCRC(data_for_crc, size_res + 3);
-					if ((crc & 0xFF) != crc_l.second || (crc >> 8) != crc_h.second)
+					if ((crc & 0xFF) != m_crc_l_pars.second || (crc >> 8) != m_crc_h_pars.second)
 					{
 						PRINT_ERR(true, "CRC is not correct");
 						return -1;
@@ -405,4 +433,12 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 	}
 
 	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+void DSrv_Hexapod_v2_motor::onWatchdog() noexcept
+{
+	PRINT_ERR(true, "Watchdog timer is triggered");
+
+	emit toWatchdog(m_motor_id);
 }
