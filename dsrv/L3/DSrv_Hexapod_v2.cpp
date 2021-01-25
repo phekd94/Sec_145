@@ -28,13 +28,13 @@ DSrv_Hexapod_v2::DSrv_Hexapod_v2()
 	    3   //  12 - answer                    (from)
 	};
 
-	PRINT_DBG(m_debug, PREF, "");
+	PRINT_DBG(m_debug, "");
 }
 
 //-------------------------------------------------------------------------------------------------
 DSrv_Hexapod_v2::~DSrv_Hexapod_v2()
 {
-	PRINT_DBG(m_debug, PREF, "");
+	PRINT_DBG(m_debug, "");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ int32_t DSrv_Hexapod_v2::start() noexcept
 	// Call a start() from USART class
 	if (DSrv_USART_QT::start() != 0)
 	{
-		PRINT_ERR(true, PREF, "DSrv_USART_QT::start()");
+		PRINT_ERR(true, "DSrv_USART_QT::start()");
 		return -1;
 	}
 
@@ -54,12 +54,12 @@ int32_t DSrv_Hexapod_v2::start() noexcept
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR(true, PREF, "Exception from Qt functions has been occured: %s", obj.what());
+		PRINT_ERR(true, "Exception from Qt functions has been occured: %s", obj.what());
 
 		// Call a stop() from USART class
 		if (DSrv_USART_QT::stop() != 0)
 		{
-			PRINT_ERR(true, PREF, "DSrv_USART_QT::stop()");
+			PRINT_ERR(true, "DSrv_USART_QT::stop()");
 			return -1;
 		}
 
@@ -75,7 +75,7 @@ int32_t DSrv_Hexapod_v2::stop() noexcept
 	// Call a stop() from USART class
 	if (DSrv_USART_QT::stop() != 0)
 	{
-		PRINT_ERR(true, PREF, "DSrv_USART_QT::stop()");
+		PRINT_ERR(true, "DSrv_USART_QT::stop()");
 		return -1;
 	}
 
@@ -91,7 +91,7 @@ int32_t DSrv_Hexapod_v2::dataParser(uint8_t* data, uint32_t size) noexcept
 	// Check the incomming parameters
 	if (nullptr == data)
 	{
-		PRINT_ERR(m_debug, PREF, "nullptr == data");
+		PRINT_ERR(m_debug, "nullptr == data");
 		return -2;
 	}
 
@@ -105,7 +105,7 @@ int32_t DSrv_Hexapod_v2::dataParser(uint8_t* data, uint32_t size) noexcept
 				m_motor_id = *data;
 				if (static_cast<uint32_t>(m_motor_id) >= HEXAPOD_NUM_OF_MOTORS)
 				{
-					PRINT_ERR(true, PREF, "Bad motor id");
+					PRINT_ERR(true, "Bad motor id");
 					return -1;
 				}
 			}
@@ -115,7 +115,7 @@ int32_t DSrv_Hexapod_v2::dataParser(uint8_t* data, uint32_t size) noexcept
 				m_cmd_id = *data;
 				if (m_cmd_id >= m_data_size.size())
 				{
-					PRINT_ERR(true, PREF, "Bad command id");
+					PRINT_ERR(true, "Bad command id");
 					return -1;
 				}
 				m_pktRemSize = m_data_size[m_cmd_id];
@@ -127,7 +127,7 @@ int32_t DSrv_Hexapod_v2::dataParser(uint8_t* data, uint32_t size) noexcept
 			// Data
 			if (DSrv_Storage::setData(data, 1, add) != 0)
 			{
-				PRINT_ERR(true, PREF, "DSrv_Storage::setData()");
+				PRINT_ERR(true, "DSrv_Storage::setData()");
 				return -1;
 			}
 			--m_pktRemSize;
@@ -135,7 +135,7 @@ int32_t DSrv_Hexapod_v2::dataParser(uint8_t* data, uint32_t size) noexcept
 			{
 				if (DSrv_Storage::completeData() != 0)
 				{
-					PRINT_ERR(true, PREF, "DSrv_Storage::completeData() != 0");
+					PRINT_ERR(true, "DSrv_Storage::completeData() != 0");
 					return -1;
 				}
 
@@ -144,7 +144,7 @@ int32_t DSrv_Hexapod_v2::dataParser(uint8_t* data, uint32_t size) noexcept
 				uint32_t size_res;
 				if (DSrv_Storage::getData(&data_res, &size_res) != 0)
 				{
-					PRINT_ERR(true, PREF, "DSrv_Storage::getData() != 0");
+					PRINT_ERR(true, "DSrv_Storage::getData() != 0");
 					return -1;
 				}
 				for (uint32_t i = m_data_size[m_cmd_id]; i < sizeof(uint32_t); ++i)
@@ -154,7 +154,7 @@ int32_t DSrv_Hexapod_v2::dataParser(uint8_t* data, uint32_t size) noexcept
 				emit stateChanged(static_cast<uint32_t>(m_motor_id),
 				                  m_cmd_id,
 				                  *reinterpret_cast<uint32_t*>(data_res));
-				PRINT_DBG(m_debug, PREF, "motor id = %lu, cmd id = %lu, data = %lu",
+				PRINT_DBG(m_debug, "motor id = %lu, cmd id = %lu, data = %lu",
 				                         static_cast<unsigned long>(m_motor_id),
 				                         static_cast<unsigned long>(m_cmd_id),
 				                         *reinterpret_cast<uint32_t*>(data_res));
@@ -179,11 +179,11 @@ void DSrv_Hexapod_v2::onErrorOccured(QSerialPort::SerialPortError err) noexcept
 	{
 
 	case QSerialPort::NoError:
-		PRINT_ERR(true, PREF, "USART error: no error");
+		PRINT_ERR(true, "USART error: no error");
 		break;
 
 	default:
-		PRINT_ERR(true, PREF, "USART error: %ld", static_cast<long>(err));
+		PRINT_ERR(true, "USART error: %ld", static_cast<long>(err));
 		break;
 	}
 }
@@ -200,7 +200,7 @@ void DSrv_Hexapod_v2::onSendCommand(const uint32_t cmd,
 		// Call a start() method
 		if (DSrv_Hexapod_v2::start() != 0)
 		{
-			PRINT_ERR(true, PREF, "DSrv_Hexapod_v2::start()");
+			PRINT_ERR(true, "DSrv_Hexapod_v2::start()");
 
 			emit stateChanged(0, HEXAPOD_ERR_USART_OPEN, 0);
 		}
@@ -214,7 +214,7 @@ void DSrv_Hexapod_v2::onSendCommand(const uint32_t cmd,
 		// Call a stop() method
 		if (DSrv_Hexapod_v2::stop() != 0)
 		{
-			PRINT_ERR(true, PREF, "DSrv_Hexapod_v2::stop()");
+			PRINT_ERR(true, "DSrv_Hexapod_v2::stop()");
 
 			if (true == static_cast<bool>(*data))
 			{
@@ -246,13 +246,13 @@ void DSrv_Hexapod_v2::onSendCommand(const uint32_t cmd,
 		                            nullptr,
 		                            0) != 0)
 		{
-			PRINT_ERR(true, PREF, "sendData()");
+			PRINT_ERR(true, "sendData()");
 			emit stateChanged(0, HEXAPOD_ERR_USART_IO, 1);
 		}
 		break;
 
 	default:
-		PRINT_ERR(true, PREF, "Unknown a command value from widget class");
+		PRINT_ERR(true, "Unknown a command value from widget class");
 		break;
 	}
 }
@@ -268,7 +268,7 @@ void DSrv_Hexapod_v2_test::onStateChanged(const uint32_t motor,
 	case HEXAPOD_POS:
 		if (value != 1793 || motor != 0)
 		{
-			PRINT_ERR(true, PREF, "Position value: value != 1793 or motor != 0");
+			PRINT_ERR(true, "Position value: value != 1793 or motor != 0");
 		}
 		else
 		{
@@ -279,7 +279,7 @@ void DSrv_Hexapod_v2_test::onStateChanged(const uint32_t motor,
 	case HEXAPOD_SPEED:
 		if (value != 1538 || motor != 0)
 		{
-			PRINT_ERR(true, PREF, "Speed value: value != 1538 or motor != 0");
+			PRINT_ERR(true, "Speed value: value != 1538 or motor != 0");
 		}
 		else
 		{
@@ -290,7 +290,7 @@ void DSrv_Hexapod_v2_test::onStateChanged(const uint32_t motor,
 	case HEXAPOD_ERR:
 		if (value != 5 || motor != 0)
 		{
-			PRINT_ERR(true, PREF, "Error value: value != 5 or motor != 0");
+			PRINT_ERR(true, "Error value: value != 5 or motor != 0");
 		}
 		else
 		{
@@ -310,7 +310,7 @@ void DSrv_Hexapod_v2_test::onStateChanged(const uint32_t motor,
 		     && value_cmd != HEXAPOD_MODE)
 		    || motor != 0)
 		{
-			PRINT_ERR(true, PREF, "Error value: "
+			PRINT_ERR(true, "Error value: "
 			                      "value_cmd != HEXAPOD_START and "
 			                      "value_cmd != HEXAPOD_STOP and "
 			                      "value_cmd != HEXAPOD_FREQUENCY and "
@@ -343,7 +343,7 @@ void DSrv_Hexapod_v2_test::onStateChanged(const uint32_t motor,
 			}
 			else
 			{
-				PRINT_ERR(true, PREF, "Error value: bad value_val for cmd = %lu",
+				PRINT_ERR(true, "Error value: bad value_val for cmd = %lu",
 				                      static_cast<unsigned long>(value_cmd));
 			}
 		}
@@ -351,7 +351,7 @@ void DSrv_Hexapod_v2_test::onStateChanged(const uint32_t motor,
 		break;
 
 	default:
-		PRINT_ERR(true, PREF, "Unknown value");
+		PRINT_ERR(true, "Unknown value");
 		break;
 	}
 }
@@ -361,13 +361,13 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 {
 	if (obj.start() == 0)
 	{
-		PRINT_ERR(true, PREF, "start() without hardware");
+		PRINT_ERR(true, "start() without hardware");
 		return -1;
 	}
 
 	if (obj.stop() != 0)
 	{
-		PRINT_ERR(true, PREF, "stop()");
+		PRINT_ERR(true, "stop()");
 		return -1;
 	}
 
@@ -381,27 +381,27 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	obj_test.m_slot_ok = false;
 	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_POS]) != 0)
 	{
-		PRINT_ERR(true, PREF, "Position value: dataParser()");
+		PRINT_ERR(true, "Position value: dataParser()");
 		return -1;
 	}
 	if (false == obj_test.m_slot_ok)
 	{
-		PRINT_ERR(true, PREF, "Position value: bad value in slot");
+		PRINT_ERR(true, "Position value: bad value in slot");
 		return -1;
 	}
 	if (obj.m_motor_id != -1)
 	{
-		PRINT_ERR(true, PREF, "Position value: m_motor_id != -1");
+		PRINT_ERR(true, "Position value: m_motor_id != -1");
 		return -1;
 	}
 	if (obj.m_cmd_id != HEXAPOD_POS)
 	{
-		PRINT_ERR(true, PREF, "Position value: m_cmd_id != HEXAPOD_POS");
+		PRINT_ERR(true, "Position value: m_cmd_id != HEXAPOD_POS");
 		return -1;
 	}
 	if (obj.m_pktRemSize != 0)
 	{
-		PRINT_ERR(true, PREF, "Position value: m_pktRemSize != 0");
+		PRINT_ERR(true, "Position value: m_pktRemSize != 0");
 		return -1;
 	}
 
@@ -412,27 +412,27 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	obj_test.m_slot_ok = false;
 	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_SPEED]) != 0)
 	{
-		PRINT_ERR(true, PREF, "Speed value: dataParser()");
+		PRINT_ERR(true, "Speed value: dataParser()");
 		return -1;
 	}
 	if (false == obj_test.m_slot_ok)
 	{
-		PRINT_ERR(true, PREF, "Speed value: bad value in slot");
+		PRINT_ERR(true, "Speed value: bad value in slot");
 		return -1;
 	}
 	if (obj.m_motor_id != -1)
 	{
-		PRINT_ERR(true, PREF, "Speed value: m_motor_id != -1");
+		PRINT_ERR(true, "Speed value: m_motor_id != -1");
 		return -1;
 	}
 	if (obj.m_cmd_id != HEXAPOD_SPEED)
 	{
-		PRINT_ERR(true, PREF, "Speed value: m_cmd_id != HEXAPOD_SPEED");
+		PRINT_ERR(true, "Speed value: m_cmd_id != HEXAPOD_SPEED");
 		return -1;
 	}
 	if (obj.m_pktRemSize != 0)
 	{
-		PRINT_ERR(true, PREF, "Speed value: m_pktRemSize != 0");
+		PRINT_ERR(true, "Speed value: m_pktRemSize != 0");
 		return -1;
 	}
 
@@ -442,27 +442,27 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	obj_test.m_slot_ok = false;
 	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ERR]) != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: dataParser()");
+		PRINT_ERR(true, "State error: dataParser()");
 		return -1;
 	}
 	if (false == obj_test.m_slot_ok)
 	{
-		PRINT_ERR(true, PREF, "State error: bad value in slot");
+		PRINT_ERR(true, "State error: bad value in slot");
 		return -1;
 	}
 	if (obj.m_motor_id != -1)
 	{
-		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
+		PRINT_ERR(true, "State error: m_motor_id != -1");
 		return -1;
 	}
 	if (obj.m_cmd_id != HEXAPOD_ERR)
 	{
-		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ERR");
+		PRINT_ERR(true, "State error: m_cmd_id != HEXAPOD_ERR");
 		return -1;
 	}
 	if (obj.m_pktRemSize != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
+		PRINT_ERR(true, "State error: m_pktRemSize != 0");
 		return -1;
 	}
 
@@ -474,27 +474,27 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	obj_test.m_slot_ok = false;
 	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: dataParser()");
+		PRINT_ERR(true, "State error: dataParser()");
 		return -1;
 	}
 	if (false == obj_test.m_slot_ok)
 	{
-		PRINT_ERR(true, PREF, "State error: bad value in slot");
+		PRINT_ERR(true, "State error: bad value in slot");
 		return -1;
 	}
 	if (obj.m_motor_id != -1)
 	{
-		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
+		PRINT_ERR(true, "State error: m_motor_id != -1");
 		return -1;
 	}
 	if (obj.m_cmd_id != HEXAPOD_ANSWER)
 	{
-		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ANSWER");
+		PRINT_ERR(true, "State error: m_cmd_id != HEXAPOD_ANSWER");
 		return -1;
 	}
 	if (obj.m_pktRemSize != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
+		PRINT_ERR(true, "State error: m_pktRemSize != 0");
 		return -1;
 	}
 
@@ -506,27 +506,27 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	obj_test.m_slot_ok = false;
 	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: dataParser()");
+		PRINT_ERR(true, "State error: dataParser()");
 		return -1;
 	}
 	if (false == obj_test.m_slot_ok)
 	{
-		PRINT_ERR(true, PREF, "State error: bad value in slot");
+		PRINT_ERR(true, "State error: bad value in slot");
 		return -1;
 	}
 	if (obj.m_motor_id != -1)
 	{
-		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
+		PRINT_ERR(true, "State error: m_motor_id != -1");
 		return -1;
 	}
 	if (obj.m_cmd_id != HEXAPOD_ANSWER)
 	{
-		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ANSWER");
+		PRINT_ERR(true, "State error: m_cmd_id != HEXAPOD_ANSWER");
 		return -1;
 	}
 	if (obj.m_pktRemSize != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
+		PRINT_ERR(true, "State error: m_pktRemSize != 0");
 		return -1;
 	}
 
@@ -538,27 +538,27 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	obj_test.m_slot_ok = false;
 	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: dataParser()");
+		PRINT_ERR(true, "State error: dataParser()");
 		return -1;
 	}
 	if (false == obj_test.m_slot_ok)
 	{
-		PRINT_ERR(true, PREF, "State error: bad value in slot");
+		PRINT_ERR(true, "State error: bad value in slot");
 		return -1;
 	}
 	if (obj.m_motor_id != -1)
 	{
-		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
+		PRINT_ERR(true, "State error: m_motor_id != -1");
 		return -1;
 	}
 	if (obj.m_cmd_id != HEXAPOD_ANSWER)
 	{
-		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ANSWER");
+		PRINT_ERR(true, "State error: m_cmd_id != HEXAPOD_ANSWER");
 		return -1;
 	}
 	if (obj.m_pktRemSize != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
+		PRINT_ERR(true, "State error: m_pktRemSize != 0");
 		return -1;
 	}
 
@@ -570,27 +570,27 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	obj_test.m_slot_ok = false;
 	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: dataParser()");
+		PRINT_ERR(true, "State error: dataParser()");
 		return -1;
 	}
 	if (false == obj_test.m_slot_ok)
 	{
-		PRINT_ERR(true, PREF, "State error: bad value in slot");
+		PRINT_ERR(true, "State error: bad value in slot");
 		return -1;
 	}
 	if (obj.m_motor_id != -1)
 	{
-		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
+		PRINT_ERR(true, "State error: m_motor_id != -1");
 		return -1;
 	}
 	if (obj.m_cmd_id != HEXAPOD_ANSWER)
 	{
-		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ANSWER");
+		PRINT_ERR(true, "State error: m_cmd_id != HEXAPOD_ANSWER");
 		return -1;
 	}
 	if (obj.m_pktRemSize != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
+		PRINT_ERR(true, "State error: m_pktRemSize != 0");
 		return -1;
 	}
 
@@ -602,27 +602,27 @@ int32_t DSrv_Hexapod_v2_test::logic(DSrv_Hexapod_v2& obj, DSrv_Hexapod_v2_test& 
 	obj_test.m_slot_ok = false;
 	if (obj.dataParser(data, PKT_HEADER_SIZE + obj.m_data_size[HEXAPOD_ANSWER]) != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: dataParser()");
+		PRINT_ERR(true, "State error: dataParser()");
 		return -1;
 	}
 	if (false == obj_test.m_slot_ok)
 	{
-		PRINT_ERR(true, PREF, "State error: bad value in slot");
+		PRINT_ERR(true, "State error: bad value in slot");
 		return -1;
 	}
 	if (obj.m_motor_id != -1)
 	{
-		PRINT_ERR(true, PREF, "State error: m_motor_id != -1");
+		PRINT_ERR(true, "State error: m_motor_id != -1");
 		return -1;
 	}
 	if (obj.m_cmd_id != HEXAPOD_ANSWER)
 	{
-		PRINT_ERR(true, PREF, "State error: m_cmd_id != HEXAPOD_ANSWER");
+		PRINT_ERR(true, "State error: m_cmd_id != HEXAPOD_ANSWER");
 		return -1;
 	}
 	if (obj.m_pktRemSize != 0)
 	{
-		PRINT_ERR(true, PREF, "State error: m_pktRemSize != 0");
+		PRINT_ERR(true, "State error: m_pktRemSize != 0");
 		return -1;
 	}
 
@@ -635,7 +635,7 @@ int32_t DSrv_Hexapod_v2_test::pNull(DSrv_Hexapod_v2& obj) noexcept
 	// Check data == nullptr
 	if (obj.dataParser(nullptr, 4) != -2)
 	{
-		PRINT_ERR(true, PREF, "dataParser(nullptr, ...)");
+		PRINT_ERR(true, "dataParser(nullptr, ...)");
 		return -1;
 	}
 
@@ -653,16 +653,16 @@ int32_t DSrv_Hexapod_v2_test::fullTest() noexcept
 
 	if (pNull(obj) != 0)
 	{
-		PRINT_ERR(true, PREF, "pNull");
+		PRINT_ERR(true, "pNull");
 		return -1;
 	}
 
 	if (logic(obj, obj_test) != 0)
 	{
-		PRINT_ERR(true, PREF, "logic");
+		PRINT_ERR(true, "logic");
 		return -1;
 	}
 
-	PRINT_DBG(true, PREF, "Test was successful");
+	PRINT_DBG(true, "Test was successful");
 	return 0;
 }

@@ -13,13 +13,13 @@ using namespace Sec_145;
 //-------------------------------------------------------------------------------------------------
 DSrv_Hexapod_v2_motor::DSrv_Hexapod_v2_motor(uint8_t motor_id) : m_motor_id(motor_id)
 {
-	PRINT_DBG(m_debug, PREF, "");
+	PRINT_DBG(m_debug, "");
 }
 
 //-------------------------------------------------------------------------------------------------
 DSrv_Hexapod_v2_motor::~DSrv_Hexapod_v2_motor()
 {
-	PRINT_DBG(m_debug, PREF, "");
+	PRINT_DBG(m_debug, "");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ DSrv_Hexapod_v2_motor::DSrv_Hexapod_v2_motor(DSrv_Hexapod_v2_motor && obj) :
 	m_val = obj.m_val;
 	m_numOfBytesReq = obj.m_numOfBytesReq;
 
-	PRINT_DBG(m_debug, PREF, "Move constructor");
+	PRINT_DBG(m_debug, "Move constructor");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -151,7 +151,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 	// Check the incomming parameters
 	if (nullptr == data)
 	{
-		PRINT_ERR(m_debug, PREF, "nullptr == data");
+		PRINT_ERR(m_debug, "nullptr == data");
 		return -2;
 	}
 
@@ -179,13 +179,13 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			// Check a motor id
 			if (id.second != m_motor_id)
 			{
-				PRINT_ERR(true, PREF, "Motor id is not correct");
+				PRINT_ERR(true, "Motor id is not correct");
 				m_pktRemSize = 0;
 				updataParams();
 				continue;
 			}
 
-			PRINT_DBG(m_debug, PREF, "[0]: 0x%x", *data);
+			PRINT_DBG(m_debug, "[0]: 0x%x", *data);
 		}
 		else
 		{
@@ -196,7 +196,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				// Check a function code
 				if (*data != m_funcCode)
 				{
-					PRINT_ERR(true, PREF, "Function code is not correct");
+					PRINT_ERR(true, "Function code is not correct");
 					m_pktRemSize = 0;
 					updataParams();
 					continue;
@@ -206,14 +206,14 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				funcCode.first = true;
 				funcCode.second = *data;
 
-				PRINT_DBG(m_debug, PREF, "[1]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[1]: 0x%x", *data);
 			}
 			else if (read == funcCode.second && false == count.first)
 			{
 				// Check the count of bytes
 				if (*data > 20)
 				{
-					PRINT_ERR(true, PREF, "Count of bytes more than 20");
+					PRINT_ERR(true, "Count of bytes more than 20");
 					m_pktRemSize = 0;
 					updataParams();
 					continue;
@@ -223,7 +223,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				count.first = true;
 				count.second = *data;
 
-				PRINT_DBG(m_debug, PREF, "[2]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[2]: 0x%x", *data);
 			}
 			else if (write == funcCode.second && false == address_h.first)
 			{
@@ -231,14 +231,14 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				address_h.first = true;
 				address_h.second = *data;
 
-				PRINT_DBG(m_debug, PREF, "[3]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[3]: 0x%x", *data);
 			}
 			else if (write == funcCode.second && false == address_l.first)
 			{
 				// Check the address
 				if ((m_addressReq & 0xFF) != *data || (m_addressReq >> 8) != address_h.second)
 				{
-					PRINT_ERR(true, PREF, "Address is not correct");
+					PRINT_ERR(true, "Address is not correct");
 					m_pktRemSize = 0;
 					updataParams();
 					continue;
@@ -248,21 +248,21 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				address_l.first = true;
 				address_l.second = *data;
 
-				PRINT_DBG(m_debug, PREF, "[4]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[4]: 0x%x", *data);
 			}
 			else if (write == funcCode.second && false == regVal_h.first)
 			{
 				regVal_h.first = true;
 				regVal_h.second = *data;
 
-				PRINT_DBG(m_debug, PREF, "[5]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[5]: 0x%x", *data);
 			}
 			else if (write == funcCode.second && false == regVal_l.first)
 			{
 				// Check the value
 				if ((m_val & 0xFF) != *data || (m_val >> 8) != regVal_h.second)
 				{
-					PRINT_ERR(true, PREF, "Register value is not correct");
+					PRINT_ERR(true, "Register value is not correct");
 					m_pktRemSize = 0;
 					updataParams();
 					continue;
@@ -271,11 +271,11 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				regVal_l.first = true;
 				regVal_l.second = *data;
 
-				PRINT_DBG(m_debug, PREF, "[6]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[6]: 0x%x", *data);
 			}
 			else if (write == funcCode.second && m_pktRemSize > 2)
 			{
-				PRINT_ERR(true, PREF, "Write response is not correct");
+				PRINT_ERR(true, "Write response is not correct");
 				m_pktRemSize = 0;
 				updataParams();
 				continue;
@@ -285,29 +285,29 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				// Set data for read type message
 				if (DSrv_Storage::setData(data, 1, add) != 0)
 				{
-					PRINT_ERR(true, PREF, "DSrv_Storage::setData()");
+					PRINT_ERR(true, "DSrv_Storage::setData()");
 					return -1;
 				}
 
-				PRINT_DBG(m_debug, PREF, "[+]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[+]: 0x%x", *data);
 			}
 			else if (false == crc_l.first)
 			{
 				crc_l.first = true;
 				crc_l.second = *data;
 
-				PRINT_DBG(m_debug, PREF, "[*]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[*]: 0x%x", *data);
 			}
 			else if (false == crc_h.first)
 			{
 				crc_h.first = true;
 				crc_h.second = *data;
 
-				PRINT_DBG(m_debug, PREF, "[*]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[*]: 0x%x", *data);
 			}
 			else
 			{
-				PRINT_ERR(true, PREF, "message format error; data = 0x%x", *data);
+				PRINT_ERR(true, "message format error; data = 0x%x", *data);
 				m_pktRemSize = 0;
 				updataParams();
 				continue;
@@ -322,7 +322,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			// Data is complete
 			if (DSrv_Storage::completeData() != 0)
 			{
-				PRINT_ERR(true, PREF, "DSrv_Storage::completeData() != 0");
+				PRINT_ERR(true, "DSrv_Storage::completeData() != 0");
 				return -1;
 			}
 
@@ -331,7 +331,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			uint32_t size_res;
 			if (DSrv_Storage::getData(&data_res, &size_res) != 0)
 			{
-				PRINT_ERR(true, PREF, "DSrv_Storage::getData() != 0");
+				PRINT_ERR(true, "DSrv_Storage::getData() != 0");
 				return -1;
 			}
 
@@ -355,18 +355,18 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 					crc = calcCRC(data_for_crc, 6);
 					if ((crc & 0xFF) != crc_l.second || (crc >> 8) != crc_h.second)
 					{
-						PRINT_ERR(true, PREF, "CRC is not correct");
+						PRINT_ERR(true, "CRC is not correct");
 						return -1;
 					}
 
-				    PRINT_DBG(m_debug, PREF, "Write is complete");
+					PRINT_DBG(m_debug, "Write is complete");
 				    break;
 
 			    case read:
 				    // Check the data size of result
 				    if (size_res != count.second)
 					{
-						PRINT_ERR(true, PREF, "Data size is not match");
+						PRINT_ERR(true, "Data size is not match");
 						return -1;
 					}
 
@@ -380,7 +380,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 					crc = calcCRC(data_for_crc, size_res + 3);
 					if ((crc & 0xFF) != crc_l.second || (crc >> 8) != crc_h.second)
 					{
-						PRINT_ERR(true, PREF, "CRC is not correct");
+						PRINT_ERR(true, "CRC is not correct");
 						return -1;
 					}
 
@@ -390,7 +390,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 						std::swap(data_res[i], data_res[i + 1]);
 					}
 
-					PRINT_DBG(m_debug, PREF, "Read is complete");
+					PRINT_DBG(m_debug, "Read is complete");
 
 					qDebug() << "res" << *reinterpret_cast<int32_t*>(data_res)
 					         << *reinterpret_cast<int32_t*>(data_res) * 0.0000152587890625;

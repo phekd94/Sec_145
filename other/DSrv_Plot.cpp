@@ -4,21 +4,18 @@
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-----------------------------------------------------------------------------
-#define PREF  "[DSrv_Plot]: "
-
-//-----------------------------------------------------------------------------
 using namespace Sec_145;
 
 //-----------------------------------------------------------------------------
 DSrv_Plot::DSrv_Plot() : m_cus_plot(nullptr)
 {
-	PRINT_DBG(m_debug, PREF, "");
+	PRINT_DBG(m_debug, "");
 }
 
 //-----------------------------------------------------------------------------
 DSrv_Plot::~DSrv_Plot()
 {
-	PRINT_DBG(m_debug, PREF, "");
+	PRINT_DBG(m_debug, "");
 }
 
 //-----------------------------------------------------------------------------
@@ -35,14 +32,14 @@ int32_t DSrv_Plot::init(const QCustomPlot* const cus_plot,
 {
 	// Check the incoming parameters
 	if (cb.size() != num_of_plots || colors.size() != num_of_plots) {
-		PRINT_ERR(true, PREF,
+		PRINT_ERR(true,
 		 "Size of colors or check box containers is not equal num_of_motors");
 		return -1;
 	}
 
 	// Check the incoming parameter and set a custom plot member
 	if (nullptr == cus_plot) {
-		PRINT_ERR(true, PREF, "nullptr == cus_plot");
+		PRINT_ERR(true, "nullptr == cus_plot");
 		return -1;
 	} else {
 		m_cus_plot = const_cast<QCustomPlot*>(cus_plot);
@@ -87,7 +84,7 @@ int32_t DSrv_Plot::init(const QCustomPlot* const cus_plot,
 
 		//
 		if ((m_plots[i].plot = m_cus_plot->addGraph()) == nullptr) {
-			PRINT_ERR(true, PREF, "[%s]: addGraph(), i = %lu",
+			PRINT_ERR(true, "[%s]: addGraph(), i = %lu",
 			          name.c_str(),
 			          static_cast<unsigned long>(i));
 			m_cus_plot->clearGraphs();

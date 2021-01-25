@@ -74,9 +74,6 @@ public:
 
 private:
 
-	// Preface in debug message
-	constexpr static const char* const PREF {"[NeuralNetworkThread]: "};
-
 	// File name for process
 	QString m_fileName;
 

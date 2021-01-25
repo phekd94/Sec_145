@@ -49,11 +49,6 @@ public:
 
 	// Sets an image
 	void setImage(const QImage& image);
-
-private:
-
-	// Preface in debug message
-	static const char* PREF;
 };
 
 //-------------------------------------------------------------------------------------------------

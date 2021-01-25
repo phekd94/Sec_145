@@ -71,11 +71,6 @@ protected:
 	// Parser of the accepted data (pure virtual function)
 	// (concrete class should realize this function)
 	virtual int32_t dataParser(uint8_t* data, uint32_t size) = 0;
-
-private:
-
-	// Preface in debug message
-	constexpr static const char* PREF {"[DSrv]: "};
 };
 
 //=================================================================================================
@@ -117,9 +112,6 @@ private:
 	DSrv_test()
 	{
 	}
-
-	// Preface in debug message
-	constexpr static const char* PREF {"[DSrv_test]: "};
 };
 
 //-------------------------------------------------------------------------------------------------

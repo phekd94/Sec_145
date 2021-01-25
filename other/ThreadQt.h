@@ -46,7 +46,7 @@ public:
 	ThreadQt(ClassInNewThread && ClassInNewThread_obj) :
 	    ClassInNewThread(std::move(ClassInNewThread_obj))
 	{
-		PRINT_DBG(true, PREF, "ClassInNewThread move constructor");
+		PRINT_DBG(true, "ClassInNewThread move constructor");
 	}
 
 	// Stops the thread
@@ -77,7 +77,7 @@ public:
 		}
 		catch (std::exception& obj)
 		{
-			PRINT_ERR(true, PREF,
+			PRINT_ERR(true,
 			          "Exception (%s) during call QThread::isRunning() has been occured",
 			          obj.what());
 			return;
@@ -86,16 +86,13 @@ public:
 
 private:
 
-	// Preface in debug message
-	constexpr static const char* const PREF {"[ThreadQt]: "};
-
 	// Flag; for stop an execution thread
 	volatile bool m_stop {false};
 
 	// Overrides a run() method from QThread class
 	virtual void run() override
 	{
-		PRINT_DBG(true, PREF, "Thread with id = %llu is started",
+		PRINT_DBG(true, "Thread with id = %llu is started",
 		          reinterpret_cast<unsigned long long>(QThread::currentThreadId()));
 
 		// Catch an exceptions from QThread::exec() or from ClassInNewThread::process()
@@ -113,14 +110,14 @@ private:
 		}
 		catch (std::exception& obj)
 		{
-			PRINT_ERR(true, PREF,
+			PRINT_ERR(true,
 			          "Exception (%s) during call %s has been occured",
 			          useQtExecMethod == true ? "QThread::exec()" : "ClassInNewThread::process()",
 			          obj.what());
 			return;
 		}
 
-		PRINT_DBG(true, PREF, "Thread with id = %llu is stoped",
+		PRINT_DBG(true, "Thread with id = %llu is stoped",
 		          reinterpret_cast<unsigned long long>(QThread::currentThreadId()));
 	}
 };

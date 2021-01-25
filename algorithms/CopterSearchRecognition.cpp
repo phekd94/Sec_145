@@ -11,9 +11,6 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-const char* const CopterSearchRecognition::PREF = "[CopterSearchRecognition]: ";
-
-//-------------------------------------------------------------------------------------------------
 CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkParams,
                                                  const QString& resultName,
                                                  const uint32_t imagesWidth,
@@ -30,19 +27,19 @@ CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkPar
 		// Open a file with parameters of the neural network
 		QFile f(pathToNetworkParams + "/l_2_b_params.txt");
 		if (f.open(QIODevice::ReadOnly) == false) {
-			PRINT_ERR(true, PREF, "Can't open a file with parameters of the neural network");
+			PRINT_ERR(true, "Can't open a file with parameters of the neural network");
 			return;
 		}
 
 		// Read an number of copters
 		if (readVarFromFile(f, m_numCopters) != 0) {
-			PRINT_ERR(true, PREF, "readVarFromFile(m_alpha)");
+			PRINT_ERR(true, "readVarFromFile(m_alpha)");
 			return;
 		}
 
 		// Read a number of intermediate layers
 		if (readVarFromFile(f, m_hidden_size) != 0) {
-			PRINT_ERR(true, PREF, "readVarFromFile(m_hidden_size)");
+			PRINT_ERR(true, "readVarFromFile(m_hidden_size)");
 			return;
 		}
 
@@ -52,14 +49,14 @@ CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkPar
 		// Open a file with weight (layer 0 -> layer 1)
 		f.setFileName(pathToNetworkParams + "/l_2_b_w_0_1.txt");
 		if (f.open(QIODevice::ReadOnly) == false) {
-			PRINT_ERR(true, PREF, "Can't open a file with weight w_0_1");
+			PRINT_ERR(true, "Can't open a file with weight w_0_1");
 			return;
 		}
 
 		// Read a weight w_0_1
 		m_w_0_1 = Eigen::MatrixXd(m_imagesWidth * m_imagesHeight, m_hidden_size);
 		if (readMatrixFromFile(f, m_w_0_1) != 0) {
-			PRINT_ERR(true, PREF, "readMatrixFromFile(m_w_0_1)");
+			PRINT_ERR(true, "readMatrixFromFile(m_w_0_1)");
 			return;
 		}
 
@@ -69,14 +66,14 @@ CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkPar
 		// Open a file with weight (layer 1 -> layer 2)
 		f.setFileName(pathToNetworkParams + "/l_2_b_w_1_2.txt");
 		if (f.open(QIODevice::ReadOnly) == false) {
-			PRINT_ERR(true, PREF, "Can't open a file with weight w_1_2");
+			PRINT_ERR(true, "Can't open a file with weight w_1_2");
 			return;
 		}
 
 		// Read a weight w_1_2
 		m_w_1_2 = Eigen::MatrixXd(m_hidden_size, m_numCopters);
 		if (readMatrixFromFile(f, m_w_1_2) != 0) {
-			PRINT_ERR(true, PREF, "readMatrixFromFile(m_w_1_2)");
+			PRINT_ERR(true, "readMatrixFromFile(m_w_1_2)");
 			return;
 		}
 
@@ -95,7 +92,7 @@ CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkPar
 		break;
 	}
 	default:
-		PRINT_ERR(true, PREF, "Unknown learning type");
+		PRINT_ERR(true, "Unknown learning type");
 		return;
 		break;
 	}
@@ -103,13 +100,13 @@ CopterSearchRecognition::CopterSearchRecognition(const QString& pathToNetworkPar
 	// Set initialization flag
 	m_init = true;*/
 
-	PRINT_DBG(m_debug, PREF, "Load neural network was successfull");
+	PRINT_DBG(m_debug, "Load neural network was successfull");
 }
 
 //-------------------------------------------------------------------------------------------------
 CopterSearchRecognition::~CopterSearchRecognition()
 {
-	PRINT_DBG(m_debug, PREF, "");
+	PRINT_DBG(m_debug, "");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -125,7 +122,7 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 
 	// Check the incoming parameter
 	if (image.isNull() == true) {
-		PRINT_ERR(true, PREF, "Incomed image is null");
+		PRINT_ERR(true, "Incomed image is null");
 		return -1;
 	}
 
@@ -136,7 +133,7 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 	}
 	if (   x + w > static_cast<uint32_t>(image.width())
 	    || y + h > static_cast<uint32_t>(image.height())) {
-		PRINT_ERR(true, PREF, "x + w > image.width() or y + h > image.height()");
+		PRINT_ERR(true, "x + w > image.width() or y + h > image.height()");
 		return -1;
 	}
 
@@ -164,7 +161,7 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 	// Cut an area with copter
 	QImage imageCopter = image.copy(x, y, w, h);
 	if (imageCopter.isNull() == true) {
-		PRINT_ERR(true, PREF, "Copy image is null; x = %lu, y = %lu, w = %lu, h = %lu",
+		PRINT_ERR(true, "Copy image is null; x = %lu, y = %lu, w = %lu, h = %lu",
 		          static_cast<unsigned long>(x), static_cast<unsigned long>(y),
 		          static_cast<unsigned long>(w), static_cast<unsigned long>(h));
 		return -1;
@@ -176,7 +173,7 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 	// Scale a cuted area
 	QImage imageCopterScale = imageCopter.scaled(m_imagesWidth, m_imagesHeight);
 	if (imageCopterScale.isNull() == true) {
-		PRINT_ERR(true, PREF, "Scaled image is null");
+		PRINT_ERR(true, "Scaled image is null");
 		return -1;
 	}
 
@@ -189,7 +186,7 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 		                                       m_l_0, m_l_1, m_l_2,
 		                                       m_imagesWidth, m_imagesHeight);
 		if (recognitionLabel < 0) {
-			PRINT_ERR(true, PREF, "getRecognitionLabel()");
+			PRINT_ERR(true, "getRecognitionLabel()");
 			return -1;
 		}
 
@@ -205,7 +202,7 @@ int32_t CopterSearchRecognition::getRecognitionResult(const QImage& image, uint3
 	// Save result
 	if (m_f.isOpen() == true) {
 		if (writeVarInFile(m_f, copterIndex) != 0) {
-			PRINT_ERR(true, PREF, "Can't write a result");
+			PRINT_ERR(true, "Can't write a result");
 		}
 	}
 

@@ -85,9 +85,6 @@ protected:
 
 private:
 
-	// Preface in debug message
-	constexpr static const char* PREF {"[DSrv_USART_QT]: "};
-
 	// Serial port
 	QSerialPort* m_serialPort {nullptr};
 
@@ -134,9 +131,6 @@ private:
 	DSrv_USART_QT_test()
 	{
 	}
-
-	// Preface in debug message
-	constexpr static const char* PREF {"[DSrv_USART_QT_test]: "};
 };
 
 //-------------------------------------------------------------------------------------------------

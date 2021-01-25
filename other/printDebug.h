@@ -29,22 +29,21 @@ namespace Sec_145
 {
 
 //-------------------------------------------------------------------------------------------------
-#define PRINT_DBG(enable, pref, ...)                                      \
-	do {                                                                  \
-	    if (enable)                                                       \
-	        Sec_145::printDebug(pref, __FUNCTION__, false, __VA_ARGS__);  \
+#define PRINT_DBG(enable, ...)                                      \
+	do {                                                            \
+	    if (enable)                                                 \
+	        Sec_145::printDebug(__FUNCTION__, false, __VA_ARGS__);  \
 	} while(0)
 
 //-------------------------------------------------------------------------------------------------
-#define PRINT_ERR(enable, pref, ...)                                     \
-	do {                                                                 \
-	    if (enable)                                                      \
-	        Sec_145::printDebug(pref, __FUNCTION__, true, __VA_ARGS__);  \
+#define PRINT_ERR(enable, ...)                                     \
+	do {                                                           \
+	    if (enable)                                                \
+	        Sec_145::printDebug(__FUNCTION__, true, __VA_ARGS__);  \
 	} while(0)
 
 //-------------------------------------------------------------------------------------------------
-void printDebug(const char* pref,
-                const char* func,
+void printDebug(const char* func,
                 const bool err,
                 const char* format,
                 ...) noexcept;

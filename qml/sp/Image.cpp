@@ -22,9 +22,6 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-const char* Image::PREF = "[Image]: ";
-
-//-------------------------------------------------------------------------------------------------
 Image::Image(QQuickItem* parent) :  QQuickItem(parent),
                                     ImageNode(4 + 3), // image node with 7 vertices
                                     m_angle(0)

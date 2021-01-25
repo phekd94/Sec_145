@@ -91,9 +91,6 @@ public:
 
 private:
 
-	// Preface in debug message
-	constexpr static const char* PREF {"[DSrv_Hexapod_v2]: "};
-
 	// Packet parameters
 	int32_t m_motor_id {-1};
 	uint32_t m_cmd_id {0};
@@ -145,9 +142,6 @@ private:
 	DSrv_Hexapod_v2_test()
 	{
 	}
-
-	// Preface in debug message
-	constexpr static const char* PREF {"[DSrv_Hexapod_v2_test]: "};
 
 	// Flag when values in slot are successful
 	volatile bool m_slot_ok {false};

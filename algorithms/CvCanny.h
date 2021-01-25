@@ -45,7 +45,7 @@ public:
 
 	CvCanny()
 	{
-		PRINT_DBG(DisjointSet<CvPoint>::m_debug, PREF, "");
+		PRINT_DBG(DisjointSet<CvPoint>::m_debug, "");
 	}
 
 	// Applies Canny detector to the image data
@@ -102,7 +102,7 @@ public:
 	{
 		if (lowExecutionTime > highExecutionTime)
 		{
-			PRINT_ERR(true, PREF, "lowExecutionTime > highExecutionTime");
+			PRINT_ERR(true, "lowExecutionTime > highExecutionTime");
 			return -1;
 		}
 		m_lowExecutionTime = lowExecutionTime;
@@ -127,9 +127,6 @@ private:
 	// Constants
 	static const uint32_t lowCannyThreshold {10};
 	static const uint32_t highCannyThreshold {150};
-
-	// Preface in debug message
-	constexpr static const char* const PREF {"[CvCanny]: "};
 
 	// Set of sets with contour points
 	std::vector<std::vector<cv::Point>> m_contours;

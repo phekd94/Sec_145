@@ -15,9 +15,6 @@ extern QQuickView* p_view;
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-const char* ImageNode::PREF = "[ImageNode]: ";
-
-//-------------------------------------------------------------------------------------------------
 ImageNode::ImageNode(const uint32_t verticesCount) :
     QSGGeometry(QSGGeometry::defaultAttributes_TexturedPoint2D(), verticesCount)
 {
@@ -50,14 +47,14 @@ void ImageNode::setImage(const QImage& image)
 {
 	// Check for QQuickView class object pointer
 	if (p_view == nullptr) {
-		PRINT_ERR(true, PREF, "QQuickView class object is nullptr");
+		PRINT_ERR(true, "QQuickView class object is nullptr");
 		return;
 	}
 
 	// Create a texture from image
 	QSGTexture* texture = p_view->createTextureFromImage(image);
 	if (texture == nullptr) {
-		PRINT_ERR(true, PREF, "Can't get an QSGTexture class object from QImage class object");
+		PRINT_ERR(true, "Can't get an QSGTexture class object from QImage class object");
 		return;
 	}
 
@@ -67,7 +64,7 @@ void ImageNode::setImage(const QImage& image)
 
 	// Check the material type
 	if (material == nullptr && material_base != nullptr) {
-		PRINT_ERR(true, PREF, "Another type of material");
+		PRINT_ERR(true, "Another type of material");
 		return;
 	}
 
@@ -76,7 +73,7 @@ void ImageNode::setImage(const QImage& image)
 		// Create a new material
 		material = new (std::nothrow) QSGTextureMaterial;
 		if (material == nullptr) {
-			PRINT_ERR(true, PREF, "Can't allocate memory for QSGTextureMaterial class object");
+			PRINT_ERR(true, "Can't allocate memory for QSGTextureMaterial class object");
 			return;
 		}
 

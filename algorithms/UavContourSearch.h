@@ -62,7 +62,7 @@ public:
 
 	UavContourSearch()
 	{
-		PRINT_DBG(UavContourSearch<ContourSearchClass>::m_debug, PREF, "");
+		PRINT_DBG(UavContourSearch<ContourSearchClass>::m_debug, "");
 	}
 
 	// Processes all contours
@@ -161,9 +161,6 @@ public:
 
 private:
 
-	// Preface in debug message
-	constexpr static const char* const PREF {"[UavContourSearch]: "};
-
 	// Struct with coordinates and some parameters of member
 	struct MinMax_XY
 	{
@@ -176,7 +173,7 @@ private:
 		// Prints members of the struct
 		void print() const noexcept
 		{
-			PRINT_DBG(true, PREF,
+			PRINT_DBG(true,
 			          "i = %lu, delta x = %lu, delta y = %lu, set_size = %lu,  "
 			          "max(%lu, %lu), min(%lu, %lu)",
 			          static_cast<unsigned long>(m_i),
@@ -300,7 +297,7 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 				continue;
 			el.print();
 		}
-		PRINT_DBG(true, PREF, "-----------------");
+		PRINT_DBG(true, "-----------------");
 	}
 
 	// Index for return value; maximal size of suitable set
@@ -321,7 +318,7 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 		{
 			if (mm_xy[i].m_set_size < m_min_set_size || mm_xy[i].m_set_size > m_max_set_size)
 			{
-				PRINT_DBG(ContourSearchClass::m_debug, PREF,
+				PRINT_DBG(ContourSearchClass::m_debug,
 				          "stop: filter by set size, index = %lu",
 				          static_cast<unsigned long>(mm_xy[i].m_i));
 				continue;
@@ -336,7 +333,7 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 			      && mm_xy[i].m_delta_y > m_min_delta_y
 			      && mm_xy[i].m_delta_y < m_max_delta_y))
 			{
-				PRINT_DBG(ContourSearchClass::m_debug, PREF,
+				PRINT_DBG(ContourSearchClass::m_debug,
 				          "stop: filter by size, index = %lu",
 				          static_cast<unsigned long>(mm_xy[i].m_i));
 				continue;
@@ -362,7 +359,7 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 				       static_cast<int>(m_delta_old_object)
 				   )
 				{
-					PRINT_DBG(ContourSearchClass::m_debug, PREF,
+					PRINT_DBG(ContourSearchClass::m_debug,
 					          "stop: filter by old object, index = %lu",
 					          static_cast<unsigned long>(mm_xy[i].m_i));
 					continue;
@@ -370,7 +367,7 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 			}
 		}
 
-		PRINT_DBG(ContourSearchClass::m_debug, PREF, "detect, index = %lu",
+		PRINT_DBG(ContourSearchClass::m_debug, "detect, index = %lu",
 		          static_cast<unsigned long>(mm_xy[i].m_i));
 
 		// Add suitable object parameters
@@ -404,11 +401,11 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 			// Set empty object as old object
 			m_old_object = MinMax_XY();
 
-			PRINT_DBG(ContourSearchClass::m_debug, PREF, "m_wihtout_recognize_cnt > %lu",
+			PRINT_DBG(ContourSearchClass::m_debug, "m_wihtout_recognize_cnt > %lu",
 					  static_cast<unsigned long>(m_wihtout_recognize_num));
 		}
 
-		PRINT_DBG(ContourSearchClass::m_debug, PREF, "Copter was not recognized");
+		PRINT_DBG(ContourSearchClass::m_debug, "Copter was not recognized");
 	}
 	else
 	{
@@ -423,10 +420,10 @@ void UavContourSearch<ContourSearchClass>::processContours(const uint8_t* const 
 
 		if (true == ContourSearchClass::m_debug)
 			mm_xy[index].print();
-		PRINT_DBG(ContourSearchClass::m_debug, PREF, "is an old object now");
+		PRINT_DBG(ContourSearchClass::m_debug, "is an old object now");
 	}
 
-	PRINT_DBG(ContourSearchClass::m_debug, PREF, "=================");
+	PRINT_DBG(ContourSearchClass::m_debug, "=================");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -441,7 +438,7 @@ void UavContourSearch<T>::drawFilterRectangles(uint8_t* const data,
 	if (   OFFSET + m_max_delta_y + 2 * m_delta_old_object > height
 		|| OFFSET + m_max_delta_x + 2 * m_delta_old_object > width)
 	{
-		PRINT_ERR(true, PREF, "Out of bounds");
+		PRINT_ERR(true, "Out of bounds");
 		return;
 	}
 

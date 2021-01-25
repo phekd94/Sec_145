@@ -70,9 +70,6 @@ public:
 
 private:
 
-	// Preface in debug message
-	static const char* PREF;
-
 	// Reaction on QQuickItem::update() method or on another event
 	virtual QSGNode* updatePaintNode(QSGNode* oldNode,
 	                                 UpdatePaintNodeData* updatePaintNodeData) override final;

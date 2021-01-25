@@ -5,7 +5,6 @@
 /*
 DESCRITION: Helper functions
 TODO:
- * PREF
  * One readVarFromFile() function. Use type_id
  * test functions
  * handle exceptions
@@ -41,10 +40,9 @@ namespace Sec_145
 template <typename T>
 int32_t writeVarInFile(QFile& file, const T& var)
 {
-	const char* const PREF = "[Other]: ";
 	if (file.write(QByteArray::number(var) + "\n") == -1)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	return 0;
@@ -60,12 +58,11 @@ int32_t writeVarInFile<double>(QFile& file, const double& var);
 template <typename Array>
 int32_t writeArrayInFile(QFile& file, const Array* const data, const uint32_t size)
 {
-	const char* const PREF = "[Other]: ";
 	for (uint32_t i = 0; i < size; ++i)
 	{
 		if (writeVarInFile(file, data[i]) != 0)
 		{
-			PRINT_ERR(true, PREF, "writeVarInFile()");
+			PRINT_ERR(true, "writeVarInFile()");
 			return -1;
 		}
 	}
@@ -77,14 +74,13 @@ int32_t writeArrayInFile(QFile& file, const Array* const data, const uint32_t si
 template <typename Matrix>
 int32_t writeMatrixInFile(QFile& file, const Matrix& m)
 {
-	const char* const PREF = "[Other]: ";
 	for (uint32_t i = 0; i < m.rows(); ++i)
 	{
 		for (uint32_t j = 0; j < m.cols(); ++j)
 		{
 			if (writeVarInFile(file, m(i, j)) != 0)
 			{
-				PRINT_ERR(true, PREF, "writeVarInFile()");
+				PRINT_ERR(true, "writeVarInFile()");
 				return -1;
 			}
 		}
@@ -112,14 +108,13 @@ int32_t readVarFromFile(QFile& file, QString& var);
 template <typename Matrix>
 int32_t readMatrixFromFile(QFile& file, Matrix& m)
 {
-	const char* const PREF = "[Other]: ";
 	for (uint32_t i = 0; i < m.rows(); ++i)
 	{
 		for (uint32_t j = 0; j < m.cols(); ++j)
 		{
 			if (readVarFromFile(file, m(i, j)) != 0)
 			{
-				PRINT_ERR(true, PREF, "readVarFromFile()");
+				PRINT_ERR(true, "readVarFromFile()");
 				return -1;
 			}
 		}
@@ -159,12 +154,10 @@ int32_t property(QObject *obj,
                  const QString propertyName,
                  T** property)
 {
-	const char* const PREF = "[Other]: ";
-
 	// Check the incoming parameter
 	if (nullptr == obj)
 	{
-		PRINT_ERR(true, PREF, "nullptr == obj");
+		PRINT_ERR(true, "nullptr == obj");
 		return -1;
 	}
 
@@ -174,7 +167,7 @@ int32_t property(QObject *obj,
 	// Get a property itself from QVariant class object
 	if (v.isValid() == false)
 	{
-		PRINT_ERR(true, PREF, "%s does not exist in the given class",
+		PRINT_ERR(true, "%s does not exist in the given class",
 		          propertyName.toStdString().c_str());
 		return -1;
 	}
@@ -190,13 +183,13 @@ int32_t property(QObject *obj,
 			}
 			else
 			{
-				PRINT_ERR(true, PREF, "nullptr == property");
+				PRINT_ERR(true, "nullptr == property");
 				return -1;
 			}
 		}
 		else
 		{
-			PRINT_ERR(true, PREF, "Property and parameter types do not match");
+			PRINT_ERR(true, "Property and parameter types do not match");
 			return -1;
 		}
 	}
@@ -209,12 +202,10 @@ int32_t property(QObject *obj,
                  const QString propertyName,
                  T& property)
 {
-	const char* const PREF = "[Other]: ";
-
 	// Check the incoming parameter
 	if (nullptr == obj)
 	{
-		PRINT_ERR(true, PREF, "nullptr == obj");
+		PRINT_ERR(true, "nullptr == obj");
 		return -1;
 	}
 
@@ -224,7 +215,7 @@ int32_t property(QObject *obj,
 	// Get a property itself from QVariant class object
 	if (v.isValid() == false)
 	{
-		PRINT_ERR(true, PREF, "%s does not exist in the given class",
+		PRINT_ERR(true, "%s does not exist in the given class",
 		          propertyName.toStdString().c_str());
 		return -1;
 	}
@@ -238,7 +229,7 @@ int32_t property(QObject *obj,
 		}
 		else
 		{
-			PRINT_ERR(true, PREF, "Property and parameter types do not match");
+			PRINT_ERR(true, "Property and parameter types do not match");
 			return -1;
 		}
 	}

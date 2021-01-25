@@ -39,7 +39,7 @@ public:
 
 	explicit DisjointSet()
 	{
-		PRINT_DBG(m_debug, PREF, "");
+		PRINT_DBG(m_debug, "");
 	}
 
 	// Adds a member to disjoint set
@@ -107,9 +107,6 @@ protected:
 	bool m_debug {false};
 
 private:
-
-	// Preface in debug message
-	constexpr static const char* const PREF {"[DisjointSet]: "};
 
 	// Disjoint set
 	std::vector<std::vector<T>> m_d_set;
@@ -193,7 +190,7 @@ int32_t DisjointSet<T>::addMember(const T& member) noexcept
 		{
 			if (unionSets(vector_dest, suitSets[i]) != 0)
 			{
-				PRINT_ERR(true, PREF, "unionSets(%lu, %lu)", 
+				PRINT_ERR(true, "unionSets(%lu, %lu)", 
 						  static_cast<unsigned long>(vector_dest),
 				          static_cast<unsigned long>(suitSets[i]));
 				return -1;
@@ -206,7 +203,7 @@ int32_t DisjointSet<T>::addMember(const T& member) noexcept
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR(true, PREF, "Exception (%s) during push_back() member has been occured",
+		PRINT_ERR(true, "Exception (%s) during push_back() member has been occured",
 		          obj.what());
 		return -1;
 	}
@@ -244,7 +241,7 @@ int32_t DisjointSet<T>::unionSets(const uint32_t index_dest, const uint32_t inde
 	// Check the incoming parameters
 	if (index_dest >= m_d_set.size() || index_src >= m_d_set.size()) 
 	{
-		PRINT_ERR(true, PREF, "index_dest(%lu) or index_src(%lu) > size(%lu)",
+		PRINT_ERR(true, "index_dest(%lu) or index_src(%lu) > size(%lu)",
 		          static_cast<unsigned long>(index_dest),
 		          static_cast<unsigned long>(index_src),
 		          static_cast<unsigned long>(m_d_set.size()));
@@ -260,14 +257,14 @@ int32_t DisjointSet<T>::unionSets(const uint32_t index_dest, const uint32_t inde
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR(true, PREF, "Exception (%s) during insert() set has been occured", obj.what());
+		PRINT_ERR(true, "Exception (%s) during insert() set has been occured", obj.what());
 		return -1;
 	}
 
 	// Clear a source set
 	m_d_set[index_src].clear();
 
-	PRINT_DBG(m_debug, PREF, "Set %lu has been inserted in set %lu",
+	PRINT_DBG(m_debug, "Set %lu has been inserted in set %lu",
 	          static_cast<unsigned long>(index_dest),
 	          static_cast<unsigned long>(index_src));
 	return 0;

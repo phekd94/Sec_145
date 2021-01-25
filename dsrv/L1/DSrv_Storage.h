@@ -77,9 +77,6 @@ protected:
 
 private:
 
-	// Preface in debug message
-	constexpr static const char* const PREF {"[DSrv_Storage]: "};
-
 	// Pointers to the data
 	uint8_t* m_completeData {nullptr};
 	uint8_t* m_fillingData {nullptr};
@@ -121,9 +118,6 @@ private:
 	DSrv_Storage_test()
 	{
 	}
-
-	// Preface in debug message
-	constexpr static const char* const PREF {"[DSrv_Storage_test]: "};
 };
 
 //-------------------------------------------------------------------------------------------------

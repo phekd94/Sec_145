@@ -8,16 +8,12 @@
 namespace Sec_145 {
 
 //-------------------------------------------------------------------------------------------------
-// Application preface in debug message
-static const char* const PREF = "[Sec_145]: ";
-
-//-------------------------------------------------------------------------------------------------
 template <>
 int32_t writeVarInFile<double>(QFile& file, const double& var)
 {
 	if (file.write(QByteArray::number(var, 'f', 3) + "\n") == -1)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	return 0;
@@ -28,7 +24,7 @@ int32_t writeBinVarInFile(QFile& file, const uint8_t& var)
 {
 	if (file.write(reinterpret_cast<const char*>(&var), 1) == -1)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	return 0;
@@ -39,7 +35,7 @@ int32_t writeBinArrayInFile(QFile& file, const uint8_t* const data, const uint32
 {
 	if (file.write(reinterpret_cast<const char*>(data), size) == -1)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	return 0;
@@ -51,14 +47,14 @@ int32_t readVarFromFile(QFile& file, uint32_t& var)
 	QByteArray ar = file.readLine();
 	if (ar.isEmpty() == true)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	bool ok;
 	var = static_cast<uint32_t>(ar.toUInt(&ok));
 	if (false == ok)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	return 0;
@@ -70,14 +66,14 @@ int32_t readVarFromFile(QFile& file, int32_t& var)
 	QByteArray ar = file.readLine();
 	if (ar.isEmpty() == true)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	bool ok;
 	var = static_cast<int32_t>(ar.toInt(&ok));
 	if (false == ok)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	return 0;
@@ -89,14 +85,14 @@ int32_t readVarFromFile(QFile& file, double& var)
 	QByteArray ar = file.readLine();
 	if (ar.isEmpty() == true)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	bool ok;
 	var = ar.toDouble(&ok);
 	if (false == ok)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	return 0;
@@ -108,13 +104,13 @@ int32_t readVarFromFile(QFile& file, QString& var)
 	QByteArray ar = file.readLine();
 	if (ar.isEmpty() == true)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 	var = QString(ar);
 	if (var.isEmpty() == true)
 	{
-		PRINT_ERR(true, PREF, "Bad data");
+		PRINT_ERR(true, "Bad data");
 		return -1;
 	}
 
@@ -135,7 +131,7 @@ int32_t readVectorsFromFile(QFile& file, std::vector<std::vector<double>>& vecto
 		{
 			if (readVarFromFile(file, vectors.back()[i]) != 0)
 			{
-				PRINT_ERR(true, PREF, "n = %lu, i = %lu",
+				PRINT_ERR(true, "n = %lu, i = %lu",
 				          static_cast<unsigned long>(n),
 				          static_cast<unsigned long>(i));
 				return -1;
@@ -153,13 +149,13 @@ int32_t compareFiles(QFile& file_1, QFile& file_2, const uint32_t num, bool& res
 	// Open files
 	if (file_1.open(QIODevice::ReadOnly) == false)
 	{
-		PRINT_ERR(true, PREF, "Can't open a file 1; name: %s",
+		PRINT_ERR(true, "Can't open a file 1; name: %s",
 		          file_1.fileName().toStdString().c_str());
 		return -1;
 	}
 	if (file_2.open(QIODevice::ReadOnly) == false)
 	{
-		PRINT_ERR(true, PREF, "Can't open a file 2; name: %s",
+		PRINT_ERR(true, "Can't open a file 2; name: %s",
 		          file_2.fileName().toStdString().c_str());
 		file_1.close();
 		return -1;
@@ -169,7 +165,7 @@ int32_t compareFiles(QFile& file_1, QFile& file_2, const uint32_t num, bool& res
 	std::vector<std::vector<double>> vectors_1;
 	if (readVectorsFromFile(file_1, vectors_1, 1, num) != 0)
 	{
-		PRINT_ERR(true, PREF, "Can't read data from file 1");
+		PRINT_ERR(true, "Can't read data from file 1");
 		file_1.close();
 		file_2.close();
 		return -1;
@@ -177,7 +173,7 @@ int32_t compareFiles(QFile& file_1, QFile& file_2, const uint32_t num, bool& res
 	std::vector<std::vector<double>> vectors_2;
 	if (readVectorsFromFile(file_2, vectors_2, 1, num) != 0)
 	{
-		PRINT_ERR(true, PREF, "Can't read data from file 2");
+		PRINT_ERR(true, "Can't read data from file 2");
 		file_1.close();
 		file_2.close();
 		return -1;
@@ -189,7 +185,7 @@ int32_t compareFiles(QFile& file_1, QFile& file_2, const uint32_t num, bool& res
 	// Check the rest data in files
 	if (file_1.readLine().isEmpty() != true || file_2.readLine().isEmpty() != true)
 	{
-		PRINT_DBG(true, PREF, "Files have extra data");
+		PRINT_DBG(true, "Files have extra data");
 	}
 
 	// Close files
@@ -219,7 +215,7 @@ int32_t reflection(QObject *obj,
 	// Check the incoming parameter
 	if (nullptr == obj)
 	{
-		PRINT_ERR(true, PREF, "nullptr == obj");
+		PRINT_ERR(true, "nullptr == obj");
 		return -1;
 	}
 
@@ -238,7 +234,7 @@ int32_t reflection(QObject *obj,
 	// Call found method
 	if (method.isValid() == false)
 	{
-		PRINT_ERR(true, PREF, "Method was not found");
+		PRINT_ERR(true, "Method was not found");
 		return -1;
 	}
 	else
@@ -249,7 +245,7 @@ int32_t reflection(QObject *obj,
 		                         val0, val1, val2, val3, val4, val5, val6, val7, val8, val9);
 		if (ret == false)
 		{
-			PRINT_ERR(true, PREF, "One of the parameters for method call is not correct");
+			PRINT_ERR(true, "One of the parameters for method call is not correct");
 			return -1;
 		}
 	}

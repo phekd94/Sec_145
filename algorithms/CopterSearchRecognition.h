@@ -46,9 +46,6 @@ public:
 
 private:
 
-	// Preface in debug message
-	static const char* const PREF;
-
 	// Number of copters for recognition
 	uint32_t m_numCopters;
 

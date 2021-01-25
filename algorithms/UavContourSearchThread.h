@@ -50,9 +50,6 @@ public:
 
 private:
 
-	// Preface in debug message
-	constexpr static const char* const PREF {"[UavContourSearchThread]: "};
-
 	// Image for process
 	QImage m_image;
 
@@ -122,12 +119,12 @@ void UavContourSearchThread<ContourSearchClass>::process() noexcept
 	}
 	catch (std::system_error& obj)
 	{
-		PRINT_ERR(true, PREF, "Exception from mutex has been occured: %s", obj.what());
+		PRINT_ERR(true, "Exception from mutex has been occured: %s", obj.what());
 		return;
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR(true, PREF, "Exception from processContours() has been occured: %s",
+		PRINT_ERR(true, "Exception from processContours() has been occured: %s",
 		          obj.what());
 
 		// Unlock a mutex
@@ -176,7 +173,7 @@ bool UavContourSearchThread<ContourSearchClass>::setNewData(const QImage& image)
 	}
 	catch (std::system_error& obj)
 	{
-		PRINT_ERR(true, PREF, "Exception from mutex has been occured: %s", obj.what());
+		PRINT_ERR(true, "Exception from mutex has been occured: %s", obj.what());
 		return false;
 	}
 }

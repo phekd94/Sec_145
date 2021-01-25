@@ -63,9 +63,6 @@ public:
 
 private:
 
-	// Preface in debug message
-	constexpr static const char* PREF {"[DSrv_Hexapod_v2]: "};
-
 	// Motor id
 	uint8_t m_motor_id;
 
