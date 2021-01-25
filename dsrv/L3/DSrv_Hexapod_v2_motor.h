@@ -6,8 +6,8 @@
 DESCRITION: class for work with TTX080 series motor
 TODO:
  * wait the answer via watchdog timer
- * add CRC check in the dataParser() method
  * test for dataParser()
+ * without static vars in methods
 FIXME:
 DANGER:
 NOTE:

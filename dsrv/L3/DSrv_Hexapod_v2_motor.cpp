@@ -3,6 +3,7 @@
 
 #include <exception>  // std::exception class
 #include <utility>    // std::pair
+#include <cstring>    // std::memcpy
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -135,6 +136,8 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 	// For all type message
 	static std::pair<bool, uint8_t> id {false, 0};
 	static std::pair<bool, uint8_t> funcCode {false, 0};
+	static std::pair<bool, uint8_t> crc_l {false, 0};
+	static std::pair<bool, uint8_t> crc_h {false, 0};
 
 	// For read
 	static std::pair<bool, uint8_t> count {false, 0};
@@ -164,6 +167,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			count.first = false;
 			address_l.first = address_h.first = false;
 			regVal_l.first = regVal_h.first = false;
+			crc_l.first = crc_h.first = false;
 
 			// Set a remaining size
 			m_pktRemSize = m_numOfBytesReq;
@@ -287,11 +291,26 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 
 				PRINT_DBG(m_debug, PREF, "[+]: 0x%x", *data);
 			}
-			else
+			else if (false == crc_l.first)
 			{
-				// Check the CRC
+				crc_l.first = true;
+				crc_l.second = *data;
 
 				PRINT_DBG(m_debug, PREF, "[*]: 0x%x", *data);
+			}
+			else if (false == crc_h.first)
+			{
+				crc_h.first = true;
+				crc_h.second = *data;
+
+				PRINT_DBG(m_debug, PREF, "[*]: 0x%x", *data);
+			}
+			else
+			{
+				PRINT_ERR(true, PREF, "message format error; data = 0x%x", *data);
+				m_pktRemSize = 0;
+				updataParams();
+				continue;
 			}
 		}
 
@@ -316,17 +335,53 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				return -1;
 			}
 
+			// For CRC check
+			uint8_t *data_for_crc {nullptr};
+			uint16_t crc;
+
 			// Parse data
 			switch (funcCode.second)
 			{
 			    case write:
+				    // Check the CRC
+				    data_for_crc = new (std::nothrow) uint8_t[6];
+					  // 6 bits = id(1 bit) + func code(1 bit) + address(2 bits) + val(2 bits)
+					data_for_crc[0] = id.second;
+					data_for_crc[1] = funcCode.second;
+					data_for_crc[2] = address_h.second;
+					data_for_crc[3] = address_l.second;
+					data_for_crc[4] = regVal_h.second;
+					data_for_crc[5] = regVal_l.second;
+					crc = calcCRC(data_for_crc, 6);
+					if ((crc & 0xFF) != crc_l.second || (crc >> 8) != crc_h.second)
+					{
+						PRINT_ERR(true, PREF, "CRC is not correct");
+						return -1;
+					}
+
 				    PRINT_DBG(m_debug, PREF, "Write is complete");
 				    break;
+
 			    case read:
 				    // Check the data size of result
 				    if (size_res != count.second)
 					{
 						PRINT_ERR(true, PREF, "Data size is not match");
+						return -1;
+					}
+
+					// Check the CRC
+					data_for_crc = new (std::nothrow) uint8_t[size_res + 3];
+					  // 3 bits = id(1 bit) + func code(1 bit) + count(1 bit)
+					data_for_crc[0] = id.second;
+					data_for_crc[1] = funcCode.second;
+					data_for_crc[2] = count.second;
+					memcpy(data_for_crc + 3, data_res, size_res);
+					crc = calcCRC(data_for_crc, size_res + 3);
+					if ((crc & 0xFF) != crc_l.second || (crc >> 8) != crc_h.second)
+					{
+						PRINT_ERR(true, PREF, "CRC is not correct");
+						return -1;
 					}
 
 					// Swap the high and low bits in 16 bits data
@@ -341,6 +396,8 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 					         << *reinterpret_cast<int32_t*>(data_res) * 0.0000152587890625;
 				    break;
 			}
+
+			delete [] data_for_crc;
 		}
 
 		// Update a data pointer and a size
