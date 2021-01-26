@@ -25,6 +25,8 @@ Sec_145::Dsrv_Hexapod_v2 class
 #include <QObject>  // Q_OBJECT macros
 #include <cstdint>  // integer types
 #include <QTimer>   // QTimer class
+#include <tuple>    // std::tuple
+#include <utility>  // std::pair
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -60,6 +62,9 @@ public:
 	// Wtires single 16 bits register
 	Q_INVOKABLE int32_t writeSingleReg(const uint16_t address, const uint16_t val) noexcept;
 
+	// Moves to home position
+	Q_INVOKABLE int32_t home() noexcept;
+
 private:
 
 	// Motor id
@@ -70,6 +75,10 @@ private:
 	uint16_t m_address_req {0};
 	uint16_t m_val_req {0};
 	uint8_t m_numOfBytes_req {0};
+
+	// Message types
+	constexpr static const uint8_t read {0x03};
+	constexpr static const uint8_t write {0x06};
 
 	// For data parser
 	  // For all type message
@@ -88,8 +97,24 @@ private:
 	// Watchdog timer
 	QTimer m_watchdog;
 
+	// Move modes
+	enum class MODE {
+		NONE,
+		HOME
+	} m_mode {MODE::NONE};
+
+	// Registers addresses; rigisters(16 bits) counts; register value
+	std::tuple<const uint16_t, const uint8_t, int32_t> Home_Position1 {0x1772u, 2, 0};
+	std::tuple<const uint16_t, const uint8_t> IEG_MOTION {0x10DDu, 1};
+	std::tuple<const uint16_t, const uint8_t, int32_t> Pfeedback {0x017Au, 2, 0};
+
 	// Parser of the accepted data (override method)
 	int32_t dataParser(uint8_t* data, uint32_t size) noexcept override final;
+
+	// Controls of the move
+	int32_t moveControl(const uint8_t mode,
+	                    const uint8_t * const data,
+	                    const uint32_t size) noexcept;
 
 public slots: // They should not generate exeptions
 
@@ -100,6 +125,9 @@ signals:
 
 	// Signal for watchdog timer
 	void toWatchdog(uint32_t motor_id);
+
+	// Signal for complete the home move
+	void toHomeComplete(uint32_t motor_id);
 };
 
 //=================================================================================================

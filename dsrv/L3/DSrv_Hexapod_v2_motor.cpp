@@ -2,8 +2,8 @@
 #include "DSrv_Hexapod_v2_motor.h"
 
 #include <exception>  // std::exception class
-#include <utility>    // std::pair
 #include <cstring>    // std::memcpy
+#include <memory>     // std::unique_ptr
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -91,12 +91,10 @@ uint16_t DSrv_Hexapod_v2_motor::calcCRC(const uint8_t *data, uint8_t length) con
 int32_t DSrv_Hexapod_v2_motor::readHoldingRegs(const uint16_t address,
                                                const uint8_t count) noexcept
 {
-	const uint8_t funcCode {0x03};
-
 	// Data for request
 	uint8_t data[] {
 		m_motor_id,
-		funcCode, // function code
+		read, // function code
 		static_cast<uint8_t>(address >> 8), static_cast<uint8_t>(address & 0xFF),
 		0x00, count, // number of 16 bit registers
 		0x00, 0x00  // for CRC
@@ -108,29 +106,33 @@ int32_t DSrv_Hexapod_v2_motor::readHoldingRegs(const uint16_t address,
 	data[sizeof(data) - 1] = crc >> 8;
 
 	// Set the request parameters
-	m_funcCode_req = funcCode;
+	m_funcCode_req = read;
+	m_address_req = address;
 
 	m_numOfBytes_req = 2 * count + 5;
 	// 5 bits = id(1 bit) + function code(1 bit) + byte count(1 bit) + CRC(2 bits)
 
 	// Send data
-	int32_t ret = sendData(data, sizeof(data), "", 0);
-
-	// Run a watchdog timer
-	m_watchdog.start(500);
-
-	return ret;
+	if (sendData(data, sizeof(data), "", 0) != 0)
+	{
+		PRINT_ERR(true, "sendData()");
+		return -1;
+	}
+	else
+	{
+		// Run a watchdog timer
+		m_watchdog.start(500);
+		return 0;
+	}
 }
 
 //-------------------------------------------------------------------------------------------------
 int32_t DSrv_Hexapod_v2_motor::writeSingleReg(const uint16_t address, const uint16_t val) noexcept
 {
-	const uint8_t funcCode {0x06};
-
 	// Data for request
 	uint8_t data[] {
 		m_motor_id,
-		funcCode, // function code
+		write, // function code
 		static_cast<uint8_t>(address >> 8), static_cast<uint8_t>(address & 0xFF),
 		static_cast<uint8_t>(val >> 8), static_cast<uint8_t>(val & 0xFF),
 		0x00, 0x00  // for CRC
@@ -142,7 +144,7 @@ int32_t DSrv_Hexapod_v2_motor::writeSingleReg(const uint16_t address, const uint
 	data[sizeof(data) - 1] = crc >> 8;
 
 	// Set the request parameters
-	m_funcCode_req = funcCode;
+	m_funcCode_req = write;
 	m_address_req = address;
 	m_val_req = val;
 
@@ -150,12 +152,27 @@ int32_t DSrv_Hexapod_v2_motor::writeSingleReg(const uint16_t address, const uint
 	// 8 bits = id(1 bit) + function code(1 bit) + address(2 bits) + value(2 bits) + CRC(2 bits)
 
 	// Send data
-	int32_t ret = sendData(data, sizeof(data), "", 0);
+	if (sendData(data, sizeof(data), "", 0) != 0)
+	{
+		PRINT_ERR(true, "sendData()");
+		return -1;
+	}
+	else
+	{
+		// Run a watchdog timer
+		m_watchdog.start(500);
+		return 0;
+	}
+}
 
-	// Run a watchdog timer
-	m_watchdog.start(500);
+//-------------------------------------------------------------------------------------------------
+int32_t DSrv_Hexapod_v2_motor::home() noexcept
+{
+	// Set a HOME mode
+	m_mode = MODE::HOME;
 
-	return ret;
+	// Read a Home_Position1 register
+	return readHoldingRegs(std::get<0>(Home_Position1), std::get<1>(Home_Position1));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -165,11 +182,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 	bool add {true};
 
 	// Lambda function for update paremeters
-	auto updataParams = [&data, &size](){++data; --size;};
-
-	// Message type
-	const uint8_t read {0x03};
-	const uint8_t write {0x06};
+	auto updateParams = [&data, &size](){++data; --size;};
 
 	// Stop the watchdog timer
 	m_watchdog.stop();
@@ -209,7 +222,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			{
 				PRINT_ERR(true, "Motor id is not correct");
 				m_pktRemSize = 0;
-				updataParams();
+				updateParams();
 				continue;
 			}
 		}
@@ -230,7 +243,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				{
 					PRINT_ERR(true, "Function code is not correct");
 					m_pktRemSize = 0;
-					updataParams();
+					updateParams();
 					continue;
 				}
 			}
@@ -247,7 +260,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				{
 					PRINT_ERR(true, "Count of bytes more than 20");
 					m_pktRemSize = 0;
-					updataParams();
+					updateParams();
 					continue;
 				}
 			}
@@ -273,7 +286,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				{
 					PRINT_ERR(true, "Address is not correct");
 					m_pktRemSize = 0;
-					updataParams();
+					updateParams();
 					continue;
 				}
 			}
@@ -297,7 +310,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				{
 					PRINT_ERR(true, "Register value is not correct");
 					m_pktRemSize = 0;
-					updataParams();
+					updateParams();
 					continue;
 				}
 			}
@@ -305,19 +318,20 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			{
 				PRINT_ERR(true, "Write response is not correct");
 				m_pktRemSize = 0;
-				updataParams();
+				updateParams();
 				continue;
 			}
 			else if (read == m_funcCode_pars.second && m_pktRemSize > 2)
 			{
+				PRINT_DBG(m_debug, "[+]: 0x%x", *data);
+
 				// Set data for read type message
 				if (DSrv_Storage::setData(data, 1, add) != 0)
 				{
 					PRINT_ERR(true, "DSrv_Storage::setData()");
+					m_pktRemSize = 0;
 					return -1;
 				}
-
-				PRINT_DBG(m_debug, "[+]: 0x%x", *data);
 			}
 			else if (false == m_crc_l_pars.first)
 			{
@@ -337,11 +351,10 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			{
 				PRINT_ERR(true, "Message format error; [-]: 0x%x", *data);
 				m_pktRemSize = 0;
-				updataParams();
+				updateParams();
 				continue;
 			}
 		}
-
 
 		// Update a m_pktRemSize
 		--m_pktRemSize;
@@ -363,53 +376,74 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				return -1;
 			}
 
-			// For CRC check
-			uint8_t *data_for_crc {nullptr};
-			uint16_t crc;
-
 			// Parse data
 			switch (m_funcCode_pars.second)
 			{
 			    case write:
+			    {
 				    // Check the CRC
-				    data_for_crc = new (std::nothrow) uint8_t[6];
+				    uint16_t crc;
+					std::unique_ptr<uint8_t[]> data_for_crc(new (std::nothrow) uint8_t[6]);
 					  // 6 bits = id(1 bit) + func code(1 bit) + address(2 bits) + val(2 bits)
+					if (nullptr == data_for_crc)
+					{
+						PRINT_ERR(true, "Can not allocate a memory for check a CRC");
+						return -1;
+					}
 					data_for_crc[0] = m_motor_id_pars.second;
 					data_for_crc[1] = m_funcCode_pars.second;
 					data_for_crc[2] = m_address_h_pars.second;
 					data_for_crc[3] = m_address_l_pars.second;
 					data_for_crc[4] = m_val_h_pars.second;
 					data_for_crc[5] = m_val_l_pars.second;
-					crc = calcCRC(data_for_crc, 6);
+					crc = calcCRC(data_for_crc.get(), 6);
 					if ((crc & 0xFF) != m_crc_l_pars.second || (crc >> 8) != m_crc_h_pars.second)
 					{
 						PRINT_ERR(true, "CRC is not correct");
-						return -1;
+						updateParams();
+						continue;
 					}
 
-					PRINT_DBG(m_debug, "Write is complete");
-				    break;
+					// Call a move control function
+					if (moveControl(write, data_res, size_res) != 0)
+					{
+						m_mode = MODE::NONE;
+						updateParams();
+						continue;
+					}
 
+				    break;
+			    }
 			    case read:
+			    {
 				    // Check the data size of result
 				    if (size_res != m_count_pars.second)
 					{
 						PRINT_ERR(true, "Data size is not match");
-						return -1;
+						updateParams();
+						continue;
 					}
 
 					// Check the CRC
-					data_for_crc = new (std::nothrow) uint8_t[size_res + 3];
+					uint16_t crc;
+					std::unique_ptr<uint8_t[]> data_for_crc(
+					            new (std::nothrow) uint8_t[size_res + 3]);
 					  // 3 bits = id(1 bit) + func code(1 bit) + count(1 bit)
+					if (nullptr == data_for_crc)
+					{
+						PRINT_ERR(true, "Can not allocate a memory for check a CRC");
+						return -1;
+					}
 					data_for_crc[0] = m_motor_id_pars.second;
 					data_for_crc[1] = m_funcCode_pars.second;
 					data_for_crc[2] = m_count_pars.second;
-					memcpy(data_for_crc + 3, data_res, size_res);
-					crc = calcCRC(data_for_crc, size_res + 3);
+					memcpy(data_for_crc.get() + 3, data_res, size_res);
+					crc = calcCRC(data_for_crc.get(), size_res + 3);
 					if ((crc & 0xFF) != m_crc_l_pars.second || (crc >> 8) != m_crc_h_pars.second)
 					{
 						PRINT_ERR(true, "CRC is not correct");
-						return -1;
+						updateParams();
+						continue;
 					}
 
 					// Swap the high and low bits in 16 bits data
@@ -418,18 +452,141 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 						std::swap(data_res[i], data_res[i + 1]);
 					}
 
-					PRINT_DBG(m_debug, "Read is complete");
+					// Call a move control function
+					if (moveControl(read, data_res, size_res) != 0)
+					{
+						m_mode = MODE::NONE;
+						updateParams();
+						continue;
+					}
 
-					qDebug() << "res" << *reinterpret_cast<int32_t*>(data_res)
-					         << *reinterpret_cast<int32_t*>(data_res) * 0.0000152587890625;
 				    break;
+			    }
+			    default:
+				    PRINT_ERR(true, "Unknown function code (%u)",
+					          static_cast<unsigned int>(m_funcCode_pars.second));
+					updateParams();
+				    continue;
 			}
-
-			delete [] data_for_crc;
 		}
 
 		// Update a data pointer and a size
-		updataParams();
+		updateParams();
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
+                                           const uint8_t * const data,
+                                           const uint32_t) noexcept
+{
+	switch (mode)
+	{
+	    case write:
+	    {
+		    if (MODE::HOME == m_mode)
+			{
+				if (std::get<0>(IEG_MOTION) == m_address_req && (1u << 8) == m_val_req)
+				{
+					PRINT_DBG(m_debug, "Write(IEG_MOTION, HOME) is got");
+
+					if (writeSingleReg(std::get<0>(IEG_MOTION), 0) != 0)
+					{
+						PRINT_ERR(true, "writeSingleReg(IEG_MOTION, 0)");
+						return -1;
+					}
+				}
+				else if (std::get<0>(IEG_MOTION) == m_address_req && 0 == m_val_req)
+				{
+					PRINT_DBG(m_debug, "Write(IEG_MOTION, 0) is got");
+
+					if (readHoldingRegs(std::get<0>(Pfeedback), std::get<1>(Pfeedback)) != 0)
+					{
+						PRINT_ERR(true, "readHoldingRegs(Pfeedback)");
+						return -1;
+					}
+				}
+				else
+				{
+					PRINT_ERR(true, "Unknown write answer for MODE::HOME mode");
+					return -1;
+				}
+			}
+			else if (MODE::NONE == m_mode)
+			{
+				PRINT_DBG(m_debug, "Write is complete");
+			}
+			else
+			{
+				PRINT_ERR(true, "Unknown write MODE:: mode");
+				return -1;
+			}
+
+			break;
+	    }
+	    case read:
+	    {
+		    if (MODE::HOME == m_mode)
+			{
+				if (std::get<0>(Home_Position1) == m_address_req)
+				{
+					std::get<2>(Home_Position1) = *reinterpret_cast<const int32_t*>(data);
+					PRINT_DBG(m_debug, "Read(Home_Position1) is got (= %ld)",
+					          static_cast<long>(std::get<2>(Home_Position1)));
+
+					if (writeSingleReg(std::get<0>(IEG_MOTION), 1u << 8) != 0)
+					{
+						PRINT_ERR(true, "writeSingleReg(IEG_MOTION, HOME)");
+						return -1;
+					}
+				}
+				else if (std::get<0>(Pfeedback) == m_address_req)
+				{
+					std::get<2>(Pfeedback) = *reinterpret_cast<const int32_t*>(data);
+					PRINT_DBG(m_debug, "Read(Pfeedback) is got (= %ld)",
+					          static_cast<long>(std::get<2>(Pfeedback)));
+
+					// Check the difference between Home_Position1 and Pfeedback
+					if (std::abs(std::get<2>(Home_Position1) - std::get<2>(Pfeedback)) < 50)
+					{
+						m_mode = MODE::NONE;
+						PRINT_DBG(m_debug, "HOME is completed");
+						emit toHomeComplete(m_motor_id);
+					}
+					else
+					{
+						if (readHoldingRegs(std::get<0>(Pfeedback), std::get<1>(Pfeedback)) != 0)
+						{
+							PRINT_ERR(true, "readHoldingRegs(Pfeedback)");
+							return -1;
+						}
+					}
+				}
+				else
+				{
+					PRINT_ERR(true, "Unknown read answer for MODE::HOME mode");
+					return -1;
+				}
+			}
+			else if (MODE::NONE == m_mode)
+			{
+				PRINT_DBG(m_debug, "Read is complete");
+			}
+			else
+			{
+				PRINT_ERR(true, "Unknown read MODE:: mode");
+				return -1;
+			}
+
+			break;
+	    }
+	    default:
+		    PRINT_ERR(true, "Unknown mode(%u) function parameter",
+			          static_cast<unsigned int>(mode));
+		    return -1;
+		    break;
 	}
 
 	return 0;
