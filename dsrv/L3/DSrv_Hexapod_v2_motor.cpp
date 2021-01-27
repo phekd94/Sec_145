@@ -654,6 +654,8 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 //-------------------------------------------------------------------------------------------------
 void DSrv_Hexapod_v2_motor::onWatchdog() noexcept
 {
+	m_mode = MODE::NONE;
+
 	PRINT_ERR(true, "Watchdog timer is triggered");
 
 	emit toWatchdog(m_motor_id);

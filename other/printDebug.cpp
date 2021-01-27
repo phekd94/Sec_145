@@ -55,6 +55,8 @@ void Sec_145::printDebug(const char* func,
 	char buf[BUF_SIZE], userMsg[BUF_SIZE], out[BUF_SIZE + BUF_SIZE];
 	va_list argList;
 	int ret;
+
+	// printDebug() for all threads
 	static std::mutex mutex;
 
 	if (nullptr == func || nullptr == format)
