@@ -65,6 +65,9 @@ public:
 	// Moves to home position
 	Q_INVOKABLE int32_t home() noexcept;
 
+	// Moves to the position
+	Q_INVOKABLE int32_t moveInPos() noexcept;
+
 private:
 
 	// Motor id
@@ -100,14 +103,17 @@ private:
 	// Move modes
 	enum class MODE {
 		NONE,
-		HOME
+		HOME,
+		MOVE_IN_POS
 	} m_mode {MODE::NONE};
 
 	// Registers addresses; rigisters(16 bits) counts; register value
 	std::tuple<const uint16_t, const uint8_t, int32_t> Home_Position1 {0x1772u, 2, 0};
 	std::tuple<const uint16_t, const uint8_t> IEG_MOTION {0x10DDu, 1};
 	std::tuple<const uint16_t, const uint8_t, int32_t> Pfeedback {0x017Au, 2, 0};
-	std::tuple<const uint16_t, const uint8_t, uint8_t> OEG_MOTION {0x0069u, 1, 0};
+	std::tuple<const uint16_t, const uint8_t, uint16_t> OEG_MOTION {0x0069u, 1, 0};
+	std::tuple<const uint16_t, const uint8_t> IEG_MOVE_EDGE {0x10DFu, 1};
+	std::tuple<const uint16_t, const uint8_t, uint16_t> OEG_MOVE_IN_POS {0x006Cu, 1, 0};
 
 	// Parser of the accepted data (override method)
 	int32_t dataParser(uint8_t* data, uint32_t size) noexcept override final;
@@ -129,6 +135,9 @@ signals:
 
 	// Signal for complete the home move
 	void toHomeComplete(uint32_t motor_id);
+
+	// Signal for complete the move in position
+	void toMoveInPosComplete(uint32_t motor_id);
 };
 
 //=================================================================================================
