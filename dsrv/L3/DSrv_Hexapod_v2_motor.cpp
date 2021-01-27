@@ -502,9 +502,9 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 				{
 					PRINT_DBG(m_debug, "Write(IEG_MOTION, 0) is got");
 
-					if (readHoldingRegs(std::get<0>(Pfeedback), std::get<1>(Pfeedback)) != 0)
+					if (readHoldingRegs(std::get<0>(OEG_MOTION), std::get<1>(OEG_MOTION)) != 0)
 					{
-						PRINT_ERR(true, "readHoldingRegs(Pfeedback)");
+						PRINT_ERR(true, "readHoldingRegs(OEG_MOTION)");
 						return -1;
 					}
 				}
@@ -542,14 +542,14 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 						return -1;
 					}
 				}
-				else if (std::get<0>(Pfeedback) == m_address_req)
+				else if (std::get<0>(OEG_MOTION) == m_address_req)
 				{
-					std::get<2>(Pfeedback) = *reinterpret_cast<const int32_t*>(data);
-					PRINT_DBG(m_debug, "Read(Pfeedback) is got (= %ld)",
-					          static_cast<long>(std::get<2>(Pfeedback)));
+					std::get<2>(OEG_MOTION) = *data;
+					PRINT_DBG(m_debug, "Read(OEG_MOTION) is got (= 0x%x)",
+					          static_cast<unsigned int>(std::get<2>(OEG_MOTION)));
 
-					// Check the difference between Home_Position1 and Pfeedback
-					if (std::abs(std::get<2>(Home_Position1) - std::get<2>(Pfeedback)) < 50)
+					// Check the HMV (Homing Active) flag
+					if (!(std::get<2>(OEG_MOTION) & (1u << 5)))
 					{
 						m_mode = MODE::NONE;
 						PRINT_DBG(m_debug, "HOME is completed");
@@ -557,9 +557,9 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 					}
 					else
 					{
-						if (readHoldingRegs(std::get<0>(Pfeedback), std::get<1>(Pfeedback)) != 0)
+						if (readHoldingRegs(std::get<0>(OEG_MOTION), std::get<1>(OEG_MOTION)) != 0)
 						{
-							PRINT_ERR(true, "readHoldingRegs(Pfeedback)");
+							PRINT_ERR(true, "readHoldingRegs(OEG_MOTION)");
 							return -1;
 						}
 					}
