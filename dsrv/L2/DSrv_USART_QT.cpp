@@ -138,7 +138,7 @@ int32_t DSrv_USART_QT::start(const QString& name,
 		return -1;
 	}
 
-	PRINT_DBG(m_debug, "Serial port has created and opened");
+	PRINT_DBG(m_debug, "Serial port %s has created and opened", name.toStdString().c_str());
 
 	return 0;
 }
