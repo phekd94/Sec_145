@@ -179,11 +179,12 @@ int32_t DSrv_USART_QT::stop(const bool lock_mutex) noexcept
 			PRINT_ERR(true, "Exception from Qt functions has been occured: %s", obj.what());
 		}
 
+		PRINT_DBG(m_debug, "Serial port %s has deleted",
+		          m_serialPort->portName().toStdString().c_str());
+
 		// Delete (with close) a QSerialPort class object
 		delete m_serialPort;
 		m_serialPort = nullptr;
-
-		PRINT_DBG(m_debug, "Serial port has deleted");
 	}
 	else
 	{

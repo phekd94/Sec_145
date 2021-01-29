@@ -68,6 +68,10 @@ public:
 	// Moves to the position
 	Q_INVOKABLE int32_t moveInPos() noexcept;
 
+	// Run and stop the oscillation
+	Q_INVOKABLE int32_t runOsc() noexcept;
+	Q_INVOKABLE int32_t stopOsc() noexcept;
+
 private:
 
 	// Motor id
@@ -104,7 +108,8 @@ private:
 	enum class MODE {
 		NONE,
 		HOME,
-		MOVE_IN_POS
+		MOVE_IN_POS,
+		OSC
 	} m_mode {MODE::NONE};
 
 	// Registers addresses; rigisters(16 bits) counts; register value
@@ -114,6 +119,7 @@ private:
 	std::tuple<const uint16_t, const uint8_t, uint16_t> OEG_MOTION {0x0069u, 1, 0};
 	std::tuple<const uint16_t, const uint8_t> IEG_MOVE_EDGE {0x10DFu, 1};
 	std::tuple<const uint16_t, const uint8_t, uint16_t> OEG_MOVE_IN_POS {0x006Cu, 1, 0};
+	std::tuple<const uint16_t, const uint8_t> IEG_MOVE_LEVEL {0x10DEu, 1};
 
 	// Parser of the accepted data (override method)
 	int32_t dataParser(uint8_t* data, uint32_t size) noexcept override final;

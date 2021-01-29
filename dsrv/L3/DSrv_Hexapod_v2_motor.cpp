@@ -186,6 +186,26 @@ int32_t DSrv_Hexapod_v2_motor::moveInPos() noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t DSrv_Hexapod_v2_motor::runOsc() noexcept
+{
+	// Set a HOME mode
+	m_mode = MODE::OSC;
+
+	// Write L1 bit in IEG_MOVE_LEVEL register
+	return writeSingleReg(std::get<0>(IEG_MOVE_LEVEL), 1u << 1);
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t DSrv_Hexapod_v2_motor::stopOsc() noexcept
+{
+	// Set a HOME mode
+	m_mode = MODE::OSC;
+
+	// Clear L1 bit in IEG_MOVE_LEVEL register
+	return writeSingleReg(std::get<0>(IEG_MOVE_LEVEL), 0);
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 {
 	// Identificator for add data to last record in storage class
@@ -553,6 +573,17 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 					return -1;
 				}
 			}
+			else if (MODE::OSC == m_mode)
+			{
+				if (std::get<0>(IEG_MOVE_LEVEL) == m_address_req && (1u << 1) == m_val_req)
+				{
+					PRINT_DBG(m_debug, "Write(IEG_MOVE_LEVEL, L1) is got");
+				}
+				else if (std::get<0>(IEG_MOVE_LEVEL) == m_address_req && 0 == m_val_req)
+				{
+					PRINT_DBG(m_debug, "Write(IEG_MOVE_LEVEL, 0) is got");
+				}
+			}
 			else if (MODE::NONE == m_mode)
 			{
 				PRINT_DBG(m_debug, "Write is complete");
@@ -628,6 +659,10 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 					PRINT_ERR(true, "Unknown read answer for MODE::MOVE_IN_POS mode");
 					return -1;
 				}
+			}
+			else if (MODE::OSC == m_mode)
+			{
+				PRINT_ERR(m_debug, "Read for MODE::OSC is not supported");
 			}
 			else if (MODE::NONE == m_mode)
 			{
