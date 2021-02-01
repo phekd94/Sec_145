@@ -41,6 +41,12 @@ class DSrv_Hexapod_v2_motor : public DSrv_USART_QT
 
 public:
 
+	// Oscillation direction
+	enum class OSC_DIR : uint8_t {
+		UP = 1,
+		DOWN
+	};
+
 	DSrv_Hexapod_v2_motor(uint8_t motor_id);
 	virtual ~DSrv_Hexapod_v2_motor();
 
@@ -68,8 +74,8 @@ public:
 	// Moves to the position
 	Q_INVOKABLE int32_t moveInPos() noexcept;
 
-	// Run and stop the oscillation
-	Q_INVOKABLE int32_t runOsc() noexcept;
+	// Start and stop the oscillation
+	Q_INVOKABLE int32_t startOsc(OSC_DIR dir) noexcept;
 	Q_INVOKABLE int32_t stopOsc() noexcept;
 
 private:
@@ -112,6 +118,9 @@ private:
 		OSC
 	} m_mode {MODE::NONE};
 
+	// Oscillation direction
+	OSC_DIR m_osc_dir {OSC_DIR::UP};
+
 	// Registers addresses; rigisters(16 bits) counts; register value
 	std::tuple<const uint16_t, const uint8_t, int32_t> Home_Position1 {0x1772u, 2, 0};
 	std::tuple<const uint16_t, const uint8_t> IEG_MOTION {0x10DDu, 1};
@@ -144,6 +153,9 @@ signals:
 
 	// Signal for complete the move in position
 	void toMoveInPosComplete(uint32_t motor_id);
+
+	// Signal for complete the move in position in oscillation mode
+	void toMoveInPosCompleteOsc(uint32_t motor_id);
 };
 
 //=================================================================================================

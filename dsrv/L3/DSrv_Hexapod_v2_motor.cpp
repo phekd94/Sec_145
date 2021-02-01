@@ -178,7 +178,7 @@ int32_t DSrv_Hexapod_v2_motor::home() noexcept
 //-------------------------------------------------------------------------------------------------
 int32_t DSrv_Hexapod_v2_motor::moveInPos() noexcept
 {
-	// Set a HOME mode
+	// Set a MOVE_IN_POS mode
 	m_mode = MODE::MOVE_IN_POS;
 
 	// Write E0 bit in IEG_MOVE_EDGE register
@@ -186,23 +186,36 @@ int32_t DSrv_Hexapod_v2_motor::moveInPos() noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Hexapod_v2_motor::runOsc() noexcept
+int32_t DSrv_Hexapod_v2_motor::startOsc(OSC_DIR dir) noexcept
 {
-	// Set a HOME mode
+	// Set an OSC mode
 	m_mode = MODE::OSC;
 
-	// Write L1 bit in IEG_MOVE_LEVEL register
-	return writeSingleReg(std::get<0>(IEG_MOVE_LEVEL), 1u << 1);
+	// Set oscillation direction
+	if (OSC_DIR::UP == dir)
+	{
+		m_osc_dir = OSC_DIR::UP;
+	}
+	else if (OSC_DIR::DOWN == dir)
+	{
+		m_osc_dir = OSC_DIR::DOWN;
+	}
+	else
+	{
+		PRINT_ERR(true, "Unknown direction of the oscillation");
+		return -1;
+	}
+
+	// Write Lx bit in IEG_MOVE_EDGE register
+	return writeSingleReg(std::get<0>(IEG_MOVE_EDGE), 1u << static_cast<uint8_t>(dir));
 }
 
 //-------------------------------------------------------------------------------------------------
 int32_t DSrv_Hexapod_v2_motor::stopOsc() noexcept
 {
-	// Set a HOME mode
-	m_mode = MODE::OSC;
+	m_mode = MODE::NONE;
 
-	// Clear L1 bit in IEG_MOVE_LEVEL register
-	return writeSingleReg(std::get<0>(IEG_MOVE_LEVEL), 0);
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -575,13 +588,44 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 			}
 			else if (MODE::OSC == m_mode)
 			{
-				if (std::get<0>(IEG_MOVE_LEVEL) == m_address_req && (1u << 1) == m_val_req)
+				if (   std::get<0>(IEG_MOVE_EDGE) == m_address_req
+				    && (1u << static_cast<uint8_t>(OSC_DIR::UP)) == m_val_req)
 				{
-					PRINT_DBG(m_debug, "Write(IEG_MOVE_LEVEL, L1) is got");
+					PRINT_DBG(m_debug, "Write(IEG_MOVE_EDGE, OSC_DIR::UP) is got");
+
+					if (writeSingleReg(std::get<0>(IEG_MOVE_EDGE), 0) != 0)
+					{
+						PRINT_ERR(true, "writeSingleReg(IEG_MOVE_EDGE, 0)");
+						return -1;
+					}
 				}
-				else if (std::get<0>(IEG_MOVE_LEVEL) == m_address_req && 0 == m_val_req)
+				else if (   std::get<0>(IEG_MOVE_EDGE) == m_address_req
+				         && (1u << static_cast<uint8_t>(OSC_DIR::DOWN)) == m_val_req)
 				{
-					PRINT_DBG(m_debug, "Write(IEG_MOVE_LEVEL, 0) is got");
+					PRINT_DBG(m_debug, "Write(IEG_MOVE_EDGE, OSC_DIR::DOWN) is got");
+
+					if (writeSingleReg(std::get<0>(IEG_MOVE_EDGE), 0) != 0)
+					{
+						PRINT_ERR(true, "writeSingleReg(IEG_MOVE_EDGE, 0)");
+						return -1;
+					}
+				}
+				else if (   std::get<0>(IEG_MOVE_EDGE) == m_address_req
+				         && 0 == m_val_req)
+				{
+					PRINT_DBG(m_debug, "Write(IEG_MOVE_EDGE, 0) is got");
+
+					if (readHoldingRegs(std::get<0>(OEG_MOVE_IN_POS),
+					                    std::get<1>(OEG_MOVE_IN_POS)) != 0)
+					{
+						PRINT_ERR(true, "readHoldingRegs(OEG_MOVE_IN_POS)");
+						return -1;
+					}
+				}
+				else
+				{
+					PRINT_ERR(true, "Unknown write answer for MODE::IEG_MOVE_EDGE mode");
+					return -1;
 				}
 			}
 			else if (MODE::NONE == m_mode)
@@ -662,7 +706,32 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 			}
 			else if (MODE::OSC == m_mode)
 			{
-				PRINT_ERR(m_debug, "Read for MODE::OSC is not supported");
+				if (std::get<0>(OEG_MOVE_IN_POS) == m_address_req)
+				{
+					std::get<2>(OEG_MOVE_IN_POS) = *reinterpret_cast<const uint16_t *>(data);
+					PRINT_DBG(m_debug, "Read(OEG_MOVE_IN_POS) is got (= 0x%x)",
+					          static_cast<unsigned int>(std::get<2>(OEG_MOVE_IN_POS)));
+
+					// Check the M1 or M2 bit
+					if (std::get<2>(OEG_MOVE_IN_POS) & (1u << static_cast<uint8_t>(m_osc_dir)))
+					{
+						PRINT_DBG(m_debug, "MOVE_IN_POS in oscillation is completed");
+						emit toMoveInPosCompleteOsc(m_motor_id);
+					}
+					else
+					{
+						if (readHoldingRegs(std::get<0>(OEG_MOVE_IN_POS),
+						                    std::get<1>(OEG_MOVE_IN_POS)) != 0)
+						{
+							PRINT_ERR(true, "readHoldingRegs(OEG_MOVE_IN_POS)");
+							return -1;
+						}
+					}
+				}
+				else
+				{
+					PRINT_ERR(m_debug, "Unknown read answer for MODE::OSC mode");
+				}
 			}
 			else if (MODE::NONE == m_mode)
 			{
