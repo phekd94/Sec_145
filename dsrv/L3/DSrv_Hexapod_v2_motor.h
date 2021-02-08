@@ -6,6 +6,7 @@
 DESCRITION: class for work with TTX080 series motor
 TODO:
  * test for dataParser()
+ * pair or kortej for data and size and success(bool)
 FIXME:
 DANGER:
 NOTE:

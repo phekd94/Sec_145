@@ -369,7 +369,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 				PRINT_DBG(m_debug, "[+]: 0x%x", *data);
 
 				// Set data for read type message
-				if (DSrv_Storage::setData(data, 1, add) != 0)
+				if (DSrv_Storage::setData(DSrv_Storage::Data_set(data, 1), add) != 0)
 				{
 					PRINT_ERR(true, "DSrv_Storage::setData()");
 					m_pktRemSize = 0;
@@ -413,7 +413,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			// Get complete data
 			uint8_t* data_res;
 			uint32_t size_res;
-			if (DSrv_Storage::getData(&data_res, &size_res) != 0)
+			if (DSrv_Storage::getData(DSrv_Storage::Data_get(&data_res, &size_res)) != 0)
 			{
 				PRINT_ERR(true, "DSrv_Storage::getData() != 0");
 				return -1;

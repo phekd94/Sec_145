@@ -7,6 +7,7 @@ DESCRITION: pure virtual data data server class
 TODO:
  * sendData(..., address, port, and other parameters) for the all protocols
  * move constructor: is need a mutex?
+ * pair or kortej for data and size and success(bool)
 FIXME:
 DANGER:
 NOTE:

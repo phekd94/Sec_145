@@ -7,6 +7,7 @@ DESCRITION: class implements work with USART
 TODO:
  * mutex test
  * QObject in move constructor
+ * pair or kortej for data and size and success(bool)
 FIXME:
 DANGER:
 NOTE:

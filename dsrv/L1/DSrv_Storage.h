@@ -25,6 +25,7 @@ Sec_145::DSrv_Storage class
 //-------------------------------------------------------------------------------------------------
 #include <cstdint>  // integer types
 #include <mutex>    // std::mutex, std::lock_guard
+#include <utility>  // std::pair
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -36,6 +37,14 @@ class DSrv_Storage
 {
 	friend class DSrv_Storage_test;
 
+public:
+
+	// Data type for set method (pointer + size)
+	using Data_set = const std::pair<const uint8_t * const, const uint32_t>;
+
+	// Data type for get method (pointer + size)
+	using Data_get = const std::pair<uint8_t ** const, uint32_t * const>;
+
 protected:
 
 	DSrv_Storage();
@@ -43,19 +52,18 @@ protected:
 
 	// Without copy constructor and override an assignment operator
 	// (due to class members as pointer are presented)
-	DSrv_Storage(DSrv_Storage&) = delete;
-	DSrv_Storage& operator=(const DSrv_Storage&) = delete;
+	DSrv_Storage(DSrv_Storage &) = delete;
+	DSrv_Storage & operator=(const DSrv_Storage &) = delete;
 
 	// Move constructor
 	DSrv_Storage(DSrv_Storage && obj);
 
 	// Sets data in the storage
-	int32_t setData(const uint8_t* const data, const uint32_t size,
-	                const bool add) noexcept;
+	int32_t setData(Data_set data, const bool add) noexcept;
 
 	// Gets complete data from the storage
 	// (probably the method will be called from another thread)
-	int32_t getData(uint8_t** const data, uint32_t* const size) noexcept;
+	int32_t getData(Data_get data) noexcept;
 
 	// Deletes all data in the storage
 	int32_t clearData() noexcept;
@@ -78,8 +86,8 @@ protected:
 private:
 
 	// Pointers to the data
-	uint8_t* m_completeData {nullptr};
-	uint8_t* m_fillingData {nullptr};
+	uint8_t *m_completeData {nullptr};
+	uint8_t *m_fillingData {nullptr};
 
 	// Index in the array of filling data
 	uint32_t m_fillingIndex {0};
@@ -101,10 +109,10 @@ class DSrv_Storage_test
 public:
 
 	// Tests methods which utilize pointers
-	static int32_t pNull(DSrv_Storage& obj) noexcept;
+	static int32_t pNull(DSrv_Storage & obj) noexcept;
 
 	// Tests a work with data
-	static int32_t data(DSrv_Storage& obj) noexcept;
+	static int32_t data(DSrv_Storage & obj) noexcept;
 
 	// Tests a move constructor
 	static int32_t move() noexcept;
@@ -115,9 +123,7 @@ public:
 private:
 
 	// Only via public static methods
-	DSrv_Storage_test()
-	{
-	}
+	DSrv_Storage_test() = default;
 };
 
 //-------------------------------------------------------------------------------------------------
