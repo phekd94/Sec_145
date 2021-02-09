@@ -5,7 +5,6 @@
 /*
 DESCRITION: pure virtual data data server class
 TODO:
- * sendData(..., address, port, and other parameters) for the all protocols
  * move constructor: is need a mutex?
  * pair or kortej for data and size and success(bool)
 FIXME:
@@ -25,6 +24,7 @@ Sec_145::DSrv class
 //-------------------------------------------------------------------------------------------------
 #include "DSrv_Storage.h"           // DSrv_Storage class (for inheritance)
 #include <cstdint>                  // integer types
+#include <utility>                  // std::pair
 #include "../other/DSrv_Defines.h"  // MAX_DATA_SIZE
 
 //-------------------------------------------------------------------------------------------------
@@ -38,6 +38,12 @@ class DSrv : protected DSrv_Storage
 	friend class DSrv_test;
 
 public:
+
+	// Data type for send data method (pointer + size)
+	using Data_send = const std::pair<const uint8_t * const, const uint32_t>;
+
+	// Data type for data parser method (pointer + size)
+	using Data_parser = const std::pair<const uint8_t * const, const uint32_t>;
 
 	// Enable/disable a debug output via printDebug.cpp/.h
 	// (probably the method will be called from another thread)
@@ -64,29 +70,23 @@ protected:
 	// Sends data (pure virtual function)
 	// (protocol class should realize this function)
 	// (probably the method will be called from another thread)
-	virtual int32_t sendData(const uint8_t* const data,
-	                         const uint32_t size,
-	                         const char* const address,
-	                         const uint16_t port) noexcept = 0;
+	virtual int32_t sendData(Data_send data) noexcept = 0;
 
 	// Parser of the accepted data (pure virtual function)
 	// (concrete class should realize this function)
-	virtual int32_t dataParser(uint8_t* data, uint32_t size) = 0;
+	virtual int32_t dataParser(uint8_t * data, uint32_t size) = 0; // Data_parser data
 };
 
 //=================================================================================================
 // Class for test a DSrv class (with override methods)
 class DSrv_for_test : public DSrv
 {
-	virtual int32_t sendData(const uint8_t* const,
-	                         const uint32_t,
-	                         const char* const,
-	                         const uint16_t) noexcept override final
+	virtual int32_t sendData(DSrv::Data_send) noexcept override final
 	{
 		return 0;
 	}
 
-	virtual int32_t dataParser(uint8_t*, uint32_t) override final
+	virtual int32_t dataParser(uint8_t *, uint32_t) override final
 	{
 		return 0;
 	}
@@ -99,7 +99,7 @@ class DSrv_test
 public:
 
 	// Tests a work with data
-	static int32_t data(DSrv_for_test& obj) noexcept;
+	static int32_t data(DSrv_for_test & obj) noexcept;
 
 	// Tests a move constructor
 	static int32_t move() noexcept;
@@ -110,9 +110,7 @@ public:
 private:
 
 	// Only via public static methods
-	DSrv_test()
-	{
-	}
+	DSrv_test() = default;
 };
 
 //-------------------------------------------------------------------------------------------------

@@ -110,6 +110,7 @@ private:
 
 	// Watchdog timer
 	QTimer m_watchdog;
+	uint32_t m_watchdog_val {500};
 
 	// Move modes
 	enum class MODE {

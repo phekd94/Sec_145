@@ -113,7 +113,7 @@ int32_t DSrv_Hexapod_v2_motor::readHoldingRegs(const uint16_t address,
 	// 5 bits = id(1 bit) + function code(1 bit) + byte count(1 bit) + CRC(2 bits)
 
 	// Send data
-	if (sendData(data, sizeof(data), "", 0) != 0)
+	if (sendData(DSrv::Data_send(data, static_cast<uint32_t>(sizeof(data)))) != 0)
 	{
 		PRINT_ERR(true, "sendData()");
 		return -1;
@@ -121,7 +121,7 @@ int32_t DSrv_Hexapod_v2_motor::readHoldingRegs(const uint16_t address,
 	else
 	{
 		// Run a watchdog timer
-		m_watchdog.start(500);
+		m_watchdog.start(m_watchdog_val);
 		return 0;
 	}
 }
@@ -152,7 +152,7 @@ int32_t DSrv_Hexapod_v2_motor::writeSingleReg(const uint16_t address, const uint
 	// 8 bits = id(1 bit) + function code(1 bit) + address(2 bits) + value(2 bits) + CRC(2 bits)
 
 	// Send data
-	if (sendData(data, sizeof(data), "", 0) != 0)
+	if (sendData(DSrv::Data_send(data, static_cast<uint32_t>(sizeof(data)))) != 0)
 	{
 		PRINT_ERR(true, "sendData()");
 		return -1;
@@ -160,7 +160,7 @@ int32_t DSrv_Hexapod_v2_motor::writeSingleReg(const uint16_t address, const uint
 	else
 	{
 		// Run a watchdog timer
-		m_watchdog.start(500);
+		m_watchdog.start(m_watchdog_val);
 		return 0;
 	}
 }

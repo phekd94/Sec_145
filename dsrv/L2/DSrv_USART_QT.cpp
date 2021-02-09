@@ -74,10 +74,6 @@ int32_t DSrv_USART_QT::start(const QString& name,
 
 	// Set a port name
 	m_serialPort->setPortName(name);
-	// "COM10" - Nucleo
-	// "COM11" - Discovery
-	// "COM13" - FT232
-	// "COM19" - Moxa
 
 	// Set a baud rate
 	if (m_serialPort->setBaudRate(baudRate) == false)
@@ -180,7 +176,7 @@ int32_t DSrv_USART_QT::stop(const bool lock_mutex) noexcept
 		}
 
 		PRINT_DBG(m_debug, "Serial port %s has deleted",
-		          m_serialPort->portName().toStdString().c_str());
+		                   m_serialPort->portName().toStdString().c_str());
 
 		// Delete (with close) a QSerialPort class object
 		delete m_serialPort;
@@ -230,15 +226,12 @@ DSrv_USART_QT::DSrv_USART_QT(DSrv_USART_QT && obj) : DSrv(std::move(obj))
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_USART_QT::sendData(const uint8_t* const data,
-                                const uint32_t size,
-                                const char* const,
-                                const uint16_t) noexcept
+int32_t DSrv_USART_QT::sendData(DSrv::Data_send data) noexcept
 {
 	// Check the incomming parameter
-	if (nullptr == data)
+	if (nullptr == data.first)
 	{
-		PRINT_ERR(true, "nullptr == data");
+		PRINT_ERR(true, "nullptr == data.first");
 		return -1;
 	}
 
@@ -263,12 +256,11 @@ int32_t DSrv_USART_QT::sendData(const uint8_t* const data,
 	qint64 sizeWrite;
 
 	try {
-		sizeWrite = m_serialPort->write(reinterpret_cast<const char*>(data), size);
+		sizeWrite = m_serialPort->write(reinterpret_cast<const char*>(data.first), data.second);
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR(true, "Exception from m_serialPort->write() has been occured: %s",
-		                      obj.what());
+		PRINT_ERR(true, "Exception from m_serialPort->write() has been occured: %s", obj.what());
 		return -1;
 	}
 
@@ -277,7 +269,7 @@ int32_t DSrv_USART_QT::sendData(const uint8_t* const data,
 		PRINT_ERR(true, "-1 == sizeWrite");
 		return -1;
 	}
-	else if (size != sizeWrite)
+	else if (data.second != sizeWrite)
 	{
 		PRINT_ERR(true, "size != sizeWrite");
 		return -1;
@@ -287,8 +279,8 @@ int32_t DSrv_USART_QT::sendData(const uint8_t* const data,
 	m_serialPort->flush();
 
 	PRINT_DBG(m_debug, "Data(0x%p) with size(%lu) has sent",
-	                         data,
-	                         static_cast<unsigned long>(size));
+	                   data.first,
+	                   static_cast<unsigned long>(data.second));
 
 	return 0;
 }
@@ -356,10 +348,10 @@ void DSrv_USART_QT::onErrorOccured(QSerialPort::SerialPortError err) noexcept
 //=================================================================================================
 int32_t DSrv_USART_QT_test::pNull(DSrv_USART_QT_for_test& obj) noexcept
 {
-	QSerialPort* serialPort = obj.m_serialPort;
+	QSerialPort * serialPort = obj.m_serialPort;
 	obj.m_serialPort = nullptr;
 
-	if (obj.sendData(reinterpret_cast<const uint8_t*>("data"), 10, nullptr, 0) == 0)
+	if (obj.sendData(DSrv::Data_send(reinterpret_cast<const uint8_t *>("data"), 10)) == 0)
 	{
 		PRINT_ERR(true, "sendData() when nullptr == m_serialPort");
 		return -1;
@@ -380,7 +372,7 @@ int32_t DSrv_USART_QT_test::pNull(DSrv_USART_QT_for_test& obj) noexcept
 
 	obj.m_serialPort = serialPort;
 
-	if (obj.sendData(nullptr, 10, nullptr, 0) == 0)
+	if (obj.sendData(DSrv::Data_send(nullptr, 10)) == 0)
 	{
 		PRINT_ERR(true, "sendData(nullptr, ...)");
 		return -1;

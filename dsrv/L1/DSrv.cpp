@@ -31,12 +31,12 @@ DSrv::DSrv(DSrv && obj) : DSrv_Storage(std::move(obj))
 }
 
 //=================================================================================================
-int32_t DSrv_test::data(DSrv_for_test& obj) noexcept
+int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 {
 	uint8_t data_1[1] = {1};
 	uint8_t data_2[1] = {2};
-	uint8_t* data_r;
-	uint32_t size = 1;
+	uint8_t * data_r;
+	uint32_t size {1};
 	uint32_t size_r;
 
 	// Get if data is not complete

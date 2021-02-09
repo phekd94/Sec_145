@@ -79,10 +79,7 @@ protected:
 	}
 
 	// Sends data (override method)
-	Q_INVOKABLE virtual int32_t sendData(const uint8_t* const data,
-	                                     const uint32_t size,
-	                                     const char* const address,
-	                                     const uint16_t port) noexcept override final;
+	Q_INVOKABLE virtual int32_t sendData(DSrv::Data_send data) noexcept override final;
 
 private:
 
@@ -105,7 +102,7 @@ private slots: // They should not can generate an exeption
 // Class for test a DSrv_USART_QT class (with override method)
 class DSrv_USART_QT_for_test : public DSrv_USART_QT
 {
-	virtual int32_t dataParser(uint8_t*, uint32_t) override final
+	virtual int32_t dataParser(uint8_t *, uint32_t) override final
 	{
 		return 0;
 	}
@@ -129,9 +126,7 @@ public:
 private:
 
 	// Only via public static methods
-	DSrv_USART_QT_test()
-	{
-	}
+	DSrv_USART_QT_test() = default;
 };
 
 //-------------------------------------------------------------------------------------------------

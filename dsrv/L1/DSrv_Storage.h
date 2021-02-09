@@ -42,7 +42,7 @@ public:
 	// Data type for set method (pointer + size)
 	using Data_set = const std::pair<const uint8_t * const, const uint32_t>;
 
-	// Data type for get method (pointer + size)
+	// Data type for get method (pointer to pointer + pointer to size)
 	using Data_get = const std::pair<uint8_t ** const, uint32_t * const>;
 
 protected:
