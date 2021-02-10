@@ -313,7 +313,8 @@ void DSrv_USART_QT::onReadyRead() noexcept
 		return;
 	}
 
-	if (dataParser(reinterpret_cast<uint8_t*>(data_read.data()), data_read.size()) != 0)
+	if (dataParser(DSrv::Data_parser(
+	                   reinterpret_cast<uint8_t*>(data_read.data()), data_read.size())) != 0)
 	{
 		PRINT_ERR(true, "dataParser()");
 		if (DSrv_Storage::clearData() != 0)

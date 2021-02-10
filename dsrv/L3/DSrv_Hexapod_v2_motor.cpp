@@ -219,25 +219,25 @@ int32_t DSrv_Hexapod_v2_motor::stopOsc() noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
+int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 {
 	// Identificator for add data to last record in storage class
 	bool add {true};
 
 	// Lambda function for update paremeters
-	auto updateParams = [&data, &size](){++data; --size;};
+	auto updateParams = [&data](){ ++data.first; --data.second; };
 
 	// Stop the watchdog timer
 	m_watchdog.stop();
 
 	// Check the incomming parameters
-	if (nullptr == data)
+	if (nullptr == data.first)
 	{
 		PRINT_ERR(m_debug, "nullptr == data");
 		return -2;
 	}
 
-	while (size > 0)
+	while (data.second > 0)
 	{
 		if (0 == m_pktRemSize)
 		{
@@ -256,9 +256,9 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 
 			// Get a motor id
 			m_motor_id_pars.first = true;
-			m_motor_id_pars.second = *data;
+			m_motor_id_pars.second = *data.first;
 
-			PRINT_DBG(m_debug, "[0]: 0x%x", *data);
+			PRINT_DBG(m_debug, "[0]: 0x%x", *data.first);
 
 			// Check a motor id
 			if (m_motor_id_pars.second != m_motor_id)
@@ -277,9 +277,9 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 
 				// Get a function code
 				m_funcCode_pars.first = true;
-				m_funcCode_pars.second = *data;
+				m_funcCode_pars.second = *data.first;
 
-				PRINT_DBG(m_debug, "[1]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[1]: 0x%x", *data.first);
 
 				// Check a function code
 				if (m_funcCode_pars.second != m_funcCode_req)
@@ -294,9 +294,9 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			{
 				// Get a count of bytes
 				m_count_pars.first = true;
-				m_count_pars.second = *data;
+				m_count_pars.second = *data.first;
 
-				PRINT_DBG(m_debug, "[2]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[2]: 0x%x", *data.first);
 
 				// Check the count of bytes
 				if (m_count_pars.second > 20)
@@ -311,17 +311,17 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			{
 				// Get an high address
 				m_address_h_pars.first = true;
-				m_address_h_pars.second = *data;
+				m_address_h_pars.second = *data.first;
 
-				PRINT_DBG(m_debug, "[3]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[3]: 0x%x", *data.first);
 			}
 			else if (write == m_funcCode_pars.second && false == m_address_l_pars.first)
 			{
 				// Get an low address
 				m_address_l_pars.first = true;
-				m_address_l_pars.second = *data;
+				m_address_l_pars.second = *data.first;
 
-				PRINT_DBG(m_debug, "[4]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[4]: 0x%x", *data.first);
 
 				// Check the address
 				if (   (m_address_req & 0xFF) != m_address_l_pars.second
@@ -336,16 +336,16 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			else if (write == m_funcCode_pars.second && false == m_val_h_pars.first)
 			{
 				m_val_h_pars.first = true;
-				m_val_h_pars.second = *data;
+				m_val_h_pars.second = *data.first;
 
-				PRINT_DBG(m_debug, "[5]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[5]: 0x%x", *data.first);
 			}
 			else if (write == m_funcCode_pars.second && false == m_val_l_pars.first)
 			{
 				m_val_l_pars.first = true;
-				m_val_l_pars.second = *data;
+				m_val_l_pars.second = *data.first;
 
-				PRINT_DBG(m_debug, "[6]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[6]: 0x%x", *data.first);
 
 				// Check the value
 				if (   (m_val_req & 0xFF) != m_val_l_pars.second
@@ -366,10 +366,10 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			}
 			else if (read == m_funcCode_pars.second && m_pktRemSize > 2)
 			{
-				PRINT_DBG(m_debug, "[+]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[+]: 0x%x", *data.first);
 
 				// Set data for read type message
-				if (DSrv_Storage::setData(DSrv_Storage::Data_set(data, 1), add) != 0)
+				if (DSrv_Storage::setData(DSrv_Storage::Data_set(data.first, 1), add) != 0)
 				{
 					PRINT_ERR(true, "DSrv_Storage::setData()");
 					m_pktRemSize = 0;
@@ -379,20 +379,20 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(uint8_t* data, uint32_t size) noexcept
 			else if (false == m_crc_l_pars.first)
 			{
 				m_crc_l_pars.first = true;
-				m_crc_l_pars.second = *data;
+				m_crc_l_pars.second = *data.first;
 
-				PRINT_DBG(m_debug, "[*]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[*]: 0x%x", *data.first);
 			}
 			else if (false == m_crc_h_pars.first)
 			{
 				m_crc_h_pars.first = true;
-				m_crc_h_pars.second = *data;
+				m_crc_h_pars.second = *data.first;
 
-				PRINT_DBG(m_debug, "[*]: 0x%x", *data);
+				PRINT_DBG(m_debug, "[*]: 0x%x", *data.first);
 			}
 			else
 			{
-				PRINT_ERR(true, "Message format error; [-]: 0x%x", *data);
+				PRINT_ERR(true, "Message format error; [-]: 0x%x", *data.first);
 				m_pktRemSize = 0;
 				updateParams();
 				continue;

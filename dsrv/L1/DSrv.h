@@ -6,7 +6,6 @@
 DESCRITION: pure virtual data data server class
 TODO:
  * move constructor: is need a mutex?
- * pair or kortej for data and size and success(bool)
 FIXME:
 DANGER:
 NOTE:
@@ -43,7 +42,7 @@ public:
 	using Data_send = const std::pair<const uint8_t * const, const uint32_t>;
 
 	// Data type for data parser method (pointer + size)
-	using Data_parser = const std::pair<const uint8_t * const, const uint32_t>;
+	using Data_parser = std::pair<const uint8_t *, uint32_t>;
 
 	// Enable/disable a debug output via printDebug.cpp/.h
 	// (probably the method will be called from another thread)
@@ -74,7 +73,7 @@ protected:
 
 	// Parser of the accepted data (pure virtual function)
 	// (concrete class should realize this function)
-	virtual int32_t dataParser(uint8_t * data, uint32_t size) = 0; // Data_parser data
+	virtual int32_t dataParser(Data_parser data) = 0;
 };
 
 //=================================================================================================
@@ -86,7 +85,7 @@ class DSrv_for_test : public DSrv
 		return 0;
 	}
 
-	virtual int32_t dataParser(uint8_t *, uint32_t) override final
+	virtual int32_t dataParser(Data_parser) override final
 	{
 		return 0;
 	}

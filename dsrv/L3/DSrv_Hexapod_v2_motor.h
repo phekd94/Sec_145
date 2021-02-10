@@ -7,6 +7,7 @@ DESCRITION: class for work with TTX080 series motor
 TODO:
  * test for dataParser()
  * pair or kortej for data and size and success(bool)
+ * m_debug member
 FIXME:
 DANGER:
 NOTE:
@@ -124,16 +125,16 @@ private:
 	OSC_DIR m_osc_dir {OSC_DIR::UP};
 
 	// Registers addresses; rigisters(16 bits) counts; register value
-	std::tuple<const uint16_t, const uint8_t, int32_t> Home_Position1 {0x1772u, 2, 0};
-	std::tuple<const uint16_t, const uint8_t> IEG_MOTION {0x10DDu, 1};
-	std::tuple<const uint16_t, const uint8_t, int32_t> Pfeedback {0x017Au, 2, 0};
-	std::tuple<const uint16_t, const uint8_t, uint16_t> OEG_MOTION {0x0069u, 1, 0};
-	std::tuple<const uint16_t, const uint8_t> IEG_MOVE_EDGE {0x10DFu, 1};
-	std::tuple<const uint16_t, const uint8_t, uint16_t> OEG_MOVE_IN_POS {0x006Cu, 1, 0};
-	std::tuple<const uint16_t, const uint8_t> IEG_MOVE_LEVEL {0x10DEu, 1};
+	std::tuple<const uint16_t, const uint8_t, int32_t>   Home_Position1   {0x1772u, 2, 0};
+	std::tuple<const uint16_t, const uint8_t>            IEG_MOTION       {0x10DDu, 1};
+	std::tuple<const uint16_t, const uint8_t, int32_t>   Pfeedback        {0x017Au, 2, 0};
+	std::tuple<const uint16_t, const uint8_t, uint16_t>  OEG_MOTION       {0x0069u, 1, 0};
+	std::tuple<const uint16_t, const uint8_t>            IEG_MOVE_EDGE    {0x10DFu, 1};
+	std::tuple<const uint16_t, const uint8_t, uint16_t>  OEG_MOVE_IN_POS  {0x006Cu, 1, 0};
+	std::tuple<const uint16_t, const uint8_t>            IEG_MOVE_LEVEL   {0x10DEu, 1};
 
 	// Parser of the accepted data (override method)
-	int32_t dataParser(uint8_t* data, uint32_t size) noexcept override final;
+	int32_t dataParser(DSrv::Data_parser data) noexcept override final;
 
 	// Controls of the move
 	int32_t moveControl(const uint8_t mode,

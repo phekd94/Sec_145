@@ -8,6 +8,7 @@ TODO:
  * mutex test
  * QObject in move constructor
  * pair or kortej for data and size and success(bool)
+ * m_debug member
 FIXME:
 DANGER:
 NOTE:
@@ -102,7 +103,7 @@ private slots: // They should not can generate an exeption
 // Class for test a DSrv_USART_QT class (with override method)
 class DSrv_USART_QT_for_test : public DSrv_USART_QT
 {
-	virtual int32_t dataParser(uint8_t *, uint32_t) override final
+	virtual int32_t dataParser(DSrv::Data_parser) override final
 	{
 		return 0;
 	}
