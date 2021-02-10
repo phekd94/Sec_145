@@ -42,37 +42,37 @@ int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 	// Get if data is not complete
 	if (obj.setData(DSrv_Storage::Data_set(data_1, size), false) != 0)
 	{
-		PRINT_ERR(true, "setData(data_1, ...)");
+		PRINT_ERR("setData(data_1, ...)");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
 	{
-		PRINT_ERR(true, "getData()");
+		PRINT_ERR("getData()");
 		return -1;
 	}
 	else
 	{
 		if (size_r != 0)
 		{
-			PRINT_ERR(true, "size_r after first setData()");
+			PRINT_ERR("size_r after first setData()");
 			return -1;
 		}
 	}
 	if (obj.completeData() != 0)
 	{
-		PRINT_ERR(true, "completeData() after first setData()");
+		PRINT_ERR("completeData() after first setData()");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
 	{
-		PRINT_ERR(true, "getData() after first completeData()");
+		PRINT_ERR("getData() after first completeData()");
 		return -1;
 	}
 	else
 	{
 		if (size_r != 1 || data_r[0] != 1)
 		{
-			PRINT_ERR(true, "size_r or data_r after first completeData()");
+			PRINT_ERR("size_r or data_r after first completeData()");
 			return -1;
 		}
 	}
@@ -80,29 +80,29 @@ int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 	// Two setData
 	if (obj.setData(DSrv_Storage::Data_set(data_2, size), false) != 0)
 	{
-		PRINT_ERR(true, "setData(data_2, ...)");
+		PRINT_ERR("setData(data_2, ...)");
 		return -1;
 	}
 	if (obj.setData(DSrv_Storage::Data_set(data_1, size), true) != 0)
 	{
-		PRINT_ERR(true, "setData(data_1, ...)");
+		PRINT_ERR("setData(data_1, ...)");
 		return -1;
 	}
 	if (obj.completeData() != 0)
 	{
-		PRINT_ERR(true, "completeData() for two setData()");
+		PRINT_ERR("completeData() for two setData()");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
 	{
-		PRINT_ERR(true, "getData() for two setData()");
+		PRINT_ERR("getData() for two setData()");
 		return -1;
 	}
 	else
 	{
 		if (size_r != 2 || data_r[0] != 2 || data_r[1] != 1)
 		{
-			PRINT_ERR(true, "size_r or data_r for two setData()");
+			PRINT_ERR("size_r or data_r for two setData()");
 			return -1;
 		}
 	}
@@ -110,38 +110,38 @@ int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 	// MAX_DATA_SIZE + 1 (new data)
 	if (obj.setData(DSrv_Storage::Data_set(data_1, MAX_DATA_SIZE + 1), false) == 0)
 	{
-		PRINT_ERR(true, "setData(..., MAX_DATA_SIZE + 1, false)");
+		PRINT_ERR("setData(..., MAX_DATA_SIZE + 1, false)");
 		return -1;
 	}
 
 	// MAX_DATA_SIZE (add data)
 	if (obj.setData(DSrv_Storage::Data_set(data_1, size), true) != 0)
 	{
-		PRINT_ERR(true, "setData(data_1, ...)");
+		PRINT_ERR("setData(data_1, ...)");
 		return -1;
 	}
 	if (obj.setData(DSrv_Storage::Data_set(data_1, MAX_DATA_SIZE), true) == 0)
 	{
-		PRINT_ERR(true, "setData(..., MAX_DATA_SIZE, true)");
+		PRINT_ERR("setData(..., MAX_DATA_SIZE, true)");
 		return -1;
 	}
 
 	// Clear method
 	if (obj.clearData() != 0)
 	{
-		PRINT_ERR(true, "clearData()");
+		PRINT_ERR("clearData()");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
 	{
-		PRINT_ERR(true, "getData()");
+		PRINT_ERR("getData()");
 		return -1;
 	}
 	else
 	{
 		if (size_r != 0)
 		{
-			PRINT_ERR(true, "size_r after clearData()");
+			PRINT_ERR("size_r after clearData()");
 			return -1;
 		}
 	}
@@ -164,14 +164,14 @@ int32_t DSrv_test::move() noexcept
 	// Check obj_1 pointers
 	if (obj_1.m_pktRemSize != 0)
 	{
-		PRINT_ERR(true, "obj_1.m_pktRemSize != 0");
+		PRINT_ERR("obj_1.m_pktRemSize != 0");
 		return -1;
 	}
 
 	// Check obj_2 pointers
 	if (obj_2.m_pktRemSize != m_pktRemSize)
 	{
-		PRINT_ERR(true, "obj_2.m_pktRemSize != m_pktRemSize");
+		PRINT_ERR("obj_2.m_pktRemSize != m_pktRemSize");
 		return -1;
 	}
 
@@ -186,13 +186,13 @@ int32_t DSrv_test::fullTest() noexcept
 
 	if (data(obj) != 0)
 	{
-		PRINT_ERR(true, "data");
+		PRINT_ERR("data");
 		return -1;
 	}
 
 	if (move() != 0)
 	{
-		PRINT_ERR(true, "move");
+		PRINT_ERR("move");
 		return -1;
 	}
 

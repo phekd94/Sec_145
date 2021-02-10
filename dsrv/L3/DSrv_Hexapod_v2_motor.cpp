@@ -115,7 +115,7 @@ int32_t DSrv_Hexapod_v2_motor::readHoldingRegs(const uint16_t address,
 	// Send data
 	if (sendData(DSrv::Data_send(data, static_cast<uint32_t>(sizeof(data)))) != 0)
 	{
-		PRINT_ERR(true, "sendData()");
+		PRINT_ERR("sendData()");
 		return -1;
 	}
 	else
@@ -154,7 +154,7 @@ int32_t DSrv_Hexapod_v2_motor::writeSingleReg(const uint16_t address, const uint
 	// Send data
 	if (sendData(DSrv::Data_send(data, static_cast<uint32_t>(sizeof(data)))) != 0)
 	{
-		PRINT_ERR(true, "sendData()");
+		PRINT_ERR("sendData()");
 		return -1;
 	}
 	else
@@ -202,7 +202,7 @@ int32_t DSrv_Hexapod_v2_motor::startOsc(OSC_DIR dir) noexcept
 	}
 	else
 	{
-		PRINT_ERR(true, "Unknown direction of the oscillation");
+		PRINT_ERR("Unknown direction of the oscillation");
 		return -1;
 	}
 
@@ -233,7 +233,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 	// Check the incomming parameters
 	if (nullptr == data.first)
 	{
-		PRINT_ERR(m_debug, "nullptr == data");
+		PRINT_ERR("nullptr == data.first");
 		return -2;
 	}
 
@@ -263,7 +263,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 			// Check a motor id
 			if (m_motor_id_pars.second != m_motor_id)
 			{
-				PRINT_ERR(true, "Motor id is not correct");
+				PRINT_ERR("Motor id is not correct");
 				m_pktRemSize = 0;
 				updateParams();
 				continue;
@@ -284,7 +284,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 				// Check a function code
 				if (m_funcCode_pars.second != m_funcCode_req)
 				{
-					PRINT_ERR(true, "Function code is not correct");
+					PRINT_ERR("Function code is not correct");
 					m_pktRemSize = 0;
 					updateParams();
 					continue;
@@ -301,7 +301,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 				// Check the count of bytes
 				if (m_count_pars.second > 20)
 				{
-					PRINT_ERR(true, "Count of bytes more than 20");
+					PRINT_ERR("Count of bytes more than 20");
 					m_pktRemSize = 0;
 					updateParams();
 					continue;
@@ -327,7 +327,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 				if (   (m_address_req & 0xFF) != m_address_l_pars.second
 				    || (m_address_req >> 8) != m_address_h_pars.second)
 				{
-					PRINT_ERR(true, "Address is not correct");
+					PRINT_ERR("Address is not correct");
 					m_pktRemSize = 0;
 					updateParams();
 					continue;
@@ -351,7 +351,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 				if (   (m_val_req & 0xFF) != m_val_l_pars.second
 				    || (m_val_req >> 8) != m_val_h_pars.second)
 				{
-					PRINT_ERR(true, "Register value is not correct");
+					PRINT_ERR("Register value is not correct");
 					m_pktRemSize = 0;
 					updateParams();
 					continue;
@@ -359,7 +359,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 			}
 			else if (write == m_funcCode_pars.second && m_pktRemSize > 2)
 			{
-				PRINT_ERR(true, "Write response is not correct");
+				PRINT_ERR("Write response is not correct");
 				m_pktRemSize = 0;
 				updateParams();
 				continue;
@@ -371,7 +371,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 				// Set data for read type message
 				if (DSrv_Storage::setData(DSrv_Storage::Data_set(data.first, 1), add) != 0)
 				{
-					PRINT_ERR(true, "DSrv_Storage::setData()");
+					PRINT_ERR("DSrv_Storage::setData()");
 					m_pktRemSize = 0;
 					return -1;
 				}
@@ -392,7 +392,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 			}
 			else
 			{
-				PRINT_ERR(true, "Message format error; [-]: 0x%x", *data.first);
+				PRINT_ERR("Message format error; [-]: 0x%x", *data.first);
 				m_pktRemSize = 0;
 				updateParams();
 				continue;
@@ -406,7 +406,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 			// Data is complete
 			if (DSrv_Storage::completeData() != 0)
 			{
-				PRINT_ERR(true, "DSrv_Storage::completeData() != 0");
+				PRINT_ERR("DSrv_Storage::completeData() != 0");
 				return -1;
 			}
 
@@ -415,7 +415,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 			uint32_t size_res;
 			if (DSrv_Storage::getData(DSrv_Storage::Data_get(&data_res, &size_res)) != 0)
 			{
-				PRINT_ERR(true, "DSrv_Storage::getData() != 0");
+				PRINT_ERR("DSrv_Storage::getData() != 0");
 				return -1;
 			}
 
@@ -430,7 +430,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 					  // 6 bits = id(1 bit) + func code(1 bit) + address(2 bits) + val(2 bits)
 					if (nullptr == data_for_crc)
 					{
-						PRINT_ERR(true, "Can not allocate a memory for check a CRC");
+						PRINT_ERR("Can not allocate a memory for check a CRC");
 						return -1;
 					}
 					data_for_crc[0] = m_motor_id_pars.second;
@@ -442,7 +442,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 					crc = calcCRC(data_for_crc.get(), 6);
 					if ((crc & 0xFF) != m_crc_l_pars.second || (crc >> 8) != m_crc_h_pars.second)
 					{
-						PRINT_ERR(true, "CRC is not correct");
+						PRINT_ERR("CRC is not correct");
 						updateParams();
 						continue;
 					}
@@ -462,7 +462,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 				    // Check the data size of result
 				    if (size_res != m_count_pars.second)
 					{
-						PRINT_ERR(true, "Data size is not match");
+						PRINT_ERR("Data size is not match");
 						updateParams();
 						continue;
 					}
@@ -474,7 +474,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 					  // 3 bits = id(1 bit) + func code(1 bit) + count(1 bit)
 					if (nullptr == data_for_crc)
 					{
-						PRINT_ERR(true, "Can not allocate a memory for check a CRC");
+						PRINT_ERR("Can not allocate a memory for check a CRC");
 						return -1;
 					}
 					data_for_crc[0] = m_motor_id_pars.second;
@@ -484,7 +484,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 					crc = calcCRC(data_for_crc.get(), size_res + 3);
 					if ((crc & 0xFF) != m_crc_l_pars.second || (crc >> 8) != m_crc_h_pars.second)
 					{
-						PRINT_ERR(true, "CRC is not correct");
+						PRINT_ERR("CRC is not correct");
 						updateParams();
 						continue;
 					}
@@ -506,7 +506,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 				    break;
 			    }
 			    default:
-				    PRINT_ERR(true, "Unknown function code (%u)",
+				    PRINT_ERR("Unknown function code (%u)",
 					          static_cast<unsigned int>(m_funcCode_pars.second));
 					updateParams();
 				    continue;
@@ -537,7 +537,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 
 					if (writeSingleReg(std::get<0>(IEG_MOTION), 0) != 0)
 					{
-						PRINT_ERR(true, "writeSingleReg(IEG_MOTION, 0)");
+						PRINT_ERR("writeSingleReg(IEG_MOTION, 0)");
 						return -1;
 					}
 				}
@@ -547,13 +547,13 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 
 					if (readHoldingRegs(std::get<0>(OEG_MOTION), std::get<1>(OEG_MOTION)) != 0)
 					{
-						PRINT_ERR(true, "readHoldingRegs(OEG_MOTION)");
+						PRINT_ERR("readHoldingRegs(OEG_MOTION)");
 						return -1;
 					}
 				}
 				else
 				{
-					PRINT_ERR(true, "Unknown write answer for MODE::HOME mode");
+					PRINT_ERR("Unknown write answer for MODE::HOME mode");
 					return -1;
 				}
 			}
@@ -565,7 +565,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 
 					if (writeSingleReg(std::get<0>(IEG_MOVE_EDGE), 0) != 0)
 					{
-						PRINT_ERR(true, "writeSingleReg(IEG_MOVE_EDGE, 0)");
+						PRINT_ERR("writeSingleReg(IEG_MOVE_EDGE, 0)");
 						return -1;
 					}
 				}
@@ -576,13 +576,13 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 					if (readHoldingRegs(std::get<0>(OEG_MOVE_IN_POS),
 					                    std::get<1>(OEG_MOVE_IN_POS)) != 0)
 					{
-						PRINT_ERR(true, "readHoldingRegs(OEG_MOVE_IN_POS)");
+						PRINT_ERR("readHoldingRegs(OEG_MOVE_IN_POS)");
 						return -1;
 					}
 				}
 				else
 				{
-					PRINT_ERR(true, "Unknown write answer for MODE::MOVE_IN_POS mode");
+					PRINT_ERR("Unknown write answer for MODE::MOVE_IN_POS mode");
 					return -1;
 				}
 			}
@@ -595,7 +595,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 
 					if (writeSingleReg(std::get<0>(IEG_MOVE_EDGE), 0) != 0)
 					{
-						PRINT_ERR(true, "writeSingleReg(IEG_MOVE_EDGE, 0)");
+						PRINT_ERR("writeSingleReg(IEG_MOVE_EDGE, 0)");
 						return -1;
 					}
 				}
@@ -606,7 +606,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 
 					if (writeSingleReg(std::get<0>(IEG_MOVE_EDGE), 0) != 0)
 					{
-						PRINT_ERR(true, "writeSingleReg(IEG_MOVE_EDGE, 0)");
+						PRINT_ERR("writeSingleReg(IEG_MOVE_EDGE, 0)");
 						return -1;
 					}
 				}
@@ -618,13 +618,13 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 					if (readHoldingRegs(std::get<0>(OEG_MOVE_IN_POS),
 					                    std::get<1>(OEG_MOVE_IN_POS)) != 0)
 					{
-						PRINT_ERR(true, "readHoldingRegs(OEG_MOVE_IN_POS)");
+						PRINT_ERR("readHoldingRegs(OEG_MOVE_IN_POS)");
 						return -1;
 					}
 				}
 				else
 				{
-					PRINT_ERR(true, "Unknown write answer for MODE::IEG_MOVE_EDGE mode");
+					PRINT_ERR("Unknown write answer for MODE::IEG_MOVE_EDGE mode");
 					return -1;
 				}
 			}
@@ -634,7 +634,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 			}
 			else
 			{
-				PRINT_ERR(true, "Unknown write MODE:: mode");
+				PRINT_ERR("Unknown write MODE:: mode");
 				return -1;
 			}
 
@@ -662,14 +662,14 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 						if (readHoldingRegs(std::get<0>(OEG_MOTION),
 						                    std::get<1>(OEG_MOTION)) != 0)
 						{
-							PRINT_ERR(true, "readHoldingRegs(OEG_MOTION)");
+							PRINT_ERR("readHoldingRegs(OEG_MOTION)");
 							return -1;
 						}
 					}
 				}
 				else
 				{
-					PRINT_ERR(true, "Unknown read answer for MODE::HOME mode");
+					PRINT_ERR("Unknown read answer for MODE::HOME mode");
 					return -1;
 				}
 			}
@@ -693,14 +693,14 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 						if (readHoldingRegs(std::get<0>(OEG_MOVE_IN_POS),
 						                    std::get<1>(OEG_MOVE_IN_POS)) != 0)
 						{
-							PRINT_ERR(true, "readHoldingRegs(OEG_MOVE_IN_POS)");
+							PRINT_ERR("readHoldingRegs(OEG_MOVE_IN_POS)");
 							return -1;
 						}
 					}
 				}
 				else
 				{
-					PRINT_ERR(true, "Unknown read answer for MODE::MOVE_IN_POS mode");
+					PRINT_ERR("Unknown read answer for MODE::MOVE_IN_POS mode");
 					return -1;
 				}
 			}
@@ -723,14 +723,14 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 						if (readHoldingRegs(std::get<0>(OEG_MOVE_IN_POS),
 						                    std::get<1>(OEG_MOVE_IN_POS)) != 0)
 						{
-							PRINT_ERR(true, "readHoldingRegs(OEG_MOVE_IN_POS)");
+							PRINT_ERR("readHoldingRegs(OEG_MOVE_IN_POS)");
 							return -1;
 						}
 					}
 				}
 				else
 				{
-					PRINT_ERR(m_debug, "Unknown read answer for MODE::OSC mode");
+					PRINT_ERR("Unknown read answer for MODE::OSC mode");
 				}
 			}
 			else if (MODE::NONE == m_mode)
@@ -739,14 +739,14 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 			}
 			else
 			{
-				PRINT_ERR(true, "Unknown read MODE:: mode");
+				PRINT_ERR("Unknown read MODE:: mode");
 				return -1;
 			}
 
 			break;
 	    }
 	    default:
-		    PRINT_ERR(true, "Unknown mode(%u) function parameter",
+		    PRINT_ERR("Unknown mode(%u) function parameter",
 			          static_cast<unsigned int>(mode));
 		    return -1;
 		    break;
@@ -760,7 +760,7 @@ void DSrv_Hexapod_v2_motor::onWatchdog() noexcept
 {
 	m_mode = MODE::NONE;
 
-	PRINT_ERR(true, "Watchdog timer is triggered");
+	PRINT_ERR("Watchdog timer is triggered");
 
 	emit toWatchdog(m_motor_id);
 }

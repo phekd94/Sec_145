@@ -36,10 +36,9 @@ namespace Sec_145
 	} while(0)
 
 //-------------------------------------------------------------------------------------------------
-#define PRINT_ERR(enable, ...)                                     \
-	do {                                                           \
-	    if (enable)                                                \
-	        Sec_145::printDebug(__FUNCTION__, true, __VA_ARGS__);  \
+#define PRINT_ERR(...)                                         \
+	do {                                                       \
+	    Sec_145::printDebug(__FUNCTION__, true, __VA_ARGS__);  \
 	} while(0)
 
 //-------------------------------------------------------------------------------------------------

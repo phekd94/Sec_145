@@ -77,8 +77,7 @@ public:
 		}
 		catch (std::exception& obj)
 		{
-			PRINT_ERR(true,
-			          "Exception (%s) during call QThread::isRunning() has been occured",
+			PRINT_ERR("Exception (%s) during call QThread::isRunning() has been occured",
 			          obj.what());
 			return;
 		}
@@ -110,8 +109,7 @@ private:
 		}
 		catch (std::exception& obj)
 		{
-			PRINT_ERR(true,
-			          "Exception (%s) during call %s has been occured",
+			PRINT_ERR("Exception (%s) during call %s has been occured",
 			          useQtExecMethod == true ? "QThread::exec()" : "ClassInNewThread::process()",
 			          obj.what());
 			return;

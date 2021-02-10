@@ -19,13 +19,13 @@ DSrv_Storage::DSrv_Storage()
 	m_completeData = new (std::nothrow) uint8_t[MAX_DATA_SIZE];
 	if (nullptr == m_completeData)
 	{
-		PRINT_ERR(true, "Can not allocate a memory (m_completeData)");
+		PRINT_ERR("Can not allocate a memory (m_completeData)");
 		return;
 	}
 	m_fillingData = new (std::nothrow) uint8_t[MAX_DATA_SIZE];
 	if (nullptr == m_fillingData)
 	{
-		PRINT_ERR(true, "Can not allocate a memory (m_fillingData)");
+		PRINT_ERR("Can not allocate a memory (m_fillingData)");
 		return;
 	}
 
@@ -60,7 +60,7 @@ DSrv_Storage::DSrv_Storage(DSrv_Storage && obj)
 	}
 	catch (std::system_error & obj)
 	{
-		PRINT_ERR(true, "Exception from mutex.lock() has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
 		return;
 	}
 
@@ -84,14 +84,14 @@ int32_t DSrv_Storage::setData(Data_set data, const bool add) noexcept
 	// Check the incoming parameter
 	if (nullptr == data.first)
 	{
-		PRINT_ERR(true, "nullptr == data.first");
+		PRINT_ERR("nullptr == data.first");
 		return -1;
 	}
 
 	// Check the data pointers
 	if (nullptr == m_completeData || nullptr == m_fillingData)
 	{
-		PRINT_ERR(true, "Memory for data have not been allocated");
+		PRINT_ERR("Memory for data have not been allocated");
 		return -1;
 	}
 
@@ -101,7 +101,7 @@ int32_t DSrv_Storage::setData(Data_set data, const bool add) noexcept
 	}
 	catch (std::system_error & obj)
 	{
-		PRINT_ERR(true, "Exception from mutex.lock() has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
 		return -1;
 	}
 
@@ -109,7 +109,7 @@ int32_t DSrv_Storage::setData(Data_set data, const bool add) noexcept
 	if (   (true == add && m_fillingIndex + data.second > MAX_DATA_SIZE)
 	    || (false == add && data.second > MAX_DATA_SIZE))
 	{
-		PRINT_ERR(true, "Size of the data is too much "
+		PRINT_ERR("Size of the data is too much "
 		                "(size = %lu, fillingIndex = %lu, add = %s)",
 		                static_cast<unsigned long>(data.second),
 		                static_cast<unsigned long>(m_fillingIndex),
@@ -136,19 +136,19 @@ int32_t DSrv_Storage::getData(Data_get data) noexcept
 	// Check the incoming parameters
 	if (nullptr == data.first)
 	{
-		PRINT_ERR(true, "nullptr == data.first");
+		PRINT_ERR("nullptr == data.first");
 		return -1;
 	}
 	if (nullptr == data.second)
 	{
-		PRINT_ERR(true, "nullptr == data.second");
+		PRINT_ERR("nullptr == data.second");
 		return -1;
 	}
 
 	// Check the data pointers
 	if (nullptr == m_completeData || nullptr == m_fillingData)
 	{
-		PRINT_ERR(true, "Memory for data have not been allocated");
+		PRINT_ERR("Memory for data have not been allocated");
 		*data.first = nullptr;
 		*data.second = 0;
 		return -1;
@@ -160,7 +160,7 @@ int32_t DSrv_Storage::getData(Data_get data) noexcept
 	}
 	catch (std::system_error & obj)
 	{
-		PRINT_ERR(true, "Exception from mutex.lock() has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
 		return -1;
 	}
 
@@ -184,7 +184,7 @@ int32_t DSrv_Storage::clearData() noexcept
 	}
 	catch (std::system_error & obj)
 	{
-		PRINT_ERR(true, "Exception from mutex.lock() has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
 		return -1;
 	}
 
@@ -203,7 +203,7 @@ int32_t DSrv_Storage::completeData() noexcept
 	// Check the data pointers
 	if (nullptr == m_completeData || nullptr == m_fillingData)
 	{
-		PRINT_ERR(true, "Memory for data have not been allocated");
+		PRINT_ERR("Memory for data have not been allocated");
 		return -1;
 	}
 
@@ -213,7 +213,7 @@ int32_t DSrv_Storage::completeData() noexcept
 	}
 	catch (std::system_error & obj)
 	{
-		PRINT_ERR(true, "Exception from mutex.lock() has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
 		return -1;
 	}
 
@@ -242,17 +242,17 @@ int32_t DSrv_Storage_test::pNull(DSrv_Storage & obj) noexcept
 	// Test all methods which utilize input pointers
 	if (obj.setData(DSrv_Storage::Data_set(nullptr, size), true) == 0)
 	{
-		PRINT_ERR(true, "setData(nullptr, size, true)");
+		PRINT_ERR("setData(nullptr, size, true)");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(nullptr, &size)) == 0)
 	{
-		PRINT_ERR(true, "getData(nullptr, &size)");
+		PRINT_ERR("getData(nullptr, &size)");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(&data, nullptr)) == 0)
 	{
-		PRINT_ERR(true, "getData(&data, nullptr)");
+		PRINT_ERR("getData(&data, nullptr)");
 		return -1;
 	}
 
@@ -263,17 +263,17 @@ int32_t DSrv_Storage_test::pNull(DSrv_Storage & obj) noexcept
 
 	if (obj.setData(DSrv_Storage::Data_set(data, size), true) == 0)
 	{
-		PRINT_ERR(true, "setData(data, size, true) with nullptr == m_...Data");
+		PRINT_ERR("setData(data, size, true) with nullptr == m_...Data");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(&data, &size)) == 0)
 	{
-		PRINT_ERR(true, "getData(&data, &size) with nullptr == m_...Data");
+		PRINT_ERR("getData(&data, &size) with nullptr == m_...Data");
 		return -1;
 	}
 	if (obj.completeData() == 0)
 	{
-		PRINT_ERR(true, "completeData() with nullptr == m_...Data");
+		PRINT_ERR("completeData() with nullptr == m_...Data");
 		return -1;
 	}
 
@@ -295,37 +295,37 @@ int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
 	// Get if data is not complete
 	if (obj.setData(DSrv_Storage::Data_set(data_1, size), false) != 0)
 	{
-		PRINT_ERR(true, "setData(data_1, ...)");
+		PRINT_ERR("setData(data_1, ...)");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
 	{
-		PRINT_ERR(true, "getData()");
+		PRINT_ERR("getData()");
 		return -1;
 	}
 	else
 	{
 		if (size_r != 0)
 		{
-			PRINT_ERR(true, "size_r after first setData()");
+			PRINT_ERR("size_r after first setData()");
 			return -1;
 		}
 	}
 	if (obj.completeData() != 0)
 	{
-		PRINT_ERR(true, "completeData() after first setData()");
+		PRINT_ERR("completeData() after first setData()");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
 	{
-		PRINT_ERR(true, "getData() after first completeData()");
+		PRINT_ERR("getData() after first completeData()");
 		return -1;
 	}
 	else
 	{
 		if (size_r != 1 || data_r[0] != 1)
 		{
-			PRINT_ERR(true, "size_r or data_r after first completeData()");
+			PRINT_ERR("size_r or data_r after first completeData()");
 			return -1;
 		}
 	}
@@ -333,29 +333,29 @@ int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
 	// Two setData
 	if (obj.setData(DSrv_Storage::Data_set(data_2, size), false) != 0)
 	{
-		PRINT_ERR(true, "setData(data_2, ...)");
+		PRINT_ERR("setData(data_2, ...)");
 		return -1;
 	}
 	if (obj.setData(DSrv_Storage::Data_set(data_1, size), true) != 0)
 	{
-		PRINT_ERR(true, "setData(data_1, ...)");
+		PRINT_ERR("setData(data_1, ...)");
 		return -1;
 	}
 	if (obj.completeData() != 0)
 	{
-		PRINT_ERR(true, "completeData() for two setData()");
+		PRINT_ERR("completeData() for two setData()");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
 	{
-		PRINT_ERR(true, "getData() for two setData()");
+		PRINT_ERR("getData() for two setData()");
 		return -1;
 	}
 	else
 	{
 		if (size_r != 2 || data_r[0] != 2 || data_r[1] != 1)
 		{
-			PRINT_ERR(true, "size_r or data_r for two setData()");
+			PRINT_ERR("size_r or data_r for two setData()");
 			return -1;
 		}
 	}
@@ -363,38 +363,38 @@ int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
 	// MAX_DATA_SIZE + 1 (new data)
 	if (obj.setData(DSrv_Storage::Data_set(data_1, MAX_DATA_SIZE + 1), false) == 0)
 	{
-		PRINT_ERR(true, "setData(..., MAX_DATA_SIZE + 1, false)");
+		PRINT_ERR("setData(..., MAX_DATA_SIZE + 1, false)");
 		return -1;
 	}
 
 	// MAX_DATA_SIZE (add data)
 	if (obj.setData(DSrv_Storage::Data_set(data_1, size), true) != 0)
 	{
-		PRINT_ERR(true, "setData(data_1, ...)");
+		PRINT_ERR("setData(data_1, ...)");
 		return -1;
 	}
 	if (obj.setData(DSrv_Storage::Data_set(data_1, MAX_DATA_SIZE), true) == 0)
 	{
-		PRINT_ERR(true, "setData(..., MAX_DATA_SIZE, true)");
+		PRINT_ERR("setData(..., MAX_DATA_SIZE, true)");
 		return -1;
 	}
 
 	// Clear method
 	if (obj.clearData() != 0)
 	{
-		PRINT_ERR(true, "clearData()");
+		PRINT_ERR("clearData()");
 		return -1;
 	}
 	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
 	{
-		PRINT_ERR(true, "getData()");
+		PRINT_ERR("getData()");
 		return -1;
 	}
 	else
 	{
 		if (size_r != 0)
 		{
-			PRINT_ERR(true, "size_r after clearData()");
+			PRINT_ERR("size_r after clearData()");
 			return -1;
 		}
 	}
@@ -417,14 +417,14 @@ int32_t DSrv_Storage_test::move() noexcept
 	// Check obj_1 pointers
 	if (obj_1.m_completeData != nullptr || obj_1.m_fillingData != nullptr)
 	{
-		PRINT_ERR(true, "m_completeData or m_fillingData of obj_1 is not equal nullptr");
+		PRINT_ERR("m_completeData or m_fillingData of obj_1 is not equal nullptr");
 		return -1;
 	}
 
 	// Check obj_2 pointers
 	if (obj_2.m_completeData != m_completeData || obj_2.m_fillingData != m_fillingData)
 	{
-		PRINT_ERR(true, "m_completeData or m_fillingData of obj_1 is not equal saved pointers");
+		PRINT_ERR("m_completeData or m_fillingData of obj_1 is not equal saved pointers");
 		return -1;
 	}
 
@@ -439,19 +439,19 @@ int32_t DSrv_Storage_test::fullTest() noexcept
 
 	if (pNull(obj) != 0)
 	{
-		PRINT_ERR(true, "pNull");
+		PRINT_ERR("pNull");
 		return -1;
 	}
 
 	if (data(obj) != 0)
 	{
-		PRINT_ERR(true, "data");
+		PRINT_ERR("data");
 		return -1;
 	}
 
 	if (move() != 0)
 	{
-		PRINT_ERR(true, "move");
+		PRINT_ERR("move");
 		return -1;
 	}
 
