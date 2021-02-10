@@ -97,6 +97,9 @@ class DSrv_test
 {
 public:
 
+	// Only via public static methods
+	DSrv_test() = delete;
+
 	// Tests a work with data
 	static int32_t data(DSrv_for_test & obj) noexcept;
 
@@ -105,11 +108,6 @@ public:
 
 	// Runs all tests
 	static int32_t fullTest() noexcept;
-
-private:
-
-	// Only via public static methods
-	DSrv_test() = default;
 };
 
 //-------------------------------------------------------------------------------------------------

@@ -108,6 +108,9 @@ class DSrv_Storage_test
 {
 public:
 
+	// Only via public static methods
+	DSrv_Storage_test() = delete;
+
 	// Tests methods which utilize pointers
 	static int32_t pNull(DSrv_Storage & obj) noexcept;
 
@@ -119,11 +122,6 @@ public:
 
 	// Runs all tests
 	static int32_t fullTest() noexcept;
-
-private:
-
-	// Only via public static methods
-	DSrv_Storage_test() = default;
 };
 
 //-------------------------------------------------------------------------------------------------

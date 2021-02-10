@@ -115,6 +115,9 @@ class DSrv_USART_QT_test
 {
 public:
 
+	// Only via public static methods
+	DSrv_USART_QT_test() = delete;
+
 	// Tests methods which utilize pointers
 	static int32_t pNull(DSrv_USART_QT_for_test& obj) noexcept;
 
@@ -123,11 +126,6 @@ public:
 
 	// Runs all tests
 	static int32_t fullTest() noexcept;
-
-private:
-
-	// Only via public static methods
-	DSrv_USART_QT_test() = default;
 };
 
 //-------------------------------------------------------------------------------------------------
