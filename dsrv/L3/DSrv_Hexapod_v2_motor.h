@@ -7,7 +7,6 @@ DESCRITION: class for work with TTX080 series motor
 TODO:
  * test for dataParser()
  * pair or kortej for data and size and success(bool)
- * m_debug member
 FIXME:
 DANGER:
 NOTE:
@@ -16,9 +15,9 @@ Sec_145::Dsrv_Hexapod_v2 class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
-|               |            |
+|       (*)     |            |
 +---------------+------------+
-(*) - see DSrv_USART_QT class definition
+(*) - NO for the setDebug(); see DSrv_USART_QT class definition
 */
 
 //-------------------------------------------------------------------------------------------------
@@ -80,6 +79,15 @@ public:
 	Q_INVOKABLE int32_t startOsc(OSC_DIR dir) noexcept;
 	Q_INVOKABLE int32_t stopOsc() noexcept;
 
+	// Enable/disable debug messages
+	// (probably the method will be called from another thread)
+	void setDebug(const bool d_hexapod, const bool d_usart,
+	              const bool d_dsrv, const bool d_storage) noexcept
+	{
+		m_debug = d_hexapod;
+		DSrv_USART_QT::setDebug(d_usart, d_dsrv, d_storage);
+	}
+
 private:
 
 	// Motor id
@@ -132,6 +140,9 @@ private:
 	std::tuple<const uint16_t, const uint8_t>            IEG_MOVE_EDGE    {0x10DFu, 1};
 	std::tuple<const uint16_t, const uint8_t, uint16_t>  OEG_MOVE_IN_POS  {0x006Cu, 1, 0};
 	std::tuple<const uint16_t, const uint8_t>            IEG_MOVE_LEVEL   {0x10DEu, 1};
+
+	// Enable/disable a debug output via printDebug.cpp/.h
+	bool m_debug {true};
 
 	// Parser of the accepted data (override method)
 	int32_t dataParser(DSrv::Data_parser data) noexcept override final;

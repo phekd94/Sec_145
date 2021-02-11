@@ -7,8 +7,6 @@ DESCRITION: class implements work with USART
 TODO:
  * mutex test
  * QObject in move constructor
- * pair or kortej for data and size and success(bool)
- * m_debug member
 FIXME:
 DANGER:
 NOTE:
@@ -20,7 +18,7 @@ Sec_145::DSrv_USART_QT class
 +---------------+------------+
 |     YES(*)    |    YES(*)  |
 +---------------+------------+
-(*) - see DSrv class definition
+(*) - NO for the setDebug(); see DSrv class definition
 */
 
 //-------------------------------------------------------------------------------------------------
@@ -51,7 +49,7 @@ public:
 	static const std::list<std::string> getPortNames();
 
 	// Creates a seriral port
-	Q_INVOKABLE int32_t start(const QString& name,
+	Q_INVOKABLE int32_t start(const QString & name,
 	                          const QSerialPort::BaudRate baudRate,
 	                          const QSerialPort::Parity parity,
 	                          const QSerialPort::DataBits dataBits,
@@ -67,16 +65,24 @@ protected:
 
 	// Without copy constructor and override an assignment operator
 	// (due to class members as pointer are presented)
-	DSrv_USART_QT(DSrv_USART_QT&) = delete;
-	DSrv_USART_QT& operator=(const DSrv_USART_QT&) = delete;
+	DSrv_USART_QT(DSrv_USART_QT &) = delete;
+	DSrv_USART_QT& operator=(const DSrv_USART_QT &) = delete;
 
 	// Move constructor
 	DSrv_USART_QT(DSrv_USART_QT && obj);
 
 	// Gets a serial port member pointer
-	const QSerialPort* getSerialPort() const noexcept
+	const QSerialPort * getSerialPort() const noexcept
 	{
 		return m_serialPort;
+	}
+
+	// Enable/disable debug messages
+	// (probably the method will be called from another thread)
+	void setDebug(const bool d_usart, const bool d_dsrv, const bool d_storage) noexcept
+	{
+		m_debug = d_usart;
+		DSrv::setDebug(d_dsrv, d_storage);
 	}
 
 	// Sends data (override method)
@@ -85,10 +91,13 @@ protected:
 private:
 
 	// Serial port
-	QSerialPort* m_serialPort {nullptr};
+	QSerialPort * m_serialPort {nullptr};
 
 	// Mutex
 	std::mutex m_mutex;
+
+	// Enable/disable a debug output via printDebug.cpp/.h
+	bool m_debug {true};
 
 private slots: // They should not can generate an exeption
 
@@ -119,7 +128,7 @@ public:
 	DSrv_USART_QT_test() = delete;
 
 	// Tests methods which utilize pointers
-	static int32_t pNull(DSrv_USART_QT_for_test& obj) noexcept;
+	static int32_t pNull(DSrv_USART_QT_for_test & obj) noexcept;
 
 	// Tests a move constructor
 	static int32_t move() noexcept;

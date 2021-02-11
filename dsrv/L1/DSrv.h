@@ -16,7 +16,7 @@ Sec_145::DSrv class
 +---------------+------------+
 |     YES(*)    |   YES(**)  |
 +---------------+------------+
-(*)  - NO for the m_debug, DSrv_Storage::setDebug()
+(*)  - NO for the setDebug(); see DSrv_Storage class definition
 (**) - see DSrv_Storage class definition
 */
 
@@ -44,14 +44,6 @@ public:
 	// Data type for data parser method (pointer + size)
 	using Data_parser = std::pair<const uint8_t *, uint32_t>;
 
-	// Enable/disable a debug output via printDebug.cpp/.h
-	// (probably the method will be called from another thread)
-	void setDebug(const bool d, const bool d_storage) noexcept
-	{
-		m_debug = d;
-		DSrv_Storage::setDebug(d_storage);
-	}
-
 protected:
 
 	DSrv();
@@ -60,11 +52,16 @@ protected:
 	// Move constructor
 	DSrv(DSrv && obj);
 
-	// Enable/disable a debug output via printDebug.cpp/.h
-	bool m_debug {true};
-
 	// Size of remaining data
 	uint32_t m_pktRemSize {0};
+
+	// Enable/disable debug messages
+	// (probably the method will be called from another thread)
+	void setDebug(const bool d_dsrv, const bool d_storage) noexcept
+	{
+		m_debug = d_dsrv;
+		DSrv_Storage::setDebug(d_storage);
+	}
 
 	// Sends data (pure virtual function)
 	// (protocol class should realize this function)
@@ -74,6 +71,11 @@ protected:
 	// Parser of the accepted data (pure virtual function)
 	// (concrete class should realize this function)
 	virtual int32_t dataParser(Data_parser data) = 0;
+
+private:
+
+	// Enable/disable a debug output via printDebug.cpp/.h
+	bool m_debug {true};
 };
 
 //=================================================================================================

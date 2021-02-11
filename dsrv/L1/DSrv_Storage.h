@@ -18,7 +18,7 @@ Sec_145::DSrv_Storage class
 +---------------+------------+
 |     YES(*)    |   YES(**)  |
 +---------------+------------+
-(*)  - NO for the m_debug
+(*)  - NO for the setDebug()
 (**) - take into account that only two buffers are available
 */
 
@@ -72,6 +72,7 @@ protected:
 	int32_t completeData() noexcept;
 
 	// Enable/disable debug messages
+	// (probably the method will be called from another thread)
 	void setDebug(const bool d) noexcept
 	{
 		m_debug = d;
@@ -86,8 +87,8 @@ protected:
 private:
 
 	// Pointers to the data
-	uint8_t *m_completeData {nullptr};
-	uint8_t *m_fillingData {nullptr};
+	uint8_t * m_completeData {nullptr};
+	uint8_t * m_fillingData {nullptr};
 
 	// Index in the array of filling data
 	uint32_t m_fillingIndex {0};

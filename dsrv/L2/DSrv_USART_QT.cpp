@@ -413,7 +413,6 @@ int32_t DSrv_USART_QT_test::move() noexcept
 int32_t DSrv_USART_QT_test::fullTest() noexcept
 {
 	DSrv_USART_QT_for_test obj;
-	obj.setDebug(true, true);
 
 	if (pNull(obj) != 0)
 	{
