@@ -6,7 +6,6 @@
 DESCRITION: class for work with TTX080 series motor
 TODO:
  * test for dataParser()
- * pair or kortej for data and size and success(bool)
 FIXME:
 DANGER:
 NOTE:
@@ -42,6 +41,12 @@ class DSrv_Hexapod_v2_motor : public DSrv_USART_QT
 
 public:
 
+	// Data type for calculate CRC method (pointer + size)
+	using Data_crc = std::pair<const uint8_t *, uint8_t>;
+
+	// Data type for send data method (pointer + size)
+	using Data_ctrl = const std::pair<const uint8_t * const, const uint32_t>;
+
 	// Oscillation direction
 	enum class OSC_DIR : uint8_t {
 		UP = 1,
@@ -55,7 +60,7 @@ public:
 	DSrv_Hexapod_v2_motor(DSrv_Hexapod_v2_motor && obj);
 
 	// Calculates a CRC
-	uint16_t calcCRC(const uint8_t *data, uint8_t length) const noexcept;
+	uint16_t calcCRC(Data_crc data) const noexcept;
 
 	// Gets a motor id
 	uint8_t getMotorId()
@@ -148,9 +153,7 @@ private:
 	int32_t dataParser(DSrv::Data_parser data) noexcept override final;
 
 	// Controls of the move
-	int32_t moveControl(const uint8_t mode,
-	                    const uint8_t * const data,
-	                    const uint32_t size) noexcept;
+	int32_t moveControl(const uint8_t mode, Data_ctrl data) noexcept;
 
 public slots: // They should not generate exeptions
 

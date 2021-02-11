@@ -62,15 +62,15 @@ DSrv_Hexapod_v2_motor::DSrv_Hexapod_v2_motor(DSrv_Hexapod_v2_motor && obj) :
 }
 
 //-------------------------------------------------------------------------------------------------
-uint16_t DSrv_Hexapod_v2_motor::calcCRC(const uint8_t *data, uint8_t length) const noexcept
+uint16_t DSrv_Hexapod_v2_motor::calcCRC(Data_crc data) const noexcept
 {
 	uint8_t j;
 
 	uint16_t crc = 0xFFFF;
 
-	while (length--)
+	while (data.second--)
 	{
-		crc ^= *data++;
+		crc ^= *data.first++;
 		for (j = 0; j < 8; j++)
 		{
 			if (crc & 0x01)
@@ -101,7 +101,7 @@ int32_t DSrv_Hexapod_v2_motor::readHoldingRegs(const uint16_t address,
 	};
 
 	// Calculate a CRC (size - 2 due to CRC field)
-	uint16_t crc = calcCRC(data, sizeof(data) - 2);
+	uint16_t crc = calcCRC(Data_crc(data, static_cast<uint8_t>(sizeof(data) - 2)));
 	data[sizeof(data) - 2] = crc & 0xFF;
 	data[sizeof(data) - 1] = crc >> 8;
 
@@ -139,7 +139,7 @@ int32_t DSrv_Hexapod_v2_motor::writeSingleReg(const uint16_t address, const uint
 	};
 
 	// Calculate a CRC (size - 2 due to CRC field)
-	uint16_t crc = calcCRC(data, sizeof(data) - 2);
+	uint16_t crc = calcCRC(Data_crc(data, static_cast<uint8_t>(sizeof(data) - 2)));
 	data[sizeof(data) - 2] = crc & 0xFF;
 	data[sizeof(data) - 1] = crc >> 8;
 
@@ -439,7 +439,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 					data_for_crc[3] = m_address_l_pars.second;
 					data_for_crc[4] = m_val_h_pars.second;
 					data_for_crc[5] = m_val_l_pars.second;
-					crc = calcCRC(data_for_crc.get(), 6);
+					crc = calcCRC(Data_crc(data_for_crc.get(), 6));
 					if ((crc & 0xFF) != m_crc_l_pars.second || (crc >> 8) != m_crc_h_pars.second)
 					{
 						PRINT_ERR("CRC is not correct");
@@ -448,7 +448,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 					}
 
 					// Call a move control function
-					if (moveControl(write, data_res, size_res) != 0)
+					if (moveControl(write, Data_ctrl(data_res, size_res)) != 0)
 					{
 						m_mode = MODE::NONE;
 						updateParams();
@@ -481,7 +481,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 					data_for_crc[1] = m_funcCode_pars.second;
 					data_for_crc[2] = m_count_pars.second;
 					memcpy(data_for_crc.get() + 3, data_res, size_res);
-					crc = calcCRC(data_for_crc.get(), size_res + 3);
+					crc = calcCRC(Data_crc(data_for_crc.get(), size_res + 3));
 					if ((crc & 0xFF) != m_crc_l_pars.second || (crc >> 8) != m_crc_h_pars.second)
 					{
 						PRINT_ERR("CRC is not correct");
@@ -496,7 +496,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 					}
 
 					// Call a move control function
-					if (moveControl(read, data_res, size_res) != 0)
+					if (moveControl(read, Data_ctrl(data_res, size_res)) != 0)
 					{
 						m_mode = MODE::NONE;
 						updateParams();
@@ -521,9 +521,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
-                                           const uint8_t * const data,
-                                           const uint32_t) noexcept
+int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode, Data_ctrl data) noexcept
 {
 	switch (mode)
 	{
@@ -646,7 +644,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 			{
 				if (std::get<0>(OEG_MOTION) == m_address_req)
 				{
-					std::get<2>(OEG_MOTION) = *reinterpret_cast<const uint16_t *>(data);
+					std::get<2>(OEG_MOTION) = *reinterpret_cast<const uint16_t *>(data.first);
 					PRINT_DBG(m_debug, "Read(OEG_MOTION) is got (= 0x%x)",
 					          static_cast<unsigned int>(std::get<2>(OEG_MOTION)));
 
@@ -677,7 +675,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 			{
 				if (std::get<0>(OEG_MOVE_IN_POS) == m_address_req)
 				{
-					std::get<2>(OEG_MOVE_IN_POS) = *reinterpret_cast<const uint16_t *>(data);
+					std::get<2>(OEG_MOVE_IN_POS) = *reinterpret_cast<const uint16_t *>(data.first);
 					PRINT_DBG(m_debug, "Read(OEG_MOVE_IN_POS) is got (= 0x%x)",
 					          static_cast<unsigned int>(std::get<2>(OEG_MOVE_IN_POS)));
 
@@ -708,7 +706,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode,
 			{
 				if (std::get<0>(OEG_MOVE_IN_POS) == m_address_req)
 				{
-					std::get<2>(OEG_MOVE_IN_POS) = *reinterpret_cast<const uint16_t *>(data);
+					std::get<2>(OEG_MOVE_IN_POS) = *reinterpret_cast<const uint16_t *>(data.first);
 					PRINT_DBG(m_debug, "Read(OEG_MOVE_IN_POS) is got (= 0x%x)",
 					          static_cast<unsigned int>(std::get<2>(OEG_MOVE_IN_POS)));
 
