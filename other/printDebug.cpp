@@ -107,3 +107,37 @@ void Sec_145::printDebug(const char* func,
         #endif  // SEC_145_QT_EN
 	}
 }
+
+//-------------------------------------------------------------------------------------------------
+// Template print
+/*
+enum class eDebug : bool {
+	ENABLE = true,
+	DISABLE = false
+};
+
+void print()
+{
+
+}
+
+template<typename T>
+void print(const T& value)
+{
+	std::cout << value << std::endl;
+}
+
+template<typename T, typename... Args>
+void print(const T& value, const Args&... args)
+{
+	std::cout << value;
+	print(args...);
+}
+
+template<typename... Args>
+void print(const eDebug& enable, const Args&... args)
+{
+	if (enable == eDebug::ENABLE)
+		print(args...);
+}
+*/
