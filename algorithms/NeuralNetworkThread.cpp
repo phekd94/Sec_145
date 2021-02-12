@@ -46,7 +46,7 @@ void NeuralNetworkThread::process() noexcept
 				m_b = new (std::nothrow) uint8_t[m_image_size * m_image_size];
 				if (nullptr == m_r || nullptr == m_g || nullptr == m_b)
 				{
-					PRINT_ERR(true, "Can not allocate a memory for RGB data");
+					PRINT_ERR("Can not allocate a memory for RGB data");
 				}
 			}
 
@@ -91,12 +91,12 @@ void NeuralNetworkThread::process() noexcept
 	}
 	catch (std::system_error& obj)
 	{
-		PRINT_ERR(true, "Exception from mutex has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex has been occured: %s", obj.what());
 		return;
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR(true, "Exception from processContours() has been occured: %s",
+		PRINT_ERR("Exception from processContours() has been occured: %s",
 		          obj.what());
 
 		// Unlock a mutex
@@ -144,7 +144,7 @@ bool NeuralNetworkThread::setNewData(const QString& fileName) noexcept
 	}
 	catch (std::system_error& obj)
 	{
-		PRINT_ERR(true, "Exception from mutex has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex has been occured: %s", obj.what());
 		return false;
 	}
 }
@@ -187,7 +187,7 @@ bool NeuralNetworkThread::setNewData(const QImage& image) noexcept
 	}
 	catch (std::system_error& obj)
 	{
-		PRINT_ERR(true, "Exception from mutex has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex has been occured: %s", obj.what());
 		return false;
 	}
 }

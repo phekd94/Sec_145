@@ -119,13 +119,12 @@ void UavContourSearchThread<ContourSearchClass>::process() noexcept
 	}
 	catch (std::system_error& obj)
 	{
-		PRINT_ERR(true, "Exception from mutex has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex has been occured: %s", obj.what());
 		return;
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR(true, "Exception from processContours() has been occured: %s",
-		          obj.what());
+		PRINT_ERR("Exception from processContours() has been occured: %s", obj.what());
 
 		// Unlock a mutex
 		m_mutex.unlock();
@@ -173,7 +172,7 @@ bool UavContourSearchThread<ContourSearchClass>::setNewData(const QImage& image)
 	}
 	catch (std::system_error& obj)
 	{
-		PRINT_ERR(true, "Exception from mutex has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex has been occured: %s", obj.what());
 		return false;
 	}
 }

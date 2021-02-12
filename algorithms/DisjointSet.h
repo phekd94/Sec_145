@@ -190,7 +190,7 @@ int32_t DisjointSet<T>::addMember(const T& member) noexcept
 		{
 			if (unionSets(vector_dest, suitSets[i]) != 0)
 			{
-				PRINT_ERR(true, "unionSets(%lu, %lu)", 
+				PRINT_ERR("unionSets(%lu, %lu)", 
 						  static_cast<unsigned long>(vector_dest),
 				          static_cast<unsigned long>(suitSets[i]));
 				return -1;
@@ -203,7 +203,7 @@ int32_t DisjointSet<T>::addMember(const T& member) noexcept
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR(true, "Exception (%s) during push_back() member has been occured",
+		PRINT_ERR("Exception (%s) during push_back() member has been occured",
 		          obj.what());
 		return -1;
 	}
@@ -241,7 +241,7 @@ int32_t DisjointSet<T>::unionSets(const uint32_t index_dest, const uint32_t inde
 	// Check the incoming parameters
 	if (index_dest >= m_d_set.size() || index_src >= m_d_set.size()) 
 	{
-		PRINT_ERR(true, "index_dest(%lu) or index_src(%lu) > size(%lu)",
+		PRINT_ERR("index_dest(%lu) or index_src(%lu) > size(%lu)",
 		          static_cast<unsigned long>(index_dest),
 		          static_cast<unsigned long>(index_src),
 		          static_cast<unsigned long>(m_d_set.size()));
@@ -257,7 +257,7 @@ int32_t DisjointSet<T>::unionSets(const uint32_t index_dest, const uint32_t inde
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR(true, "Exception (%s) during insert() set has been occured", obj.what());
+		PRINT_ERR("Exception (%s) during insert() set has been occured", obj.what());
 		return -1;
 	}
 

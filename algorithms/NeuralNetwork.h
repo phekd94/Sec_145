@@ -76,7 +76,7 @@ public:
 	{
 		if (m_in_conv_size.empty() == true)
 		{
-			PRINT_ERR(true, "m_in_conv_size is empty");
+			PRINT_ERR("m_in_conv_size is empty");
 			return -1;
 		}
 		else

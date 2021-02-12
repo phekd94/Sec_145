@@ -47,7 +47,7 @@ int32_t CvCanny::applyDetector(const uint8_t* const greyData,
 		{
 			if (DisjointSet<CvPoint>::addMember(Sec_145::CvPoint(point)) != 0)
 			{
-				PRINT_ERR(true, "addMember()");
+				PRINT_ERR("addMember()");
 				return -1;
 			}
 		}
@@ -88,7 +88,7 @@ int32_t CvCanny::applyDetector(const uint8_t* const greyData,
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR(true, "Exception (%s) during call OpenCV functions has been occured",
+		PRINT_ERR("Exception (%s) during call OpenCV functions has been occured",
 		          obj.what());
 		return -1;
 	}

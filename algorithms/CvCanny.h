@@ -102,7 +102,7 @@ public:
 	{
 		if (lowExecutionTime > highExecutionTime)
 		{
-			PRINT_ERR(true, "lowExecutionTime > highExecutionTime");
+			PRINT_ERR("lowExecutionTime > highExecutionTime");
 			return -1;
 		}
 		m_lowExecutionTime = lowExecutionTime;

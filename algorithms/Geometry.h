@@ -120,9 +120,7 @@ class CvPoint : public cv::Point
 {
 public:
 
-	CvPoint()
-	{
-	}
+	CvPoint() = default;
 
 	explicit CvPoint(const cv::Point& p) : cv::Point(p)
 	{
@@ -146,7 +144,7 @@ public:
 	                     uint32_t& max_y, uint32_t& min_y) const noexcept
 	{
 		if (this->x < 0 || this->y < 0) {
-			PRINT_ERR(true, "[CvPoint]: ", "One of the point coordinate is less than 0");
+			PRINT_ERR("One of the point coordinate is less than 0");
 			return;
 		}
 

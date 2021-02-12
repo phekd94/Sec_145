@@ -42,7 +42,7 @@ int32_t writeVarInFile(QFile& file, const T& var)
 {
 	if (file.write(QByteArray::number(var) + "\n") == -1)
 	{
-		PRINT_ERR(true, "Bad data");
+		PRINT_ERR("Bad data");
 		return -1;
 	}
 	return 0;
@@ -62,7 +62,7 @@ int32_t writeArrayInFile(QFile& file, const Array* const data, const uint32_t si
 	{
 		if (writeVarInFile(file, data[i]) != 0)
 		{
-			PRINT_ERR(true, "writeVarInFile()");
+			PRINT_ERR("writeVarInFile()");
 			return -1;
 		}
 	}
@@ -80,7 +80,7 @@ int32_t writeMatrixInFile(QFile& file, const Matrix& m)
 		{
 			if (writeVarInFile(file, m(i, j)) != 0)
 			{
-				PRINT_ERR(true, "writeVarInFile()");
+				PRINT_ERR("writeVarInFile()");
 				return -1;
 			}
 		}
@@ -114,7 +114,7 @@ int32_t readMatrixFromFile(QFile& file, Matrix& m)
 		{
 			if (readVarFromFile(file, m(i, j)) != 0)
 			{
-				PRINT_ERR(true, "readVarFromFile()");
+				PRINT_ERR("readVarFromFile()");
 				return -1;
 			}
 		}
@@ -157,7 +157,7 @@ int32_t property(QObject *obj,
 	// Check the incoming parameter
 	if (nullptr == obj)
 	{
-		PRINT_ERR(true, "nullptr == obj");
+		PRINT_ERR("nullptr == obj");
 		return -1;
 	}
 
@@ -167,7 +167,7 @@ int32_t property(QObject *obj,
 	// Get a property itself from QVariant class object
 	if (v.isValid() == false)
 	{
-		PRINT_ERR(true, "%s does not exist in the given class",
+		PRINT_ERR("%s does not exist in the given class",
 		          propertyName.toStdString().c_str());
 		return -1;
 	}
@@ -183,13 +183,13 @@ int32_t property(QObject *obj,
 			}
 			else
 			{
-				PRINT_ERR(true, "nullptr == property");
+				PRINT_ERR("nullptr == property");
 				return -1;
 			}
 		}
 		else
 		{
-			PRINT_ERR(true, "Property and parameter types do not match");
+			PRINT_ERR("Property and parameter types do not match");
 			return -1;
 		}
 	}
@@ -205,7 +205,7 @@ int32_t property(QObject *obj,
 	// Check the incoming parameter
 	if (nullptr == obj)
 	{
-		PRINT_ERR(true, "nullptr == obj");
+		PRINT_ERR("nullptr == obj");
 		return -1;
 	}
 
@@ -215,7 +215,7 @@ int32_t property(QObject *obj,
 	// Get a property itself from QVariant class object
 	if (v.isValid() == false)
 	{
-		PRINT_ERR(true, "%s does not exist in the given class",
+		PRINT_ERR("%s does not exist in the given class",
 		          propertyName.toStdString().c_str());
 		return -1;
 	}
@@ -229,7 +229,7 @@ int32_t property(QObject *obj,
 		}
 		else
 		{
-			PRINT_ERR(true, "Property and parameter types do not match");
+			PRINT_ERR("Property and parameter types do not match");
 			return -1;
 		}
 	}

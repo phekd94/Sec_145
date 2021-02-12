@@ -438,7 +438,7 @@ void UavContourSearch<T>::drawFilterRectangles(uint8_t* const data,
 	if (   OFFSET + m_max_delta_y + 2 * m_delta_old_object > height
 		|| OFFSET + m_max_delta_x + 2 * m_delta_old_object > width)
 	{
-		PRINT_ERR(true, "Out of bounds");
+		PRINT_ERR("Out of bounds");
 		return;
 	}
 
