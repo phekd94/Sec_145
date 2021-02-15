@@ -1,37 +1,63 @@
 
-#include "DSrv.h"
-
-#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
+#pragma once
 
 //-------------------------------------------------------------------------------------------------
-using namespace Sec_145;
+/*
+DESCRITION: test class for DSrv class
+TODO:
+FIXME:
+DANGER:
+NOTE:
+*/
 
 //-------------------------------------------------------------------------------------------------
-DSrv::DSrv()
+#include "DSrv.h"  // DSrv class
+
+#include "../other/DSrv_Defines.h"  // MAX_DATA_SIZE
+
+//-------------------------------------------------------------------------------------------------
+namespace Sec_145
 {
-	PRINT_DBG(m_debug, "");
-}
 
 //-------------------------------------------------------------------------------------------------
-DSrv::~DSrv()
+// Class for test a DSrv class (with override methods)
+template<typename Storage>
+class DSrv_for_test : public DSrv<Storage>
 {
-	PRINT_DBG(m_debug, "");
-}
+	virtual int32_t sendData(typename DSrv<Storage>::Data_send) noexcept override final
+	{
+		return 0;
+	}
 
-//-------------------------------------------------------------------------------------------------
-DSrv::DSrv(DSrv && obj) : DSrv_Storage(std::move(obj))
-{
-	// Copy all fields
-	m_pktRemSize = obj.m_pktRemSize;
-	obj.m_pktRemSize = 0;
-
-	m_debug = obj.m_debug;
-
-	PRINT_DBG(m_debug, "Move constructor");
-}
+	virtual int32_t dataParser(typename DSrv<Storage>::Data_parser) noexcept override final
+	{
+		return 0;
+	}
+};
 
 //=================================================================================================
-int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
+// Class for test a DSrv class (with test methods)
+template<typename Storage>
+class DSrv_test
+{
+public:
+
+	// Only via public static methods
+	DSrv_test() = delete;
+
+	// Tests a work with data
+	static int32_t data(DSrv_for_test<Storage> & obj) noexcept;
+
+	// Tests a move constructor
+	static int32_t move() noexcept;
+
+	// Runs all tests
+	static int32_t fullTest() noexcept;
+};
+
+//-------------------------------------------------------------------------------------------------
+template<typename Storage>
+int32_t DSrv_test<Storage>::data(DSrv_for_test<Storage> & obj) noexcept
 {
 	uint8_t data_1[1] = {1};
 	uint8_t data_2[1] = {2};
@@ -40,12 +66,12 @@ int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 	uint32_t size_r;
 
 	// Get if data is not complete
-	if (obj.setData(DSrv_Storage::Data_set(data_1, size), false) != 0)
+	if (obj.setData(DSrv_for_test<Storage>::Data_set(data_1, size), false) != 0)
 	{
 		PRINT_ERR("setData(data_1, ...)");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
+	if (obj.getData(DSrv_for_test<Storage>::Data_get(&data_r, &size_r)) != 0)
 	{
 		PRINT_ERR("getData()");
 		return -1;
@@ -63,7 +89,7 @@ int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 		PRINT_ERR("completeData() after first setData()");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
+	if (obj.getData(DSrv_for_test<Storage>::Data_get(&data_r, &size_r)) != 0)
 	{
 		PRINT_ERR("getData() after first completeData()");
 		return -1;
@@ -78,12 +104,12 @@ int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 	}
 
 	// Two setData
-	if (obj.setData(DSrv_Storage::Data_set(data_2, size), false) != 0)
+	if (obj.setData(DSrv_for_test<Storage>::Data_set(data_2, size), false) != 0)
 	{
 		PRINT_ERR("setData(data_2, ...)");
 		return -1;
 	}
-	if (obj.setData(DSrv_Storage::Data_set(data_1, size), true) != 0)
+	if (obj.setData(DSrv_for_test<Storage>::Data_set(data_1, size), true) != 0)
 	{
 		PRINT_ERR("setData(data_1, ...)");
 		return -1;
@@ -93,7 +119,7 @@ int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 		PRINT_ERR("completeData() for two setData()");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
+	if (obj.getData(DSrv_for_test<Storage>::Data_get(&data_r, &size_r)) != 0)
 	{
 		PRINT_ERR("getData() for two setData()");
 		return -1;
@@ -108,19 +134,19 @@ int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 	}
 
 	// MAX_DATA_SIZE + 1 (new data)
-	if (obj.setData(DSrv_Storage::Data_set(data_1, MAX_DATA_SIZE + 1), false) == 0)
+	if (obj.setData(DSrv_for_test<Storage>::Data_set(data_1, MAX_DATA_SIZE + 1), false) == 0)
 	{
 		PRINT_ERR("setData(..., MAX_DATA_SIZE + 1, false)");
 		return -1;
 	}
 
 	// MAX_DATA_SIZE (add data)
-	if (obj.setData(DSrv_Storage::Data_set(data_1, size), true) != 0)
+	if (obj.setData(DSrv_for_test<Storage>::Data_set(data_1, size), true) != 0)
 	{
 		PRINT_ERR("setData(data_1, ...)");
 		return -1;
 	}
-	if (obj.setData(DSrv_Storage::Data_set(data_1, MAX_DATA_SIZE), true) == 0)
+	if (obj.setData(DSrv_for_test<Storage>::Data_set(data_1, MAX_DATA_SIZE), true) == 0)
 	{
 		PRINT_ERR("setData(..., MAX_DATA_SIZE, true)");
 		return -1;
@@ -132,7 +158,7 @@ int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 		PRINT_ERR("clearData()");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
+	if (obj.getData(DSrv_for_test<Storage>::Data_get(&data_r, &size_r)) != 0)
 	{
 		PRINT_ERR("getData()");
 		return -1;
@@ -150,9 +176,10 @@ int32_t DSrv_test::data(DSrv_for_test & obj) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_test::move() noexcept
+template<typename Storage>
+int32_t DSrv_test<Storage>::move() noexcept
 {
-	DSrv_for_test obj_1;
+	DSrv_for_test<Storage> obj_1;
 	obj_1.m_pktRemSize = 1;
 
 	// Save value of pointer
@@ -179,9 +206,10 @@ int32_t DSrv_test::move() noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_test::fullTest() noexcept
+template<typename Storage>
+int32_t DSrv_test<Storage>::fullTest() noexcept
 {
-	DSrv_for_test obj;
+	DSrv_for_test<Storage> obj;
 	obj.setDebug(true, true);
 
 	if (data(obj) != 0)
@@ -199,3 +227,6 @@ int32_t DSrv_test::fullTest() noexcept
 	PRINT_DBG(true, "Test was successful");
 	return 0;
 }
+
+//-------------------------------------------------------------------------------------------------
+} // namespace Sec_145

@@ -351,7 +351,7 @@ int32_t DSrv_USART_QT_test::pNull(DSrv_USART_QT_for_test& obj) noexcept
 	QSerialPort * serialPort = obj.m_serialPort;
 	obj.m_serialPort = nullptr;
 
-	if (obj.sendData(DSrv::Data_send(reinterpret_cast<const uint8_t *>("data"), 10)) == 0)
+	if (obj.sendData(DSrv<DSrv_Storage>::Data_send(reinterpret_cast<const uint8_t *>("data"), 10)) == 0)
 	{
 		PRINT_ERR("sendData() when nullptr == m_serialPort");
 		return -1;
@@ -372,7 +372,7 @@ int32_t DSrv_USART_QT_test::pNull(DSrv_USART_QT_for_test& obj) noexcept
 
 	obj.m_serialPort = serialPort;
 
-	if (obj.sendData(DSrv::Data_send(nullptr, 10)) == 0)
+	if (obj.sendData(DSrv<DSrv_Storage>::Data_send(nullptr, 10)) == 0)
 	{
 		PRINT_ERR("sendData(nullptr, ...)");
 		return -1;

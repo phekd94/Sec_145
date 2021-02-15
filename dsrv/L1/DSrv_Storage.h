@@ -8,6 +8,8 @@ TODO:
  * checksum (with sensitive to the order of the blocks (bytes) in the data word (message))
  * mutex test
  * setData(): add parameter
+ * smart pointers for data pointers
+ * rename DSrv_Storage -> DSrv_Storage_2p
 FIXME:
 DANGER:
 NOTE:
@@ -76,12 +78,6 @@ protected:
 	void setDebug(const bool d) noexcept
 	{
 		m_debug = d;
-	}
-
-	// Gets a number of the nodes
-	uint32_t getNodeNum() const noexcept
-	{
-		return 2;
 	}
 
 private:

@@ -31,13 +31,19 @@ Sec_145::DSrv_USART_QT class
 #include <string>       // std::string
 #include <mutex>        // std::mutex, std::lock_guard
 
+
+
+#include "../L1/DSrv_Storage.h"
+
+
+
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
 {
 
 //-------------------------------------------------------------------------------------------------
 // Class implements work with USART
-class DSrv_USART_QT : public QObject, public DSrv
+class DSrv_USART_QT : public QObject, public DSrv<DSrv_Storage>
 {
 	Q_OBJECT
 
@@ -82,11 +88,11 @@ protected:
 	void setDebug(const bool d_usart, const bool d_dsrv, const bool d_storage) noexcept
 	{
 		m_debug = d_usart;
-		DSrv::setDebug(d_dsrv, d_storage);
+		DSrv<DSrv_Storage>::setDebug(d_dsrv, d_storage);
 	}
 
 	// Sends data (override method)
-	Q_INVOKABLE virtual int32_t sendData(DSrv::Data_send data) noexcept override final;
+	Q_INVOKABLE virtual int32_t sendData(DSrv<DSrv_Storage>::Data_send data) noexcept override final;
 
 private:
 
@@ -112,7 +118,7 @@ private slots: // They should not can generate an exeption
 // Class for test a DSrv_USART_QT class (with override method)
 class DSrv_USART_QT_for_test : public DSrv_USART_QT
 {
-	virtual int32_t dataParser(DSrv::Data_parser) override final
+	virtual int32_t dataParser(DSrv<DSrv_Storage>::Data_parser) noexcept override final
 	{
 		return 0;
 	}

@@ -3,7 +3,7 @@
 
 //-------------------------------------------------------------------------------------------------
 /*
-DESCRITION: pure virtual data data server class
+DESCRITION: pure virtual data server template class
 TODO:
  * move constructor: is need a mutex?
 FIXME:
@@ -16,25 +16,26 @@ Sec_145::DSrv class
 +---------------+------------+
 |     YES(*)    |   YES(**)  |
 +---------------+------------+
-(*)  - NO for the setDebug(); see DSrv_Storage class definition
-(**) - see DSrv_Storage class definition
+(*)  - NO for the setDebug(); see Storage class definition
+(**) - see Storage class definition
 */
 
 //-------------------------------------------------------------------------------------------------
-#include "DSrv_Storage.h"           // DSrv_Storage class (for inheritance)
-#include <cstdint>                  // integer types
-#include <utility>                  // std::pair
-#include "../other/DSrv_Defines.h"  // MAX_DATA_SIZE
+#include <cstdint>  // integer types
+#include <utility>  // std::pair
+
+#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
 {
 
 //-------------------------------------------------------------------------------------------------
-// Pure virtual data data server class
-class DSrv : protected DSrv_Storage
+// Pure virtual data server template class
+template<typename Storage>
+class DSrv : protected Storage
 {
-	friend class DSrv_test;
+	template<typename> friend class DSrv_test;
 
 public:
 
@@ -46,22 +47,40 @@ public:
 
 protected:
 
-	DSrv();
-	virtual ~DSrv();
+	// Constructor
+	DSrv()
+	{
+		PRINT_DBG(m_debug, "");
+	}
+
+	// Destructor
+	virtual ~DSrv()
+	{
+		PRINT_DBG(m_debug, "");
+	}
 
 	// Move constructor
-	DSrv(DSrv && obj);
+	DSrv(DSrv && obj)
+	{
+		// Copy all fields
+		m_pktRemSize = obj.m_pktRemSize;
+		obj.m_pktRemSize = 0;
 
-	// Size of remaining data
-	uint32_t m_pktRemSize {0};
+		m_debug = obj.m_debug;
+
+		PRINT_DBG(m_debug, "Move constructor");
+	}
 
 	// Enable/disable debug messages
 	// (probably the method will be called from another thread)
 	void setDebug(const bool d_dsrv, const bool d_storage) noexcept
 	{
 		m_debug = d_dsrv;
-		DSrv_Storage::setDebug(d_storage);
+		Storage::setDebug(d_storage);
 	}
+
+	// Size of remaining data
+	uint32_t m_pktRemSize {0};
 
 	// Sends data (pure virtual function)
 	// (protocol class should realize this function)
@@ -70,46 +89,12 @@ protected:
 
 	// Parser of the accepted data (pure virtual function)
 	// (concrete class should realize this function)
-	virtual int32_t dataParser(Data_parser data) = 0;
+	virtual int32_t dataParser(Data_parser data) noexcept = 0;
 
 private:
 
 	// Enable/disable a debug output via printDebug.cpp/.h
 	bool m_debug {true};
-};
-
-//=================================================================================================
-// Class for test a DSrv class (with override methods)
-class DSrv_for_test : public DSrv
-{
-	virtual int32_t sendData(DSrv::Data_send) noexcept override final
-	{
-		return 0;
-	}
-
-	virtual int32_t dataParser(Data_parser) override final
-	{
-		return 0;
-	}
-};
-
-//-------------------------------------------------------------------------------------------------
-// Class for test a DSrv class (with test methods)
-class DSrv_test
-{
-public:
-
-	// Only via public static methods
-	DSrv_test() = delete;
-
-	// Tests a work with data
-	static int32_t data(DSrv_for_test & obj) noexcept;
-
-	// Tests a move constructor
-	static int32_t move() noexcept;
-
-	// Runs all tests
-	static int32_t fullTest() noexcept;
 };
 
 //-------------------------------------------------------------------------------------------------
