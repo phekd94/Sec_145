@@ -88,8 +88,7 @@ int32_t CvCanny::applyDetector(const uint8_t* const greyData,
 	}
 	catch (std::exception& obj)
 	{
-		PRINT_ERR("Exception (%s) during call OpenCV functions has been occured",
-		          obj.what());
+		PRINT_ERR("Exception (%s) during call OpenCV functions has been occured", obj.what());
 		return -1;
 	}
 }
