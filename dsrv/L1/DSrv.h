@@ -31,11 +31,15 @@ namespace Sec_145
 {
 
 //-------------------------------------------------------------------------------------------------
+// Test class definition
+template <typename Storage> class DSrv_test;
+
+//-------------------------------------------------------------------------------------------------
 // Pure virtual data server template class
-template<typename Storage>
+template <typename Storage>
 class DSrv : protected Storage
 {
-	template<typename> friend class DSrv_test;
+	friend class DSrv_test<Storage>;
 
 public:
 

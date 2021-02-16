@@ -21,7 +21,7 @@ namespace Sec_145
 
 //-------------------------------------------------------------------------------------------------
 // Class for test a DSrv class (with override methods)
-template<typename Storage>
+template <typename Storage>
 class DSrv_for_test : public DSrv<Storage>
 {
 	virtual int32_t sendData(typename DSrv<Storage>::Data_send) noexcept override final
@@ -37,7 +37,7 @@ class DSrv_for_test : public DSrv<Storage>
 
 //=================================================================================================
 // Class for test a DSrv class (with test methods)
-template<typename Storage>
+template <typename Storage>
 class DSrv_test
 {
 public:
@@ -56,7 +56,7 @@ public:
 };
 
 //-------------------------------------------------------------------------------------------------
-template<typename Storage>
+template <typename Storage>
 int32_t DSrv_test<Storage>::data(DSrv_for_test<Storage> & obj) noexcept
 {
 	uint8_t data_1[1] = {1};
@@ -176,7 +176,7 @@ int32_t DSrv_test<Storage>::data(DSrv_for_test<Storage> & obj) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-template<typename Storage>
+template <typename Storage>
 int32_t DSrv_test<Storage>::move() noexcept
 {
 	DSrv_for_test<Storage> obj_1;
@@ -206,7 +206,7 @@ int32_t DSrv_test<Storage>::move() noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-template<typename Storage>
+template <typename Storage>
 int32_t DSrv_test<Storage>::fullTest() noexcept
 {
 	DSrv_for_test<Storage> obj;
