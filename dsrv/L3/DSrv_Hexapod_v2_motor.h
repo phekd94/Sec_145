@@ -21,6 +21,8 @@ Sec_145::Dsrv_Hexapod_v2 class
 
 //-------------------------------------------------------------------------------------------------
 #include "../L2/DSrv_USART_QT.h"  // DSrv_USART_QT class (for inheritance)
+#include "../L1/DSrv_Storage.h"
+#include "../L1/DSrv.h"
 
 #include <QObject>  // Q_OBJECT macros
 #include <cstdint>  // integer types
@@ -33,9 +35,9 @@ namespace Sec_145
 {
 
 //-------------------------------------------------------------------------------------------------
-class DSrv_Hexapod_v2_motor : public DSrv_USART_QT
+class DSrv_Hexapod_v2_motor : /*public QObject,*/ public DSrv_USART_QT<DSrv_Storage, DSrv>
 {
-	Q_OBJECT
+	//Q_OBJECT
 
 	// friend class DSrv_Hexapod_v2_motor_test;
 
@@ -90,7 +92,7 @@ public:
 	              const bool d_dsrv, const bool d_storage) noexcept
 	{
 		m_debug = d_hexapod;
-		DSrv_USART_QT::setDebug(d_usart, d_dsrv, d_storage);
+		DSrv_USART_QT/*<DSrv_Storage, DSrv>*/::setDebug(d_usart, d_dsrv, d_storage);
 	}
 
 private:
@@ -155,15 +157,15 @@ private:
 	// Controls of the move
 	int32_t moveControl(const uint8_t mode, Data_ctrl data) noexcept;
 
-public slots: // They should not generate exeptions
+//public slots: // They should not generate exeptions
 
 	// Slot for watchdog timer
 	void onWatchdog() noexcept;
 
-signals:
+//signals:
 
 	// Signal for watchdog timer
-	void toWatchdog(uint32_t motor_id);
+	/*void toWatchdog(uint32_t motor_id);
 
 	// Signal for complete the home move
 	void toHomeComplete(uint32_t motor_id);
@@ -172,7 +174,7 @@ signals:
 	void toMoveInPosComplete(uint32_t motor_id);
 
 	// Signal for complete the move in position in oscillation mode
-	void toMoveInPosCompleteOsc(uint32_t motor_id);
+	void toMoveInPosCompleteOsc(uint32_t motor_id);*/
 };
 
 //=================================================================================================

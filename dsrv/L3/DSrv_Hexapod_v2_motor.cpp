@@ -17,7 +17,7 @@ DSrv_Hexapod_v2_motor::DSrv_Hexapod_v2_motor(uint8_t motor_id) : m_motor_id(moto
 	m_watchdog.setSingleShot(true);
 
 	// Connect slot to timer
-	connect(&m_watchdog, SIGNAL(timeout()), this, SLOT(onWatchdog()));
+	//connect(&m_watchdog, SIGNAL(timeout()), this, SLOT(onWatchdog()));
 
 	PRINT_DBG(m_debug, "");
 }
@@ -56,7 +56,7 @@ DSrv_Hexapod_v2_motor::DSrv_Hexapod_v2_motor(DSrv_Hexapod_v2_motor && obj) :
 	m_watchdog.setSingleShot(true);
 
 	// Connect slot to the new timer
-	connect(&m_watchdog, SIGNAL(timeout()), this, SLOT(onWatchdog()));
+	//connect(&m_watchdog, SIGNAL(timeout()), this, SLOT(onWatchdog()));
 
 	PRINT_DBG(m_debug, "Move constructor");
 }
@@ -653,7 +653,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode, Data_ctrl data) n
 					{
 						m_mode = MODE::NONE;
 						PRINT_DBG(m_debug, "HOME is completed");
-						emit toHomeComplete(m_motor_id);
+						//emit toHomeComplete(m_motor_id);
 					}
 					else
 					{
@@ -684,7 +684,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode, Data_ctrl data) n
 					{
 						m_mode = MODE::NONE;
 						PRINT_DBG(m_debug, "MOVE_IN_POS is completed");
-						emit toMoveInPosComplete(m_motor_id);
+						//emit toMoveInPosComplete(m_motor_id);
 					}
 					else
 					{
@@ -714,7 +714,7 @@ int32_t DSrv_Hexapod_v2_motor::moveControl(const uint8_t mode, Data_ctrl data) n
 					if (std::get<2>(OEG_MOVE_IN_POS) & (1u << static_cast<uint8_t>(m_osc_dir)))
 					{
 						PRINT_DBG(m_debug, "MOVE_IN_POS in oscillation is completed");
-						emit toMoveInPosCompleteOsc(m_motor_id);
+						//emit toMoveInPosCompleteOsc(m_motor_id);
 					}
 					else
 					{
@@ -760,5 +760,5 @@ void DSrv_Hexapod_v2_motor::onWatchdog() noexcept
 
 	PRINT_ERR("Watchdog timer is triggered");
 
-	emit toWatchdog(m_motor_id);
+	//emit toWatchdog(m_motor_id);
 }
