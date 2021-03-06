@@ -54,7 +54,7 @@ protected:
 
 	// Without copy constructor and override an assignment operator
 	// (due to class members as pointer are presented)
-	DSrv_Storage(DSrv_Storage &) = delete;
+	DSrv_Storage(const DSrv_Storage &) = delete;
 	DSrv_Storage & operator=(const DSrv_Storage &) = delete;
 
 	// Move constructor

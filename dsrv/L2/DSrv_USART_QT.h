@@ -93,7 +93,7 @@ protected:
 
 	// Without copy constructor and override an assignment operator
 	// (due to class members as pointer are presented)
-	DSrv_USART_QT(DSrv_USART_QT &) = delete;
+	DSrv_USART_QT(const DSrv_USART_QT &) = delete;
 	DSrv_USART_QT& operator=(const DSrv_USART_QT &) = delete;
 
 	// Move constructor
