@@ -407,6 +407,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 			if (DSrv_Storage::completeData() != 0)
 			{
 				PRINT_ERR("DSrv_Storage::completeData() != 0");
+				m_pktRemSize = 0;
 				return -1;
 			}
 
@@ -416,6 +417,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 			if (DSrv_Storage::getData(DSrv_Storage::Data_get(&data_res, &size_res)) != 0)
 			{
 				PRINT_ERR("DSrv_Storage::getData() != 0");
+				m_pktRemSize = 0;
 				return -1;
 			}
 
@@ -431,6 +433,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 					if (nullptr == data_for_crc)
 					{
 						PRINT_ERR("Can not allocate a memory for check a CRC");
+						m_pktRemSize = 0;
 						return -1;
 					}
 					data_for_crc[0] = m_motor_id_pars.second;
@@ -475,6 +478,7 @@ int32_t DSrv_Hexapod_v2_motor::dataParser(DSrv::Data_parser data) noexcept
 					if (nullptr == data_for_crc)
 					{
 						PRINT_ERR("Can not allocate a memory for check a CRC");
+						m_pktRemSize = 0;
 						return -1;
 					}
 					data_for_crc[0] = m_motor_id_pars.second;
