@@ -43,6 +43,11 @@ public:
 	// Data type for calculate CRC method (pointer + size)
 	using Data_crc = std::pair<const uint8_t *, uint8_t>;
 
+	// Speed mode
+	enum class eSpeedMode : uint8_t {
+		SLOWEST = 0, LOW_MEDIUM, HIGH_MEDIUM, HIGHEST
+	};
+
 	DSrv_Kowa();
 	virtual ~DSrv_Kowa();
 
@@ -52,8 +57,36 @@ public:
 	// Calculates a CRC
 	uint8_t calcCRC(Data_crc data) const noexcept;
 
+	// Stops
+	Q_INVOKABLE int32_t stop() noexcept
+	{
+		m_data[2] = 0x00;
+		m_data[3] = 0x00;
+		m_data[4] = 0x00;
+		m_data[5] = 0x00;
+
+		m_numOfBytes_req = 4;
+		m_dataNeed = false;
+
+		return write();
+	}
+
+	// AF
+	Q_INVOKABLE int32_t AF()
+	{
+		m_data[2] = 0x00;
+		m_data[3] = 0x2B;
+		m_data[4] = 0x00;
+		m_data[5] = 0x00;
+
+		m_numOfBytes_req = 4;
+		m_dataNeed = false;
+
+		return write();
+	}
+
 	// Focus plus
-	Q_INVOKABLE int32_t focus_p() noexcept
+	Q_INVOKABLE int32_t focusP() noexcept
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x80;
@@ -67,51 +100,9 @@ public:
 	}
 
 	// Focus minus
-	Q_INVOKABLE int32_t focus_m() noexcept
+	Q_INVOKABLE int32_t focusM() noexcept
 	{
 		m_data[2] = 0x01;
-		m_data[3] = 0x00;
-		m_data[4] = 0x00;
-		m_data[5] = 0x00;
-
-		m_numOfBytes_req = 4;
-		m_dataNeed = false;
-
-		return write();
-	}
-
-	// Zoom plus
-	Q_INVOKABLE int32_t zoom_p() noexcept
-	{
-		m_data[2] = 0x00;
-		m_data[3] = 0x40;
-		m_data[4] = 0x00;
-		m_data[5] = 0x00;
-
-		m_numOfBytes_req = 4;
-		m_dataNeed = false;
-
-		return write();
-	}
-
-	// Zoom minus
-	Q_INVOKABLE int32_t zoom_m() noexcept
-	{
-		m_data[2] = 0x00;
-		m_data[3] = 0x20;
-		m_data[4] = 0x00;
-		m_data[5] = 0x00;
-
-		m_numOfBytes_req = 4;
-		m_dataNeed = false;
-
-		return write();
-	}
-
-	// Stops
-	Q_INVOKABLE int32_t stop() noexcept
-	{
-		m_data[2] = 0x00;
 		m_data[3] = 0x00;
 		m_data[4] = 0x00;
 		m_data[5] = 0x00;
@@ -136,20 +127,6 @@ public:
 		return write();
 	}
 
-	// Moves to zoom position
-	Q_INVOKABLE int32_t zoomPos(uint16_t val)
-	{
-		m_data[2] = 0x00;
-		m_data[3] = 0x4F;
-		m_data[4] = val >> 8;
-		m_data[5] = val & 0xFF;
-
-		m_numOfBytes_req = 4;
-		m_dataNeed = false;
-
-		return write();
-	}
-
 	// Gets a focus position
 	Q_INVOKABLE int32_t focusGet()
 	{
@@ -160,6 +137,76 @@ public:
 
 		m_numOfBytes_req = 7;
 		m_dataNeed = true;
+
+		return write();
+	}
+
+	// Sets speed mode
+	Q_INVOKABLE int32_t focusSetVelMode(eSpeedMode mode)
+	{
+		m_data[2] = 0x00;
+		m_data[3] = 0x27;
+		m_data[4] = 0x00;
+		m_data[5] = static_cast<uint8_t>(mode);
+
+		m_numOfBytes_req = 4;
+		m_dataNeed = false;
+
+		return write();
+	}
+
+	// Sets speed value
+	Q_INVOKABLE int32_t focusSetVel(eSpeedMode mode, uint8_t speed)
+	{
+		m_data[2] = 0x00;
+		m_data[3] = 0x83;
+		m_data[4] = static_cast<uint8_t>(mode);
+		m_data[5] = speed;
+
+		m_numOfBytes_req = 4;
+		m_dataNeed = false;
+
+		return write();
+	}
+
+	// Zoom plus
+	Q_INVOKABLE int32_t zoomP() noexcept
+	{
+		m_data[2] = 0x00;
+		m_data[3] = 0x40;
+		m_data[4] = 0x00;
+		m_data[5] = 0x00;
+
+		m_numOfBytes_req = 4;
+		m_dataNeed = false;
+
+		return write();
+	}
+
+	// Zoom minus
+	Q_INVOKABLE int32_t zoomM() noexcept
+	{
+		m_data[2] = 0x00;
+		m_data[3] = 0x20;
+		m_data[4] = 0x00;
+		m_data[5] = 0x00;
+
+		m_numOfBytes_req = 4;
+		m_dataNeed = false;
+
+		return write();
+	}
+
+	// Moves to zoom position
+	Q_INVOKABLE int32_t zoomPos(uint16_t val)
+	{
+		m_data[2] = 0x00;
+		m_data[3] = 0x4F;
+		m_data[4] = val >> 8;
+		m_data[5] = val & 0xFF;
+
+		m_numOfBytes_req = 4;
+		m_dataNeed = false;
 
 		return write();
 	}
@@ -178,27 +225,13 @@ public:
 		return write();
 	}
 
-	// Sets slow speed for focus
-	Q_INVOKABLE int32_t focusSS()
-	{
-		m_data[2] = 0x00;
-		m_data[3] = 0x27;
-		m_data[4] = 0x00;
-		m_data[5] = 0x00;
-
-		m_numOfBytes_req = 4;
-		m_dataNeed = false;
-
-		return write();
-	}
-
-	// Sets slow speed for zoom
-	Q_INVOKABLE int32_t zoomSS()
+	// Sets speed mode
+	Q_INVOKABLE int32_t zoomSetVelMode(eSpeedMode mode)
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x25;
 		m_data[4] = 0x00;
-		m_data[5] = 0x00;
+		m_data[5] = static_cast<uint8_t>(mode);
 
 		m_numOfBytes_req = 4;
 		m_dataNeed = false;
@@ -206,41 +239,13 @@ public:
 		return write();
 	}
 
-	// AF
-	Q_INVOKABLE int32_t AF()
-	{
-		m_data[2] = 0x00;
-		m_data[3] = 0x2B;
-		m_data[4] = 0x00;
-		m_data[5] = 0x00;
-
-		m_numOfBytes_req = 4;
-		m_dataNeed = false;
-
-		return write();
-	}
-
-	// Sets slow speed for focus continuously
-	Q_INVOKABLE int32_t focusSS01()
-	{
-		m_data[2] = 0x00;
-		m_data[3] = 0x83;
-		m_data[4] = 0x00;
-		m_data[5] = 15u;
-
-		m_numOfBytes_req = 4;
-		m_dataNeed = false;
-
-		return write();
-	}
-
-	// Sets slow speed for zoom continuously
-	Q_INVOKABLE int32_t zoomSS01()
+	// Sets speed value
+	Q_INVOKABLE int32_t zoomSetVel(eSpeedMode mode, uint8_t speed)
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x81;
-		m_data[4] = 0x00;
-		m_data[5] = 15u;
+		m_data[4] = static_cast<uint8_t>(mode);
+		m_data[5] = speed;
 
 		m_numOfBytes_req = 4;
 		m_dataNeed = false;
