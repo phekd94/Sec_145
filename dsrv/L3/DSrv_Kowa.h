@@ -72,7 +72,7 @@ public:
 	}
 
 	// AF
-	Q_INVOKABLE int32_t AF()
+	Q_INVOKABLE int32_t AF() noexcept
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x2B;
@@ -114,7 +114,7 @@ public:
 	}
 
 	// Moves to focus position
-	Q_INVOKABLE int32_t focusPos(uint16_t val)
+	Q_INVOKABLE int32_t focusPos(uint16_t val) noexcept
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x87;
@@ -128,7 +128,7 @@ public:
 	}
 
 	// Gets a focus position
-	Q_INVOKABLE int32_t focusGet()
+	Q_INVOKABLE int32_t focusGet() noexcept
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x8B;
@@ -142,7 +142,7 @@ public:
 	}
 
 	// Sets speed mode
-	Q_INVOKABLE int32_t focusSetVelMode(eSpeedMode mode)
+	Q_INVOKABLE int32_t focusSetVelMode(eSpeedMode mode) noexcept
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x27;
@@ -156,7 +156,7 @@ public:
 	}
 
 	// Sets speed value
-	Q_INVOKABLE int32_t focusSetVel(eSpeedMode mode, uint8_t speed)
+	Q_INVOKABLE int32_t focusSetVel(eSpeedMode mode, uint8_t speed) noexcept
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x83;
@@ -198,7 +198,7 @@ public:
 	}
 
 	// Moves to zoom position
-	Q_INVOKABLE int32_t zoomPos(uint16_t val)
+	Q_INVOKABLE int32_t zoomPos(uint16_t val) noexcept
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x4F;
@@ -212,7 +212,7 @@ public:
 	}
 
 	// Gets a zoom position
-	Q_INVOKABLE int32_t zoomGet()
+	Q_INVOKABLE int32_t zoomGet() noexcept
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x55;
@@ -226,7 +226,7 @@ public:
 	}
 
 	// Sets speed mode
-	Q_INVOKABLE int32_t zoomSetVelMode(eSpeedMode mode)
+	Q_INVOKABLE int32_t zoomSetVelMode(eSpeedMode mode) noexcept
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x25;
@@ -240,7 +240,7 @@ public:
 	}
 
 	// Sets speed value
-	Q_INVOKABLE int32_t zoomSetVel(eSpeedMode mode, uint8_t speed)
+	Q_INVOKABLE int32_t zoomSetVel(eSpeedMode mode, uint8_t speed) noexcept
 	{
 		m_data[2] = 0x00;
 		m_data[3] = 0x81;
