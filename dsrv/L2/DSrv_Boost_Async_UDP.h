@@ -64,18 +64,17 @@ protected:
 	}
 	
 	// Starts the communication
-	void start();
+	void start(uint16_t port);
 	
 	// Stops the communication
 	void stop();
 	
 	// Sends data (override method)
 	virtual int32_t sendData(typename Base<Storage>::Data_send data) noexcept override final
-	{}
+	{ return 0; }
 	
 	// Receives data () // virtual override final;
-	int32_t receiveData(typename Base<Storage>::Data_send data) noexcept
-	{}
+	int32_t receiveData() noexcept;
 	
 	// Enable/disable debug messages
 	// (probably the method will be called from another thread)
@@ -110,7 +109,7 @@ private:
 };
 
 //=================================================================================================
-template <typename Storage, template <typename T> Base>
+template <typename Storage, template <typename T> class Base>
 void DSrv_Boost_Async_UDP<Storage, Base>::start(uint16_t port)
 {
 	try {
@@ -118,7 +117,7 @@ void DSrv_Boost_Async_UDP<Storage, Base>::start(uint16_t port)
 		m_socket.open(boost::asio::ip::udp::v4());
 		
 		// Bind a socket
-		m_socket.bind(boost::asio::ip::upd::endpoint(boost::asio::ip::udp::v4(), port));
+		m_socket.bind(boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port));
 		
 		PRINT_DBG(m_debug, "Communication is started (port: %u)", 
 		                   static_cast<unsigned int>(port));
@@ -130,7 +129,7 @@ void DSrv_Boost_Async_UDP<Storage, Base>::start(uint16_t port)
 }
 
 //-------------------------------------------------------------------------------------------------
-template <typename Storage, template <typename T> Base>
+template <typename Storage, template <typename T> class Base>
 void DSrv_Boost_Async_UDP<Storage, Base>::stop()
 {
 	try {
@@ -146,6 +145,45 @@ void DSrv_Boost_Async_UDP<Storage, Base>::stop()
 	catch (std::exception & ex)
 	{
 		PRINT_ERR("%s", ex.what());
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+template <typename Storage, template <typename T> class Base>
+int32_t DSrv_Boost_Async_UDP<Storage, Base>::receiveData() noexcept
+{
+	try {
+		if (m_socket.available() != 0)
+		{
+			uint32_t receiveBytes = m_socket.receive_from(
+			        boost::asio::buffer(m_bufferReceive, m_bufferSize), m_senderEndpoint);
+			        
+			PRINT_DBG(m_debug, "Data is received from %s (port = %u) (size = %u)", 
+			                   m_senderEndpoint.address().to_string().c_str(),
+			                   static_cast<unsigned int>(m_senderEndpoint.port()), 
+			                   static_cast<unsigned int>(receiveBytes));
+			
+			if (this->dataParser(
+			         typename Base<Storage>::Data_parser(m_bufferReceive, receiveBytes)) != 0)
+			{
+				PRINT_ERR("dataParser()");
+				if (Storage::clearData() != 0)
+				{
+					PRINT_ERR("clearData()");
+				}
+				return -1;
+			}
+		}
+		else
+		{
+			return 1;
+		}
+		return 0;
+	}
+	catch (std::exception & ex)
+	{
+		PRINT_ERR("%s", ex.what());
+		return -1;
 	}
 }
 
