@@ -5,16 +5,18 @@
 /*
 DESCRITION: class implements work with UDP packets by using Boost library
 TODO:
+ * Define move constructor
 FIXME:
 DANGER:
 NOTE:
 
-Sec_145::DSrv_Boost_Async_UDP class
+Sec_145::DSrv_Boost_Sync_UDP class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
 |               |            |
 +---------------+------------+
+(**) - see Storage and Base classes definition
 */
 
 //-------------------------------------------------------------------------------------------------
@@ -30,23 +32,23 @@ namespace Sec_145
 
 //-------------------------------------------------------------------------------------------------
 // Test class definition
-template <typename Storage, template <typename T> class Base> class DSrv_Boost_Async_UDP_test;
+template <typename Storage, template <typename T> class Base> class DSrv_Boost_Sync_UDP_test;
 
 //-------------------------------------------------------------------------------------------------
 template <typename Storage, template <typename T> class Base>
-class DSrv_Boost_Async_UDP : public Base<Storage>
+class DSrv_Boost_Sync_UDP : public Base<Storage>
 {
 
-	friend class DSrv_Boost_Async_UDP_test<Storage, Base>;
+	friend class DSrv_Boost_Sync_UDP_test<Storage, Base>;
 
 protected:
 
-	DSrv_Boost_Async_UDP() : m_socket(m_io_context)
+	DSrv_Boost_Sync_UDP() : m_socket(m_io_context)
 	{
 		PRINT_DBG(m_debug, "");
 	}
 
-	virtual ~DSrv_Boost_Async_UDP()
+	virtual ~DSrv_Boost_Sync_UDP()
 	{
 		stop();
 	
@@ -54,12 +56,14 @@ protected:
 	}
 	
 	// Without copy constructor and override an assignment operator
-	DSrv_Boost_Async_UDP(const DSrv_Boost_Async_UDP &) = delete;
-	DSrv_Boost_Async_UDP& operator=(const DSrv_Boost_Async_UDP &) = delete;
+	DSrv_Boost_Sync_UDP(const DSrv_Boost_Sync_UDP &) = delete;
+	DSrv_Boost_Sync_UDP& operator=(const DSrv_Boost_Sync_UDP &) = delete;
 
 	// Move constructor	
-	DSrv_Boost_Async_UDP(DSrv_Boost_Async_UDP && obj) : Base<Storage>(std::move(obj))
+	DSrv_Boost_Sync_UDP(DSrv_Boost_Sync_UDP && obj) : Base<Storage>(std::move(obj))
 	{
+		// TODO: define move constructor
+		
 		PRINT_DBG(m_debug, "Move constructor");
 	}
 	
@@ -70,14 +74,16 @@ protected:
 	void stop();
 	
 	// Sends data (override method)
-	virtual int32_t sendData(typename Base<Storage>::Data_send data) noexcept override final
-	{ return 0; }
+	virtual int32_t sendData(typename Base<Storage>::Data_send data) noexcept override final;
 	
-	// Receives data () // virtual override final;
-	int32_t receiveData() noexcept;
+	// Sends data to host and port (override method)
+	virtual int32_t sendData(typename Base<Storage>::Data_send data,
+	                         std::string host, uint16_t port) noexcept;
 	
-	// Enable/disable debug messages
-	// (probably the method will be called from another thread)
+	// Receives data (override method)
+	virtual int32_t receiveData() noexcept override final;
+	
+	// Enables debug messages
 	void setDebug(const bool d_usart, const bool d_dsrv, const bool d_storage) noexcept
 	{
 		m_debug = d_usart;
@@ -92,6 +98,12 @@ private:
 	// UDP socket
 	boost::asio::ip::udp::socket m_socket;
 	
+	// Information about sender
+	boost::asio::ip::udp::endpoint m_senderEndpoint;
+	
+	// Endpoint for send
+	boost::asio::ip::udp::endpoint m_endpointSend;
+	
 	// Maximal lenght of UDP packet
 	constexpr static const uint32_t UDP_max_lenght {1500};
 	
@@ -99,18 +111,16 @@ private:
 	constexpr static const uint32_t m_bufferSize {UDP_max_lenght};
 	
 	// Buffer for receive data
-	uint8_t m_bufferReceive[m_bufferSize];
+	uint8_t m_bufferReceive[m_bufferSize];	
 	
-	// Information about sender
-	boost::asio::ip::udp::endpoint m_senderEndpoint;
-	
-	// Enable/disable a debug output via printDebug.cpp/.h
+	// Enable debug messages
 	bool m_debug {true};
 };
 
 //=================================================================================================
 template <typename Storage, template <typename T> class Base>
-void DSrv_Boost_Async_UDP<Storage, Base>::start(uint16_t port)
+void DSrv_Boost_Sync_UDP<Storage, Base>::
+start(uint16_t port)
 {
 	try {
 		// Open a socket
@@ -130,13 +140,14 @@ void DSrv_Boost_Async_UDP<Storage, Base>::start(uint16_t port)
 
 //-------------------------------------------------------------------------------------------------
 template <typename Storage, template <typename T> class Base>
-void DSrv_Boost_Async_UDP<Storage, Base>::stop()
+void DSrv_Boost_Sync_UDP<Storage, Base>::
+stop()
 {
 	try {
 		// Get a current port
 		uint16_t port {m_socket.local_endpoint().port()};
 	
-		// Open a socket
+		// Close a socket
 		m_socket.close();
 		
 		PRINT_DBG(m_debug, "Communication is stoped (port: %u)", 
@@ -150,11 +161,63 @@ void DSrv_Boost_Async_UDP<Storage, Base>::stop()
 
 //-------------------------------------------------------------------------------------------------
 template <typename Storage, template <typename T> class Base>
-int32_t DSrv_Boost_Async_UDP<Storage, Base>::receiveData() noexcept
+int32_t DSrv_Boost_Sync_UDP<Storage, Base>::
+sendData(typename Base<Storage>::Data_send data) noexcept
 {
 	try {
+		// Send data
+		m_socket.send_to(boost::asio::buffer(data.first, data.second), m_endpointSend);
+		
+		PRINT_DBG(m_debug, "Data is send to %s (port = %u) (size = %u)",
+		                   m_endpointSend.address().to_string().c_str(),
+		                   static_cast<unsigned int>(m_endpointSend.port()),
+		                   static_cast<unsigned int>(data.second));
+		
+		return 0;
+	}
+	catch (std::exception & ex)
+	{
+		PRINT_ERR("%s", ex.what());
+		return -1;
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+template <typename Storage, template <typename T> class Base>
+int32_t DSrv_Boost_Sync_UDP<Storage, Base>::
+sendData(typename Base<Storage>::Data_send data, std::string host, uint16_t port) noexcept
+{
+	try {
+		// Set endpoint for send
+		m_endpointSend = boost::asio::ip::udp::endpoint(
+		                      boost::asio::ip::address::from_string(host), port);
+		
+		// Send data
+		if (sendData(data) != 0)
+		{
+			PRINT_ERR("sendData(data)");
+			return -1;
+		}
+		
+		return 0;
+	}
+	catch (std::exception & ex)
+	{
+		PRINT_ERR("%s", ex.what());
+		return -1;
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+template <typename Storage, template <typename T> class Base>
+int32_t DSrv_Boost_Sync_UDP<Storage, Base>::
+receiveData() noexcept
+{
+	try {
+		// Check of data availability
 		if (m_socket.available() != 0)
 		{
+			// Receive data
 			uint32_t receiveBytes = m_socket.receive_from(
 			        boost::asio::buffer(m_bufferReceive, m_bufferSize), m_senderEndpoint);
 			        
@@ -163,10 +226,13 @@ int32_t DSrv_Boost_Async_UDP<Storage, Base>::receiveData() noexcept
 			                   static_cast<unsigned int>(m_senderEndpoint.port()), 
 			                   static_cast<unsigned int>(receiveBytes));
 			
+			// Parse data
 			if (this->dataParser(
 			         typename Base<Storage>::Data_parser(m_bufferReceive, receiveBytes)) != 0)
 			{
 				PRINT_ERR("dataParser()");
+				
+				// Clear data
 				if (Storage::clearData() != 0)
 				{
 					PRINT_ERR("clearData()");

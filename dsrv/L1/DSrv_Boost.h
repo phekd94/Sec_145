@@ -23,6 +23,7 @@ Sec_145::DSrv_Boost class
 //-------------------------------------------------------------------------------------------------
 #include <cstdint>  // integer types
 #include <utility>  // std::pair; std::move
+#include <string>   // std::string
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -45,9 +46,6 @@ public:
 
 	// Data type for send data method (pointer + size)
 	using Data_send = const std::pair<const uint8_t * const, const uint32_t>;
-	
-	// Data type for receive data method (pointer + size)
-	using Data_receive = std::pair<uint8_t * const, uint32_t>;
 
 	// Data type for data parser method (pointer + size)
 	using Data_parser = std::pair<const uint8_t *, uint32_t>;
@@ -94,7 +92,7 @@ protected:
 	
 	// Receives data (pure virtual function)
 	// (protocol class should realize this function)
-	virtual int32_t receiveData(Data_receive & data) noexcept = 0;
+	virtual int32_t receiveData() noexcept = 0;
 
 	// Parser of the accepted data (pure virtual function)
 	// (concrete class should realize this function)

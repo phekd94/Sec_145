@@ -27,8 +27,7 @@ class DSrv_Boost_for_test : public DSrv_Boost<Storage>
 		return 0;
 	}
 	
-	virtual int32_t receiveData(
-	                       typename DSrv_Boost<Storage>::Data_receive &) noexcept override final
+	virtual int32_t receiveData() noexcept override final
 	{
 		return 0;
 	}
