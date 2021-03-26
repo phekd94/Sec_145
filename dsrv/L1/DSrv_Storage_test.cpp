@@ -1,8 +1,8 @@
 
 #include "DSrv_Storage_test.h"
 
-#include "../other/DSrv_Defines.h"  // MAX_DATA_SIZE
-#include <utility>                  // std::move
+#include "Sec_145/other/DSrv_Defines.h"  // MAX_DATA_SIZE
+#include <utility>                       // std::move
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 

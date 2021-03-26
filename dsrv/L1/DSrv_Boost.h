@@ -3,20 +3,20 @@
 
 //-------------------------------------------------------------------------------------------------
 /*
-DESCRITION: pure virtual data server template class
+DESCRITION: pure virtual data server template class for Boost protocol class
 TODO:
  * move constructor: is need a mutex?
 FIXME:
 DANGER:
 NOTE:
 
-Sec_145::DSrv class
+Sec_145::DSrv_Boost class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
-|     YES(*)    |   YES(**)  |
+|   YES(*)(**)  |   YES(**)  |
 +---------------+------------+
-(*)  - NO for the setDebug(); see Storage class definition
+(*)  - NO for the setDebug()
 (**) - see Storage class definition
 */
 
@@ -32,19 +32,22 @@ namespace Sec_145
 
 //-------------------------------------------------------------------------------------------------
 // Test class definition
-template <typename Storage> class DSrv_test;
+template <typename Storage> class DSrv_Boost_test;
 
 //-------------------------------------------------------------------------------------------------
 // Pure virtual data server template class
 template <typename Storage>
-class DSrv : protected Storage
+class DSrv_Boost : protected Storage
 {
-	friend class DSrv_test<Storage>;
+	friend class DSrv_Boost_test<Storage>;
 
 public:
 
 	// Data type for send data method (pointer + size)
 	using Data_send = const std::pair<const uint8_t * const, const uint32_t>;
+	
+	// Data type for receive data method (pointer + size)
+	using Data_receive = std::pair<uint8_t * const, uint32_t>;
 
 	// Data type for data parser method (pointer + size)
 	using Data_parser = std::pair<const uint8_t *, uint32_t>;
@@ -52,19 +55,19 @@ public:
 protected:
 
 	// Constructor
-	DSrv()
+	DSrv_Boost()
 	{
 		PRINT_DBG(m_debug, "");
 	}
 
 	// Destructor
-	virtual ~DSrv()
+	virtual ~DSrv_Boost()
 	{
 		PRINT_DBG(m_debug, "");
 	}
 
 	// Move constructor
-	DSrv(DSrv && obj) : Storage(std::move(obj))
+	DSrv_Boost(DSrv_Boost && obj) : Storage(std::move(obj))
 	{
 		// Copy all fields
 		m_pktRemSize = obj.m_pktRemSize;
@@ -75,8 +78,7 @@ protected:
 		PRINT_DBG(m_debug, "Move constructor");
 	}
 
-	// Enable/disable debug messages
-	// (probably the method will be called from another thread)
+	// Enables debug messages
 	void setDebug(const bool d_dsrv, const bool d_storage) noexcept
 	{
 		m_debug = d_dsrv;
@@ -88,8 +90,11 @@ protected:
 
 	// Sends data (pure virtual function)
 	// (protocol class should realize this function)
-	// (probably the method will be called from another thread)
 	virtual int32_t sendData(Data_send data) noexcept = 0;
+	
+	// Receives data (pure virtual function)
+	// (protocol class should realize this function)
+	virtual int32_t receiveData(Data_receive & data) noexcept = 0;
 
 	// Parser of the accepted data (pure virtual function)
 	// (concrete class should realize this function)
@@ -97,7 +102,7 @@ protected:
 
 private:
 
-	// Enable/disable a debug output via printDebug.cpp/.h
+	// Enable debug messages
 	bool m_debug {true};
 };
 

@@ -64,7 +64,6 @@ protected:
 	int32_t setData(Data_set data, const bool add) noexcept;
 
 	// Gets complete data from the storage
-	// (probably the method will be called from another thread)
 	int32_t getData(Data_get data) noexcept;
 
 	// Deletes all data in the storage
@@ -73,8 +72,7 @@ protected:
 	// Exchanges the m_fillingData and the m_completeData pointers (filling data is complete)
 	int32_t completeData() noexcept;
 
-	// Enable/disable debug messages
-	// (probably the method will be called from another thread)
+	// Enables debug messages
 	void setDebug(const bool d) noexcept
 	{
 		m_debug = d;
@@ -95,7 +93,7 @@ private:
 	// Mutex
 	std::mutex m_mutex;
 
-	// Enable/disable a debug output via printDebug.cpp/.h
+	// Enable debug messages
 	bool m_debug {true};
 };
 
