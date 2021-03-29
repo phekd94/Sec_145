@@ -67,7 +67,7 @@ int32_t DSrv_Boost_test<Storage>::move() noexcept
 	const auto m_pktRemSize {obj_1.m_pktRemSize};
 
 	// Apply move constructor
-	DSrv_Boost_for_test<Storage>  obj_2 {std::move(obj_1)};
+	DSrv_Boost_for_test<Storage> obj_2 {std::move(obj_1)};
 
 	// Check obj_1 pointers
 	if (obj_1.m_pktRemSize != 0)
