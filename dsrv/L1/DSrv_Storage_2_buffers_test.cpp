@@ -1,5 +1,5 @@
 
-#include "DSrv_Storage_test.h"
+#include "DSrv_Storage_2_buffers_test.h"
 
 #include "Sec_145/other/DSrv_Defines.h"  // MAX_DATA_SIZE
 #include <utility>                       // std::move
@@ -10,23 +10,23 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage_test::pNull(DSrv_Storage & obj) noexcept
+int32_t DSrv_Storage_2_buffers_test::pNull(DSrv_Storage_2_buffers & obj) noexcept
 {
 	uint8_t* data;
 	uint32_t size = 1;
 
 	// Test all methods which utilize input pointers
-	if (obj.setData(DSrv_Storage::Data_set(nullptr, size), true) == 0)
+	if (obj.setData(DSrv_Storage_2_buffers::Data_set(nullptr, size), true) == 0)
 	{
 		PRINT_ERR("setData(nullptr, size, true)");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(nullptr, &size)) == 0)
+	if (obj.getData(DSrv_Storage_2_buffers::Data_get(nullptr, &size)) == 0)
 	{
 		PRINT_ERR("getData(nullptr, &size)");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(&data, nullptr)) == 0)
+	if (obj.getData(DSrv_Storage_2_buffers::Data_get(&data, nullptr)) == 0)
 	{
 		PRINT_ERR("getData(&data, nullptr)");
 		return -1;
@@ -37,12 +37,12 @@ int32_t DSrv_Storage_test::pNull(DSrv_Storage & obj) noexcept
 	uint8_t* m_fillingData = obj.m_fillingData;
 	obj.m_completeData = obj.m_fillingData = nullptr;
 
-	if (obj.setData(DSrv_Storage::Data_set(data, size), true) == 0)
+	if (obj.setData(DSrv_Storage_2_buffers::Data_set(data, size), true) == 0)
 	{
 		PRINT_ERR("setData(data, size, true) with nullptr == m_...Data");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(&data, &size)) == 0)
+	if (obj.getData(DSrv_Storage_2_buffers::Data_get(&data, &size)) == 0)
 	{
 		PRINT_ERR("getData(&data, &size) with nullptr == m_...Data");
 		return -1;
@@ -60,7 +60,7 @@ int32_t DSrv_Storage_test::pNull(DSrv_Storage & obj) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
+int32_t DSrv_Storage_2_buffers_test::data(DSrv_Storage_2_buffers & obj) noexcept
 {
 	uint8_t data_1[1] = {1};
 	uint8_t data_2[1] = {2};
@@ -69,12 +69,12 @@ int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
 	uint32_t size_r;
 
 	// Get if data is not complete
-	if (obj.setData(DSrv_Storage::Data_set(data_1, size), false) != 0)
+	if (obj.setData(DSrv_Storage_2_buffers::Data_set(data_1, size), false) != 0)
 	{
 		PRINT_ERR("setData(data_1, ...)");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
+	if (obj.getData(DSrv_Storage_2_buffers::Data_get(&data_r, &size_r)) != 0)
 	{
 		PRINT_ERR("getData()");
 		return -1;
@@ -92,7 +92,7 @@ int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
 		PRINT_ERR("completeData() after first setData()");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
+	if (obj.getData(DSrv_Storage_2_buffers::Data_get(&data_r, &size_r)) != 0)
 	{
 		PRINT_ERR("getData() after first completeData()");
 		return -1;
@@ -107,12 +107,12 @@ int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
 	}
 
 	// Two setData
-	if (obj.setData(DSrv_Storage::Data_set(data_2, size), false) != 0)
+	if (obj.setData(DSrv_Storage_2_buffers::Data_set(data_2, size), false) != 0)
 	{
 		PRINT_ERR("setData(data_2, ...)");
 		return -1;
 	}
-	if (obj.setData(DSrv_Storage::Data_set(data_1, size), true) != 0)
+	if (obj.setData(DSrv_Storage_2_buffers::Data_set(data_1, size), true) != 0)
 	{
 		PRINT_ERR("setData(data_1, ...)");
 		return -1;
@@ -122,7 +122,7 @@ int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
 		PRINT_ERR("completeData() for two setData()");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
+	if (obj.getData(DSrv_Storage_2_buffers::Data_get(&data_r, &size_r)) != 0)
 	{
 		PRINT_ERR("getData() for two setData()");
 		return -1;
@@ -137,19 +137,19 @@ int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
 	}
 
 	// MAX_DATA_SIZE + 1 (new data)
-	if (obj.setData(DSrv_Storage::Data_set(data_1, MAX_DATA_SIZE + 1), false) == 0)
+	if (obj.setData(DSrv_Storage_2_buffers::Data_set(data_1, MAX_DATA_SIZE + 1), false) == 0)
 	{
 		PRINT_ERR("setData(..., MAX_DATA_SIZE + 1, false)");
 		return -1;
 	}
 
 	// MAX_DATA_SIZE (add data)
-	if (obj.setData(DSrv_Storage::Data_set(data_1, size), true) != 0)
+	if (obj.setData(DSrv_Storage_2_buffers::Data_set(data_1, size), true) != 0)
 	{
 		PRINT_ERR("setData(data_1, ...)");
 		return -1;
 	}
-	if (obj.setData(DSrv_Storage::Data_set(data_1, MAX_DATA_SIZE), true) == 0)
+	if (obj.setData(DSrv_Storage_2_buffers::Data_set(data_1, MAX_DATA_SIZE), true) == 0)
 	{
 		PRINT_ERR("setData(..., MAX_DATA_SIZE, true)");
 		return -1;
@@ -161,7 +161,7 @@ int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
 		PRINT_ERR("clearData()");
 		return -1;
 	}
-	if (obj.getData(DSrv_Storage::Data_get(&data_r, &size_r)) != 0)
+	if (obj.getData(DSrv_Storage_2_buffers::Data_get(&data_r, &size_r)) != 0)
 	{
 		PRINT_ERR("getData()");
 		return -1;
@@ -179,16 +179,16 @@ int32_t DSrv_Storage_test::data(DSrv_Storage & obj) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage_test::move() noexcept
+int32_t DSrv_Storage_2_buffers_test::move() noexcept
 {
-	DSrv_Storage obj_1;
+	DSrv_Storage_2_buffers obj_1;
 
 	// Save values of pointers
 	const auto m_completeData {obj_1.m_completeData};
 	const auto m_fillingData {obj_1.m_fillingData};
 
 	// Apply move constructor
-	DSrv_Storage obj_2 {std::move(obj_1)};
+	DSrv_Storage_2_buffers obj_2 {std::move(obj_1)};
 
 	// Check obj_1 pointers
 	if (obj_1.m_completeData != nullptr || obj_1.m_fillingData != nullptr)
@@ -208,9 +208,9 @@ int32_t DSrv_Storage_test::move() noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage_test::fullTest() noexcept
+int32_t DSrv_Storage_2_buffers_test::fullTest() noexcept
 {
-	DSrv_Storage obj;
+	DSrv_Storage_2_buffers obj;
 	obj.setDebug(true);
 
 	if (pNull(obj) != 0)

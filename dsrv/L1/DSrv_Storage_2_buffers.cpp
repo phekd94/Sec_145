@@ -1,5 +1,5 @@
 
-#include "DSrv_Storage.h"
+#include "DSrv_Storage_2_buffers.h"
 #include "../other/DSrv_Defines.h"  // MAX_DATA_SIZE
 
 #include <cstring>       // std::memcpy
@@ -13,7 +13,7 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-DSrv_Storage::DSrv_Storage()
+DSrv_Storage_2_buffers::DSrv_Storage_2_buffers()
 {
 	// Allocate a memory for the data
 	m_completeData = new (std::nothrow) uint8_t[MAX_DATA_SIZE];
@@ -33,7 +33,7 @@ DSrv_Storage::DSrv_Storage()
 }
 
 //-------------------------------------------------------------------------------------------------
-DSrv_Storage::~DSrv_Storage()
+DSrv_Storage_2_buffers::~DSrv_Storage_2_buffers()
 {
 	// Delete a memory for the data
 	if (m_completeData != nullptr)
@@ -51,7 +51,7 @@ DSrv_Storage::~DSrv_Storage()
 }
 
 //-------------------------------------------------------------------------------------------------
-DSrv_Storage::DSrv_Storage(DSrv_Storage && obj)
+DSrv_Storage_2_buffers::DSrv_Storage_2_buffers(DSrv_Storage_2_buffers && obj)
 {
 	// Lock a mutex
 	try {
@@ -79,7 +79,7 @@ DSrv_Storage::DSrv_Storage(DSrv_Storage && obj)
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage::setData(Data_set data, const bool add) noexcept
+int32_t DSrv_Storage_2_buffers::setData(Data_set data, const bool add) noexcept
 {
 	// Check the incoming parameter
 	if (nullptr == data.first)
@@ -131,7 +131,7 @@ int32_t DSrv_Storage::setData(Data_set data, const bool add) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage::getData(Data_get data) noexcept
+int32_t DSrv_Storage_2_buffers::getData(Data_get data) noexcept
 {
 	// Check the incoming parameters
 	if (nullptr == data.first)
@@ -176,7 +176,7 @@ int32_t DSrv_Storage::getData(Data_get data) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage::clearData() noexcept
+int32_t DSrv_Storage_2_buffers::clearData() noexcept
 {
 	// Lock a mutex
 	try {
@@ -198,7 +198,7 @@ int32_t DSrv_Storage::clearData() noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-int32_t DSrv_Storage::completeData() noexcept
+int32_t DSrv_Storage_2_buffers::completeData() noexcept
 {
 	// Check the data pointers
 	if (nullptr == m_completeData || nullptr == m_fillingData)
@@ -231,4 +231,11 @@ int32_t DSrv_Storage::completeData() noexcept
 	                   static_cast<unsigned long>(m_completeSize));
 
 	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+uint32_t DSrv_Storage_2_buffers::completeDataCRC()
+{
+	m_crc.process_bytes(m_completeData, m_completeSize);
+	return m_crc.checksum();
 }

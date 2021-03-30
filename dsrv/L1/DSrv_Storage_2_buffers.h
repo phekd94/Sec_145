@@ -5,16 +5,14 @@
 /*
 DESCRITION: class for storing data
 TODO:
- * checksum (with sensitive to the order of the blocks (bytes) in the data word (message))
  * mutex test
  * setData(): add parameter
  * smart pointers for data pointers
- * rename DSrv_Storage -> DSrv_Storage_2p
 FIXME:
 DANGER:
 NOTE:
 
-Sec_145::DSrv_Storage class
+Sec_145::DSrv_Storage_2_buffers class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
@@ -25,9 +23,10 @@ Sec_145::DSrv_Storage class
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <cstdint>  // integer types
-#include <mutex>    // std::mutex, std::lock_guard
-#include <utility>  // std::pair
+#include <cstdint>        // integer types
+#include <mutex>          // std::mutex, std::lock_guard
+#include <utility>        // std::pair
+#include "boost/crc.hpp"  // Boost.CRC library
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -35,9 +34,9 @@ namespace Sec_145
 
 //-------------------------------------------------------------------------------------------------
 // Class for storing data
-class DSrv_Storage
+class DSrv_Storage_2_buffers
 {
-	friend class DSrv_Storage_test;
+	friend class DSrv_Storage_2_buffers_test;
 
 public:
 
@@ -49,16 +48,16 @@ public:
 
 protected:
 
-	DSrv_Storage();
-	virtual ~DSrv_Storage();
+	DSrv_Storage_2_buffers();
+	virtual ~DSrv_Storage_2_buffers();
 
 	// Without copy constructor and override an assignment operator
 	// (due to class members as pointer are presented)
-	DSrv_Storage(const DSrv_Storage &) = delete;
-	DSrv_Storage & operator=(const DSrv_Storage &) = delete;
+	DSrv_Storage_2_buffers(const DSrv_Storage_2_buffers &) = delete;
+	DSrv_Storage_2_buffers & operator=(const DSrv_Storage_2_buffers &) = delete;
 
 	// Move constructor
-	DSrv_Storage(DSrv_Storage && obj);
+	DSrv_Storage_2_buffers(DSrv_Storage_2_buffers && obj);
 
 	// Sets data in the storage
 	int32_t setData(Data_set data, const bool add) noexcept;
@@ -71,6 +70,9 @@ protected:
 
 	// Exchanges the m_fillingData and the m_completeData pointers (filling data is complete)
 	int32_t completeData() noexcept;
+	
+	// Gets a CRC of complete data
+	uint32_t completeDataCRC();
 
 	// Enables debug messages
 	void setDebug(const bool d) noexcept
@@ -92,6 +94,9 @@ private:
 
 	// Mutex
 	std::mutex m_mutex;
+	
+	// CRC
+	boost::crc_32_type m_crc;
 
 	// Enable debug messages
 	bool m_debug {true};
