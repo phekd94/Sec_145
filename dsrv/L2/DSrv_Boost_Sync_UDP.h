@@ -8,7 +8,7 @@ TODO:
  * Define move constructor
 FIXME:
 DANGER:
- * crc !!!!!!!!!!!!!!!!!
+ * If CRC is needed buffer should be more than size on sizeof(uint32_t) 
 NOTE:
 
 Sec_145::DSrv_Boost_Sync_UDP class

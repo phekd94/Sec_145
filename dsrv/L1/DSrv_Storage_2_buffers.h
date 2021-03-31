@@ -8,6 +8,7 @@ TODO:
  * mutex test
  * setData(): add parameter
  * smart pointers for data pointers
+ * Data_get -> Data_get without pointer to pointer
 FIXME:
 DANGER:
 NOTE:
