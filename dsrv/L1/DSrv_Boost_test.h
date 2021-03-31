@@ -22,7 +22,8 @@ namespace Sec_145
 template <typename Storage>
 class DSrv_Boost_for_test : public DSrv_Boost<Storage>
 {
-	virtual int32_t sendData(typename DSrv_Boost<Storage>::Data_send) noexcept override final
+	virtual int32_t sendData(
+	   typename const DSrv_Boost<Storage>::Data_send) noexcept override final
 	{
 		return 0;
 	}

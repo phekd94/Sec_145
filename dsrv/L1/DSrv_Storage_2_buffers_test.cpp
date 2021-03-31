@@ -1,10 +1,11 @@
 
 #include "DSrv_Storage_2_buffers_test.h"
 
-#include "Sec_145/other/DSrv_Defines.h"  // MAX_DATA_SIZE
-#include <utility>                       // std::move
+#include "Sec_145/dsrv/other/DSrv_Defines.h"  // MAX_DATA_SIZE
+#include <utility>                            // std::move
+#include <exception>                          // std::exception
 
-#include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
+#include "Sec_145/other/printDebug.h"         // PRINT_DBG, PRINT_ERR
 
 //-------------------------------------------------------------------------------------------------
 using namespace Sec_145;
@@ -208,6 +209,44 @@ int32_t DSrv_Storage_2_buffers_test::move() noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t DSrv_Storage_2_buffers_test::crc(DSrv_Storage_2_buffers & obj) noexcept
+{
+	uint8_t data[1] = {1};
+	uint32_t size = 1;
+
+	if (obj.setData(DSrv_Storage_2_buffers::Data_set(data, size), false) != 0)
+	{
+		PRINT_ERR("setData(data_1, ...)");
+		return -1;
+	}
+	if (obj.completeData() != 0)
+	{
+		PRINT_ERR("completeData() after first setData()");
+		return -1;
+	}
+	
+	try {
+		if (obj.completeDataCRC() != 2768625435u)
+		{
+			PRINT_ERR("completeDataCRC() is not correct");
+			return -1;
+		}
+	}
+	catch (std::exception & ex)
+	{
+		PRINT_ERR("%s", ex.what());
+	}
+	
+	if (obj.clearData() != 0)
+	{
+		PRINT_ERR("clearData()");
+		return -1;
+	}
+	
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t DSrv_Storage_2_buffers_test::fullTest() noexcept
 {
 	DSrv_Storage_2_buffers obj;
@@ -222,6 +261,12 @@ int32_t DSrv_Storage_2_buffers_test::fullTest() noexcept
 	if (data(obj) != 0)
 	{
 		PRINT_ERR("data");
+		return -1;
+	}
+	
+	if (crc(obj) != 0)
+	{
+		PRINT_ERR("crc");
 		return -1;
 	}
 

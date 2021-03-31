@@ -45,10 +45,10 @@ class DSrv_Boost : protected Storage
 public:
 
 	// Data type for send data method (pointer + size)
-	using Data_send = const std::pair<const uint8_t * const, const uint32_t>;
+	using Data_send = std::pair<const uint8_t *, uint32_t>;
 
 	// Data type for data parser method (pointer + size)
-	using Data_parser = std::pair<const uint8_t *, uint32_t>;
+	using Data_parser = Data_send;
 
 protected:
 
@@ -88,7 +88,7 @@ protected:
 
 	// Sends data (pure virtual function)
 	// (protocol class should realize this function)
-	virtual int32_t sendData(Data_send data) noexcept = 0;
+	virtual int32_t sendData(const Data_send data) noexcept = 0;
 	
 	// Receives data (pure virtual function)
 	// (protocol class should realize this function)

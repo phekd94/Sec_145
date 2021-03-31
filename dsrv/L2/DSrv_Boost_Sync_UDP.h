@@ -8,6 +8,7 @@ TODO:
  * Define move constructor
 FIXME:
 DANGER:
+ * crc !!!!!!!!!!!!!!!!!
 NOTE:
 
 Sec_145::DSrv_Boost_Sync_UDP class
@@ -23,6 +24,7 @@ Sec_145::DSrv_Boost_Sync_UDP class
 #include "boost/asio.hpp"  // Boost.Asio library
 #include <cstdint>         // integer types
 #include <exception>       // std::exception
+#include "boost/crc.hpp"   // Boost.CRC library
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -40,6 +42,11 @@ class DSrv_Boost_Sync_UDP : public Base<Storage>
 {
 
 	friend class DSrv_Boost_Sync_UDP_test<Storage, Base>;
+	
+public:
+	
+	// Maximal lenght of UDP packet
+	constexpr static const uint32_t UDP_max_lenght {1500};
 
 protected:
 
@@ -68,17 +75,19 @@ protected:
 	}
 	
 	// Starts the communication
-	void start(uint16_t port);
+	void start(const uint16_t port);
 	
 	// Stops the communication
 	void stop();
 	
 	// Sends data (override method)
-	virtual int32_t sendData(typename Base<Storage>::Data_send data) noexcept override final;
+	virtual int32_t sendData(
+	   const typename Base<Storage>::Data_send data) noexcept override final;
 	
 	// Sends data to host and port (override method)
 	virtual int32_t sendData(typename Base<Storage>::Data_send data,
-	                         std::string host, uint16_t port) noexcept;
+	                         const std::string host, const uint16_t port, 
+	                         const bool crc = false) noexcept;
 	
 	// Receives data (override method)
 	virtual int32_t receiveData() noexcept override final;
@@ -104,8 +113,8 @@ private:
 	// Endpoint for send
 	boost::asio::ip::udp::endpoint m_endpointSend;
 	
-	// Maximal lenght of UDP packet
-	constexpr static const uint32_t UDP_max_lenght {1500};
+	// CRC
+	boost::crc_32_type m_crc;
 	
 	// Buffer size
 	constexpr static const uint32_t m_bufferSize {UDP_max_lenght};
@@ -120,7 +129,7 @@ private:
 //=================================================================================================
 template <typename Storage, template <typename T> class Base>
 void DSrv_Boost_Sync_UDP<Storage, Base>::
-start(uint16_t port)
+start(const uint16_t port)
 {
 	try {
 		// Open a socket
@@ -162,7 +171,7 @@ stop()
 //-------------------------------------------------------------------------------------------------
 template <typename Storage, template <typename T> class Base>
 int32_t DSrv_Boost_Sync_UDP<Storage, Base>::
-sendData(typename Base<Storage>::Data_send data) noexcept
+sendData(const typename Base<Storage>::Data_send data) noexcept
 {
 	try {
 		// Send data
@@ -185,12 +194,27 @@ sendData(typename Base<Storage>::Data_send data) noexcept
 //-------------------------------------------------------------------------------------------------
 template <typename Storage, template <typename T> class Base>
 int32_t DSrv_Boost_Sync_UDP<Storage, Base>::
-sendData(typename Base<Storage>::Data_send data, std::string host, uint16_t port) noexcept
+sendData(typename Base<Storage>::Data_send data, 
+         const std::string host, const uint16_t port, const bool crc) noexcept
 {
 	try {
 		// Set endpoint for send
 		m_endpointSend = boost::asio::ip::udp::endpoint(
 		                      boost::asio::ip::address::from_string(host), port);
+		
+		// Add CRC
+		if (crc == true)
+		{
+			// Calculate a CRC
+			m_crc.process_bytes(data.first, data.second);
+			
+			// Add CRC to data
+			*reinterpret_cast<uint32_t *>(
+			   const_cast<uint8_t *>(data.first + data.second)) = m_crc.checksum();
+			data.second += sizeof(uint32_t);
+			
+			PRINT_DBG(m_debug, "CRC for send data: 0x%x", m_crc.checksum());
+		}
 		
 		// Send data
 		if (sendData(data) != 0)

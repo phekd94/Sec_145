@@ -166,8 +166,8 @@ int32_t DSrv_Storage_2_buffers::getData(Data_get data) noexcept
 
 	PRINT_DBG(m_debug, "Data for geter: 0x%p with size(%5lu)",
 	                    m_completeData,
-	                    static_cast<unsigned long>(m_completeSize));
-
+	                    static_cast<unsigned long>(m_completeSize));	
+	
 	// Set the data and the size
 	*data.first = m_completeData;
 	*data.second = m_completeSize;
