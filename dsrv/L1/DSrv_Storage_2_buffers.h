@@ -47,8 +47,6 @@ public:
 	// Data type for get method (pointer to pointer + pointer to size)
 	using Data_get = const std::pair<uint8_t ** const, uint32_t * const>;
 
-protected:
-
 	DSrv_Storage_2_buffers();
 	virtual ~DSrv_Storage_2_buffers();
 
