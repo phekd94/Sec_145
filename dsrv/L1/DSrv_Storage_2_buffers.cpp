@@ -13,7 +13,7 @@
 using namespace Sec_145;
 
 //-------------------------------------------------------------------------------------------------
-DSrv_Storage_2_buffers::DSrv_Storage_2_buffers()
+DSrv_Storage_2_buffers::DSrv_Storage_2_buffers() : m_istream(&m_streambuf)
 {
 	// Allocate a memory for the data
 	m_completeData = new (std::nothrow) uint8_t[MAX_DATA_SIZE];
@@ -28,6 +28,8 @@ DSrv_Storage_2_buffers::DSrv_Storage_2_buffers()
 		PRINT_ERR("Can not allocate a memory (m_fillingData)");
 		return;
 	}
+	
+	m_streambuf.setPointers((char*)m_fillingData, (char*)m_fillingData, (char*)m_fillingData);
 
 	PRINT_DBG(m_debug, "");
 }
@@ -51,7 +53,7 @@ DSrv_Storage_2_buffers::~DSrv_Storage_2_buffers()
 }
 
 //-------------------------------------------------------------------------------------------------
-DSrv_Storage_2_buffers::DSrv_Storage_2_buffers(DSrv_Storage_2_buffers && obj)
+/*DSrv_Storage_2_buffers::DSrv_Storage_2_buffers(DSrv_Storage_2_buffers && obj)
 {
 	// Lock a mutex
 	try {
@@ -76,7 +78,7 @@ DSrv_Storage_2_buffers::DSrv_Storage_2_buffers(DSrv_Storage_2_buffers && obj)
 	m_debug = obj.m_debug;
 
 	PRINT_DBG(m_debug, "Move constructor");
-}
+}*/
 
 //-------------------------------------------------------------------------------------------------
 int32_t DSrv_Storage_2_buffers::setData(Data_set data, const bool add) noexcept
@@ -126,6 +128,8 @@ int32_t DSrv_Storage_2_buffers::setData(Data_set data, const bool add) noexcept
 	// Add the data and add the size to the fillingIndex
 	std::memcpy(m_fillingData + m_fillingIndex, data.first, data.second);
 	m_fillingIndex += data.second;
+	
+	m_streambuf.setPointers((char*)m_fillingData, (char*)m_fillingData, (char*)m_fillingData + m_fillingIndex);
 
 	return 0;
 }
@@ -191,6 +195,8 @@ int32_t DSrv_Storage_2_buffers::clearData() noexcept
 	// Set the fillingIndex and the completeSize to 0
 	m_fillingIndex = 0;
 	m_completeSize = 0;
+	
+	m_streambuf.setPointers((char*)m_fillingData, (char*)m_fillingData, (char*)m_fillingData);
 
 	PRINT_DBG(m_debug, "Data have cleared");
 
@@ -225,6 +231,8 @@ int32_t DSrv_Storage_2_buffers::completeData() noexcept
 
 	// Set the fillingIndex to 0
 	m_fillingIndex = 0;
+	
+	m_streambuf.setPointers((char*)m_fillingData, (char*)m_fillingData, (char*)m_fillingData);
 
 	PRINT_DBG(m_debug, "Data(0x%p) with size(%5lu) is complete",
 	                   m_completeData,

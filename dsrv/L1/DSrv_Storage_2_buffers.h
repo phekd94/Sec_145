@@ -27,6 +27,8 @@ Sec_145::DSrv_Storage_2_buffers class
 #include <cstdint>        // integer types
 #include <mutex>          // std::mutex, std::lock_guard
 #include <utility>        // std::pair
+#include <streambuf>      // std::basic_streambuf
+#include <istream>        // std::basic_istream
 #include "boost/crc.hpp"  // Boost.CRC library
 
 //-------------------------------------------------------------------------------------------------
@@ -40,6 +42,17 @@ class DSrv_Storage_2_buffers
 	friend class DSrv_Storage_2_buffers_test;
 
 public:
+
+	// Buffer class
+	class Streambuf : public std::streambuf
+	{
+	public:
+		void setPointers(char * begin, char * curr, char * end)
+		{ this->setg(begin, curr, end); }
+	} m_streambuf;
+	
+	// Input stream
+	std::istream m_istream;
 
 	// Data type for set method (pointer + size)
 	using Data_set = const std::pair<const uint8_t * const, const uint32_t>;
@@ -56,7 +69,7 @@ public:
 	DSrv_Storage_2_buffers & operator=(const DSrv_Storage_2_buffers &) = delete;
 
 	// Move constructor
-	DSrv_Storage_2_buffers(DSrv_Storage_2_buffers && obj);
+	//DSrv_Storage_2_buffers(DSrv_Storage_2_buffers && obj);
 
 	// Sets data in the storage
 	int32_t setData(Data_set data, const bool add) noexcept;
