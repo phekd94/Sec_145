@@ -129,8 +129,9 @@ int32_t DSrv_Storage_2_buffers::setData(Data_set data, const bool add) noexcept
 	std::memcpy(m_fillingData + m_fillingIndex, data.first, data.second);
 	m_fillingIndex += data.second;
 	
-	m_streambuf.setPointers((char*)m_fillingData, (char*)m_fillingData, (char*)m_fillingData + m_fillingIndex);
-
+	m_streambuf.setPointers((char*)m_fillingData, (char*)m_fillingData, 
+	                        (char*)m_fillingData + m_fillingIndex);
+	
 	return 0;
 }
 

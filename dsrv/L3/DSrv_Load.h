@@ -30,8 +30,9 @@ namespace Sec_145
 //-------------------------------------------------------------------------------------------------
 template <typename Storage, 
           template <typename T> class Base,
-          template <typename T_1, template <typename Y> class T_2> class Interface>
-class DSrv_Load : public Interface<Storage, Base>
+          template <typename T_1, template <typename Y> class T_2,> class Interface,
+          typename KaitaiParser>
+class DSrv_Load : public Interface<Storage, Base>, public KaitaiParser
 {
 
 private:
@@ -54,6 +55,11 @@ private:
 	
 public:
 
+	DSrv_Load() : KaitaiParser(...)
+	{
+		PRINT_DBG(true, "");
+	}
+
 	// Loop for the server
 	void loop() noexcept
 	{
@@ -61,9 +67,12 @@ public:
 		Interface<Storage, Base>::start(50000);
 		
 		// Send to itself
-		uint8_t data[] = {'d','a','t','a',0,0,0,0};
+		//uint8_t data[] = {'d','a','t','a',0,0,0,0};
+		//Interface<Storage, Base>::sendData(
+		//   typename Base<Storage>::Data_send(data, 4), "0.0.0.0", 50000, true);
+		uint8_t data_[] {0xFF, 0x01, 0x01, 0x01, 'A', 0x03};
 		Interface<Storage, Base>::sendData(
-		   typename Base<Storage>::Data_send(data, 4), "0.0.0.0", 50000, true);
+		   typename Base<Storage>::Data_send(data, 6), "0.0.0.0", 50000, false);
 		
 		// Receive
 		while (m_stopLoop == false)
