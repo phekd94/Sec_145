@@ -8,7 +8,6 @@ TODO:
  * mutex test
  * setData(): add parameter
  * smart pointers for data pointers
- * Data_get -> Data_get without pointer to pointer
 FIXME:
 DANGER:
 NOTE:
@@ -48,6 +47,9 @@ public:
 
 	// Data type for get method (pointer to pointer + pointer to size)
 	using Data_get = const std::pair<uint8_t ** const, uint32_t * const>;
+	
+	// Data type for get method (pointer + size)
+	using Data_get_2 = std::pair<const uint8_t *, uint32_t>;
 
 	DSrv_Storage_2_buffers();
 	virtual ~DSrv_Storage_2_buffers();
@@ -65,6 +67,9 @@ public:
 
 	// Gets complete data from the storage
 	int32_t getData(Data_get data) noexcept;
+	
+	// Gets complete data from the storage
+	int32_t getData(Data_get_2 & data) noexcept;
 
 	// Deletes all data in the storage
 	int32_t clearData() noexcept;

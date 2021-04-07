@@ -181,6 +181,39 @@ int32_t DSrv_Storage_2_buffers::getData(Data_get data) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t DSrv_Storage_2_buffers::getData(Data_get_2 & data) noexcept
+{
+	// Check the data pointers
+	if (nullptr == m_completeData || nullptr == m_fillingData)
+	{
+		PRINT_ERR("Memory for data have not been allocated");
+		data.first = nullptr;
+		data.second = 0;
+		return -1;
+	}
+
+	// Lock a mutex
+	try {
+		std::lock_guard<std::mutex> lock(m_mutex);
+	}
+	catch (std::system_error & obj)
+	{
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
+		return -1;
+	}
+
+	PRINT_DBG(m_debug, "Data for geter: 0x%p with size(%5lu)",
+	                    m_completeData,
+	                    static_cast<unsigned long>(m_completeSize));	
+	
+	// Set the data and the size
+	data.first = m_completeData;
+	data.second = m_completeSize;
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t DSrv_Storage_2_buffers::clearData() noexcept
 {
 	// Lock a mutex

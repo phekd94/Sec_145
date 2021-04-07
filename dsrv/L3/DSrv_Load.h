@@ -71,13 +71,11 @@ private:
 		}
 		
 		// Get data
-		uint8_t *dd;
-		uint32_t ds;
-		typename Storage::Data_get data_get(&dd, &ds);
-		Storage::getData(data_get);
+		typename Storage::Data_get_2 data_get_2;
+		Storage::getData(data_get_2);
 		for (uint8_t i = 0, SHIFT = 4; i < kaitaiParser->len(); ++i)
 		{
-			PRINT_DBG(true, "data: %u", unsigned(dd[SHIFT + i]));
+			PRINT_DBG(true, "data: %u", unsigned(data_get_2.first[SHIFT + i]));
 		}
 		
 		return 0;
