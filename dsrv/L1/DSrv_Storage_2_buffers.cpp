@@ -248,3 +248,15 @@ uint32_t DSrv_Storage_2_buffers::completeDataCRC()
 	m_crc.process_bytes(m_completeData, m_completeSize);
 	return m_crc.checksum();
 }
+
+//-------------------------------------------------------------------------------------------------
+void DSrv_Storage_2_buffers::clearIstream() noexcept
+{
+	try
+	{
+		m_istream.clear();
+	} catch (std::exception & ex)
+	{
+		PRINT_ERR("istream::clear()");
+	}
+}

@@ -19,7 +19,8 @@ Sec_145::DSrv_Load class
 */
 
 //-------------------------------------------------------------------------------------------------
-#include <cstdint>        // integer types
+#include <cstdint>                // integer types
+#include "kaitai/kaitaistream.h"  // kaitai::kstream
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -30,9 +31,9 @@ namespace Sec_145
 //-------------------------------------------------------------------------------------------------
 template <typename Storage, 
           template <typename T> class Base,
-          template <typename T_1, template <typename Y> class T_2,> class Interface,
-          typename KaitaiParser>
-class DSrv_Load : public Interface<Storage, Base>, public KaitaiParser
+          template <typename T_1, template <typename Y> class T_2> class Interface,
+          typename KaitaiParser /*TODO: ...*/>
+class DSrv_Load : public Interface<Storage, Base>
 {
 
 private:
@@ -40,22 +41,51 @@ private:
 	// Parser of the accepted data 
 	virtual int32_t dataParser(typename Base<Storage>::Data_parser data) noexcept
 	{
-		if (Storage::setData(typename Storage::Data_set(data.first, data.second - 4), true) != 0)
+		if (Storage::setData(typename Storage::Data_set(data.first, data.second), true) != 0)
 		{
 			PRINT_ERR("setData()");
 			return -1;
 		}
-		/*if (Storage::completeData() != 0)
+		
+		std::unique_ptr<KaitaiParser> kaitaiParser;
+		
+		try
+		{
+			kaitai::kstream ks(Storage::getIstreamPointer());
+			kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&ks));
+		} catch (std::exception & ex)
+		{
+			PRINT_ERR("KaitaiParser or new");
+			Storage::clearIstream();
+			Storage::clearData();
+			return -1;
+		}
+		
+		PRINT_DBG(true, "OK");
+		
+		// Complete data
+		if (Storage::completeData() != 0)
 		{
 			PRINT_ERR("completeData()");
 			return -1;
-		}*/
+		}
+		
+		// Get data
+		uint8_t *dd;
+		uint32_t ds;
+		typename Storage::Data_get data_get(&dd, &ds);
+		Storage::getData(data_get);
+		for (uint8_t i = 0, SHIFT = 4; i < kaitaiParser->len(); ++i)
+		{
+			PRINT_DBG(true, "data: %u", unsigned(dd[SHIFT + i]));
+		}
+		
 		return 0;
 	}
 	
 public:
 
-	DSrv_Load() : KaitaiParser(...)
+	DSrv_Load()
 	{
 		PRINT_DBG(true, "");
 	}
@@ -67,32 +97,14 @@ public:
 		Interface<Storage, Base>::start(50000);
 		
 		// Send to itself
-		//uint8_t data[] = {'d','a','t','a',0,0,0,0};
-		//Interface<Storage, Base>::sendData(
-		//   typename Base<Storage>::Data_send(data, 4), "0.0.0.0", 50000, true);
-		uint8_t data_[] {0xFF, 0x01, 0x01, 0x01, 'A', 0x03};
+		uint8_t data[] {0xFF, 0x01, 0x01, 0x04, 'A', 0x03, 0x01, 0x02};
 		Interface<Storage, Base>::sendData(
-		   typename Base<Storage>::Data_send(data, 6), "0.0.0.0", 50000, false);
+		   typename Base<Storage>::Data_send(data, 8), "0.0.0.0", 50000, false);
 		
 		// Receive
 		while (m_stopLoop == false)
 			if (Interface<Storage, Base>::receiveData() < 0)
 				break;
-		
-		// Complete data
-		Storage::completeData();
-		
-		// Get data
-		uint8_t *dd;
-		uint32_t ds;
-		typename Storage::Data_get data_get(&dd, &ds);
-		Storage::getData(data_get);
-		for (uint32_t i = 0; i < ds; ++i)
-			std::cout << dd[i] << " ";
-		std::cout << std::endl;
-		
-		// Check CRC
-		PRINT_DBG(true, "CRC for receive data: 0x%x", Storage::completeDataCRC());
 	}
 	
 	// Flag for stop the loop

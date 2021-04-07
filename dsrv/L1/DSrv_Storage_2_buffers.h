@@ -42,18 +42,7 @@ class DSrv_Storage_2_buffers
 	friend class DSrv_Storage_2_buffers_test;
 
 public:
-
-	// Buffer class
-	class Streambuf : public std::streambuf
-	{
-	public:
-		void setPointers(char * begin, char * curr, char * end)
-		{ this->setg(begin, curr, end); }
-	} m_streambuf;
 	
-	// Input stream
-	std::istream m_istream;
-
 	// Data type for set method (pointer + size)
 	using Data_set = const std::pair<const uint8_t * const, const uint32_t>;
 
@@ -85,6 +74,15 @@ public:
 	
 	// Gets a CRC of complete data
 	uint32_t completeDataCRC();
+	
+	// Gets pointer to istream object
+	std::istream * getIstreamPointer() noexcept
+	{
+		return &m_istream;
+	}
+	
+	// Applies clear() method to the std::istream object
+	void clearIstream() noexcept;
 
 	// Enables debug messages
 	void setDebug(const bool d) noexcept
@@ -93,6 +91,17 @@ public:
 	}
 
 private:
+
+	// Buffer class
+	class Streambuf : public std::streambuf
+	{
+	public:
+		void setPointers(char * begin, char * curr, char * end)
+		{ setg(begin, curr, end); }
+	} m_streambuf;
+	
+	// Input stream
+	std::istream m_istream;
 
 	// Pointers to the data
 	uint8_t * m_completeData {nullptr};
