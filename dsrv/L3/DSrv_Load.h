@@ -53,6 +53,8 @@ private:
 		{
 			kaitai::kstream ks(Storage::getIstreamPointer());
 			kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&ks));
+			std::cout << kaitaiParser->version() << std::endl 
+		          << kaitaiParser->len_header() << std::endl;
 		} catch (std::exception & ex)
 		{
 			PRINT_ERR("KaitaiParser or new");
@@ -71,12 +73,12 @@ private:
 		}
 		
 		// Get data
-		typename Storage::Data_get_2 data_get_2;
+		/*typename Storage::Data_get_2 data_get_2;
 		Storage::getData(data_get_2);
 		for (uint8_t i = 0, SHIFT = 4; i < kaitaiParser->len(); ++i)
 		{
 			PRINT_DBG(true, "data: %u", unsigned(data_get_2.first[SHIFT + i]));
-		}
+		}*/
 		
 		return 0;
 	}
@@ -92,12 +94,12 @@ public:
 	void loop() noexcept
 	{
 		// Start
-		Interface<Storage, Base>::start(50000);
+		Interface<Storage, Base>::start(); // 50000);
 		
 		// Send to itself
 		uint8_t data[] {0xFF, 0x01, 0x01, 0x04, 'A', 0x03, 0x01, 0x02};
 		Interface<Storage, Base>::sendData(
-		   typename Base<Storage>::Data_send(data, 8), "0.0.0.0", 50000, false);
+		   typename Base<Storage>::Data_send(data, 8), "0.0.0.0"); // , 50000, false);
 		
 		// Receive
 		while (m_stopLoop == false)

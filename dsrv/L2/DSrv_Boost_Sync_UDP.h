@@ -6,6 +6,7 @@
 DESCRITION: class implements work with UDP packets by using Boost library
 TODO:
  * Define move constructor
+ * Add mutex for m_socket
 FIXME:
 DANGER:
  * If CRC is needed buffer should be more than size on sizeof(uint32_t) 
@@ -80,10 +81,6 @@ protected:
 	// Stops the communication
 	void stop();
 	
-	// Sends data (override method)
-	virtual int32_t sendData(
-	   const typename Base<Storage>::Data_send data) noexcept override final;
-	
 	// Sends data to host and port (override method)
 	virtual int32_t sendData(typename Base<Storage>::Data_send data,
 	                         const std::string host, const uint16_t port, 
@@ -124,6 +121,10 @@ private:
 	
 	// Enable debug messages
 	bool m_debug {true};
+	
+	// Sends data (override method)
+	virtual int32_t sendData(
+	   const typename Base<Storage>::Data_send data) noexcept override final;
 };
 
 //=================================================================================================
@@ -133,7 +134,7 @@ start(const uint16_t port)
 {
 	try {
 		// Open a socket
-		m_socket.open(boost::asio::ip::udp::v4());
+		m_socket.open(boost::asio::ip::udp::v4()); // can be without argument
 		
 		// Bind a socket
 		m_socket.bind(boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port));
