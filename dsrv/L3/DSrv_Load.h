@@ -41,23 +41,33 @@ private:
 	// Parser of the accepted data 
 	virtual int32_t dataParser(typename Base<Storage>::Data_parser data) noexcept
 	{
+		for (uint32_t i = 0; i < data.second; ++i)
+			PRINT_DBG(true, "[%u]: %u ", 
+			                static_cast<unsigned int>(i),
+			                static_cast<unsigned int>(data.first[i]));
+	
 		if (Storage::setData(typename Storage::Data_set(data.first, data.second), true) != 0)
 		{
 			PRINT_ERR("setData()");
 			return -1;
 		}
 		
-		std::unique_ptr<KaitaiParser> kaitaiParser;
+		//std::unique_ptr<KaitaiParser> kaitaiParser;
 		
 		try
 		{
 			kaitai::kstream ks(Storage::getIstreamPointer());
-			kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&ks));
-			std::cout << kaitaiParser->version() << std::endl 
-		          << kaitaiParser->len_header() << std::endl;
+			
+			//kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&ks));
+			KaitaiParser kaitaiParser(&ks);
+			
+			std::cout << int(kaitaiParser.total_length()) << std::endl;
+		    std::cout << int(kaitaiParser.protocol()) << std::endl;
+		    std::cout << kaitaiParser._raw_body() << std::endl;
+		    
 		} catch (std::exception & ex)
 		{
-			PRINT_ERR("KaitaiParser or new");
+			PRINT_ERR("KaitaiParser: %s", ex.what());
 			Storage::clearIstream();
 			Storage::clearData();
 			return -1;
@@ -97,7 +107,8 @@ public:
 		Interface<Storage, Base>::start(); // 50000);
 		
 		// Send to itself
-		uint8_t data[] {0xFF, 0x01, 0x01, 0x04, 'A', 0x03, 0x01, 0x02};
+		//uint8_t data[] {0xFF, 0x01, 0x01, 0x04, 'A', 0x03, 0x01, 0x02};
+		uint8_t data[] {'Q', 'w', 'E'};
 		Interface<Storage, Base>::sendData(
 		   typename Base<Storage>::Data_send(data, 8), "0.0.0.0"); // , 50000, false);
 		

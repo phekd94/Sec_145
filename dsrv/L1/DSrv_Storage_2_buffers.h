@@ -8,6 +8,7 @@ TODO:
  * mutex test
  * setData(): add parameter
  * smart pointers for data pointers
+ * (char*) type cast to reinterpret_cast<>()
 FIXME:
 DANGER:
 NOTE:
