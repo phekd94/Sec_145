@@ -15,7 +15,7 @@ namespace Sec_145 {
 //-------------------------------------------------------------------------------------------------
 // ReLU activation function
 template <typename DataType>
-void ReLU(DataType* const data, const uint32_t size)
+void ReLU(DataType * const data, const uint32_t size)
 {
 	for (uint32_t i = 0; i < size; ++i)
 	{
@@ -27,7 +27,7 @@ void ReLU(DataType* const data, const uint32_t size)
 //-------------------------------------------------------------------------------------------------
 // Hyperbolic tangent activation function
 template <typename DataType>
-void tanh(DataType* const data, const uint32_t size)
+void tanh(DataType * const data, const uint32_t size)
 {
 	for (uint32_t i = 0; i < size; ++i)
 	{
@@ -38,7 +38,7 @@ void tanh(DataType* const data, const uint32_t size)
 //-------------------------------------------------------------------------------------------------
 // Softmax activation function
 template <typename DataType>
-void softmax(DataType* const data, const uint32_t size)
+void softmax(DataType * const data, const uint32_t size)
 {
 	double sum = sumArrayExpElements(data, size);
 	for (uint32_t i = 0; i < size; ++i)
@@ -50,11 +50,25 @@ void softmax(DataType* const data, const uint32_t size)
 //-------------------------------------------------------------------------------------------------
 // Sigmoid activation function
 template <typename DataType>
-void sigmoid(DataType* const data, const uint32_t size)
+void sigmoid(DataType * const data, const uint32_t size)
 {
 	for (uint32_t i = 0; i < size; ++i)
 	{
 		data[i] = std::exp(data[i]) / (std::exp(data[i]) + 1);
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+// Symmetric saturating linear transfer function
+template <typename DataType>
+void satlins(DataType * const data, const uint32_t size)
+{
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		if (data[i] < -1)
+			data[i] = -1;
+		else if ((data[i] > 1))
+			data[i] = 1;
 	}
 }
 
@@ -70,7 +84,7 @@ int32_t maxPooling2D(const Eigen::MatrixXd& in, Eigen::MatrixXd& out,
 	    || out.rows() / out_line_size != out_line_size
 	   )
 	{
-		PRINT_ERR(true, "Wrong size of input or output matrix");
+		PRINT_ERR("Wrong size of input or output matrix");
 		return -1;
 	}
 
@@ -100,14 +114,14 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 	// Check flag
 	if (true == m_loaded)
 	{
-		PRINT_ERR(true, "Model already has been loaded");
+		PRINT_ERR("Model already has been loaded");
 		return -1;
 	}
 
 
 	if (readParameters(pathToModel) != 0)
 	{
-		PRINT_ERR(true, "readParameters(%s)", pathToModel.toStdString().c_str());
+		PRINT_ERR("readParameters(%s)", pathToModel.toStdString().c_str());
 		return -1;
 	}
 
@@ -186,7 +200,7 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 			//  Open file
 			if (f.open(QIODevice::ReadOnly) == false)
 			{
-				PRINT_ERR(true, "Can't open a file %s", fileName.toStdString().c_str());
+				PRINT_ERR("Can't open a file %s", fileName.toStdString().c_str());
 				return -1;
 			}
 
@@ -195,7 +209,7 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 			                        m_num_of_kernels[num_conv_layers_i],
 			                        m_kernels_rows * m_kernels_cols) != 0)
 			{
-				PRINT_ERR(true, "Can't read from file %s", fileName.toStdString().c_str());
+				PRINT_ERR("Can't read from file %s", fileName.toStdString().c_str());
 				return -1;
 			}
 
@@ -227,7 +241,7 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 		//  Open file
 		if (f.open(QIODevice::ReadOnly) == false)
 		{
-			PRINT_ERR(true, "Can't open a file %s", fileName.toStdString().c_str());
+			PRINT_ERR("Can't open a file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 
@@ -236,7 +250,7 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 		                        1,
 		                        m_num_of_kernels[num_conv_layers_i]) != 0)
 		{
-			PRINT_ERR(true, "Can't read from file %s", fileName.toStdString().c_str());
+			PRINT_ERR("Can't read from file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 
@@ -267,7 +281,7 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 		//  Open file
 		if (f.open(QIODevice::ReadOnly) == false)
 		{
-			PRINT_ERR(true, "Can't open a file %s", fileName.toStdString().c_str());
+			PRINT_ERR("Can't open a file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 
@@ -276,7 +290,7 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 		                        m_in_dense_size[num_dense_layers_i],
 		                        m_out_dense_size[num_dense_layers_i]) != 0)
 		{
-			PRINT_ERR(true, "Can't read from file %s", fileName.toStdString().c_str());
+			PRINT_ERR("Can't read from file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 
@@ -305,7 +319,7 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 		//  Open file
 		if (f.open(QIODevice::ReadOnly) == false)
 		{
-			PRINT_ERR(true, "Can't open a file %s", fileName.toStdString().c_str());
+			PRINT_ERR("Can't open a file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 
@@ -314,7 +328,7 @@ int32_t NeuralNetwork::loadModel(const QString& pathToModel)
 		                        1,
 		                        m_out_dense_size[num_dense_layers_i]) != 0)
 		{
-			PRINT_ERR(true, "Can't read from file %s", fileName.toStdString().c_str());
+			PRINT_ERR("Can't read from file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 
@@ -343,7 +357,7 @@ int32_t NeuralNetwork::getRecognitionLabel(const uint8_t* const r,
 	// Check the incoming parameters
 	if (r == nullptr || g == nullptr || b == nullptr)
 	{
-		PRINT_ERR(true, "One of the color == nullptr");
+		PRINT_ERR("One of the color == nullptr");
 		return -1;
 	}
 
@@ -397,7 +411,7 @@ int32_t NeuralNetwork::getRecognitionLabel(const QString& fileName)
 		//  Open a file
 		if (f.open(QIODevice::ReadOnly) == false)
 		{
-			PRINT_ERR(true, "Can't open a file %s", fileName.toStdString().c_str());
+			PRINT_ERR("Can't open a file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 
@@ -406,7 +420,7 @@ int32_t NeuralNetwork::getRecognitionLabel(const QString& fileName)
 		                        1,
 		                        m_in_conv_size[0] * m_in_conv_size[0]) != 0)
 		{
-			PRINT_ERR(true, "Can't read from file %s", fileName.toStdString().c_str());
+			PRINT_ERR("Can't read from file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 
@@ -445,7 +459,7 @@ int32_t NeuralNetwork::getRecognitionLabel()
 	// Check flag
 	if (false == m_loaded)
 	{
-		PRINT_ERR(true, "Model has not been loaded");
+		PRINT_ERR("Model has not been loaded");
 		return -1;
 	}
 
@@ -501,7 +515,7 @@ int32_t NeuralNetwork::getRecognitionLabel()
 		                 m_in_conv_size[num_conv_layers_i] - m_kernels_rows + 1,
 		                 m_out_pooling_size[num_conv_layers_i]) != 0)
 		{
-			PRINT_ERR(true, "maxPooling2D() for layer %s",
+			PRINT_ERR("maxPooling2D() for layer %s",
 			          m_kernels_names[num_conv_layers_i].toStdString().c_str());
 			return -1;
 		}
@@ -637,7 +651,7 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 	// Open a file
 	if (f.open(QIODevice::ReadOnly) == false)
 	{
-		PRINT_ERR(true, "Can't open a file %s", fileName.toStdString().c_str());
+		PRINT_ERR("Can't open a file %s", fileName.toStdString().c_str());
 		return -1;
 	}
 
@@ -646,13 +660,12 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 	// Read a number of convolute layers
 	if (readVarFromFile(f, m_num_conv_layers) != 0)
 	{
-		PRINT_ERR(true, "Can't read a m_num_conv_layers from file %s",
-		          fileName.toStdString().c_str());
+		PRINT_ERR("Can't read a m_num_conv_layers from file %s", fileName.toStdString().c_str());
 		return -1;
 	}
 	if (0 == m_num_conv_layers)
 	{
-		PRINT_ERR(true, "m_num_conv_layers == 0");
+		PRINT_ERR("m_num_conv_layers == 0");
 		return -1;
 	}
 
@@ -661,8 +674,7 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 	{
 		if (readVarFromFile(f, var) != 0)
 		{
-			PRINT_ERR(true, "Can't read m_in_conv_size from file %s",
-			          fileName.toStdString().c_str());
+			PRINT_ERR("Can't read m_in_conv_size from file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 		m_in_conv_size.push_back(var);
@@ -675,8 +687,7 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 	// Read m_out_pooling_size
 	if (readVarFromFile(f, var) != 0)
 	{
-		PRINT_ERR(true, "Can't read a m_out_pooling_size from file %s",
-		          fileName.toStdString().c_str());
+		PRINT_ERR("Can't read a m_out_pooling_size from file %s", fileName.toStdString().c_str());
 		return -1;
 	}
 	m_out_pooling_size.push_back(var);
@@ -686,8 +697,7 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 	{
 		if (readVarFromFile(f, var) != 0)
 		{
-			PRINT_ERR(true, "Can't read m_in_conv_size from file %s",
-			          fileName.toStdString().c_str());
+			PRINT_ERR("Can't read m_in_conv_size from file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 		m_num_of_kernels.push_back(var);
@@ -707,8 +717,7 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 		QString str;
 		if (readVarFromFile(f, str) != 0)
 		{
-			PRINT_ERR(true, "Can't read m_kernels_names from file %s",
-			          fileName.toStdString().c_str());
+			PRINT_ERR("Can't read m_kernels_names from file %s", fileName.toStdString().c_str());
 			return -1;
 		}
 		m_kernels_names.push_back(str);
@@ -728,27 +737,26 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 	// Read a number of dense layers
 	if (readVarFromFile(f, m_num_dense_layers) != 0)
 	{
-		PRINT_ERR(true, "Can't read a m_num_dense_layers from file %s",
-		          fileName.toStdString().c_str());
+		PRINT_ERR("Can't read a m_num_dense_layers from file %s", fileName.toStdString().c_str());
 		return -1;
 	}
 	if (0 == m_num_dense_layers)
 	{
-		PRINT_ERR(true, "m_num_dense_layers == 0");
+		PRINT_ERR("m_num_dense_layers == 0");
 		return -1;
 	}
 
 	// Get first element of m_in_dense_size
 	m_in_dense_size.push_back(m_out_pooling_size.back() * m_out_pooling_size.back() *
-	                          m_num_of_kernels.back());
+							  m_num_of_kernels.back());
 
 	// Read m_in_dense_size
 	for (uint32_t i = 1; i < m_num_dense_layers; ++i)
 	{
 		if (readVarFromFile(f, var) != 0)
 		{
-			PRINT_ERR(true, "Can't read a m_in_dense_size from file %s",
-			          fileName.toStdString().c_str());
+			PRINT_ERR("Can't read a m_in_dense_size from file %s",
+					  fileName.toStdString().c_str());
 			return -1;
 		}
 		m_in_dense_size.push_back(var);
@@ -756,13 +764,13 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 
 	// Get m_out_dense_size
 	std::copy(m_in_dense_size.begin() + 1, m_in_dense_size.end(),
-	          std::back_insert_iterator<std::vector<uint32_t>>(m_out_dense_size));
+			  std::back_insert_iterator<std::vector<uint32_t>>(m_out_dense_size));
 
 	// Read m_out_dense_size last element
 	if (readVarFromFile(f, var) != 0)
 	{
-		PRINT_ERR(true, "Can't read a m_out_dense_size from file %s",
-		          fileName.toStdString().c_str());
+		PRINT_ERR("Can't read a m_out_dense_size from file %s",
+				  fileName.toStdString().c_str());
 		return -1;
 	}
 	m_out_dense_size.push_back(var);
@@ -773,8 +781,8 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 		QString str;
 		if (readVarFromFile(f, str) != 0)
 		{
-			PRINT_ERR(true, "Can't read m_denses_names from file %s",
-			          fileName.toStdString().c_str());
+			PRINT_ERR("Can't read m_denses_names from file %s",
+					  fileName.toStdString().c_str());
 			return -1;
 		}
 		m_denses_names.push_back(str);
@@ -819,5 +827,318 @@ int32_t NeuralNetwork::readParameters(const QString& pathToModel)
 	return 0;
 }
 
+//=================================================================================================
+//=================================================================================================
+//=================================================================================================
+int32_t DenseNeuralNetwork::loadModel(const QString& pathToModel)
+{
+	// Check flag
+	if (true == m_loaded)
+	{
+		PRINT_ERR("Model already has been loaded");
+		return -1;
+	}
+
+
+	if (readParameters(pathToModel) != 0)
+	{
+		PRINT_ERR("readParameters(%s)", pathToModel.toStdString().c_str());
+		return -1;
+	}
+
+	//-------------------------
+	// For each dense layer
+	for (uint32_t i = 0; i < m_num_dense_layers; ++i)
+	{
+		// Input
+		m_dense_in[i] = Eigen::MatrixXd(1, m_in_dense_size[i]);
+
+		// Output
+		m_dense_out[i] = Eigen::MatrixXd(1, m_out_dense_size[i]);
+
+		// Weights
+		m_denses[i] = Eigen::MatrixXd(m_in_dense_size[i], m_out_dense_size[i]);
+
+		// Biases
+		m_dense_biases[i] = std::vector<double>(m_out_dense_size[i]);
+	}
+
+//---------------------------------------
+	// For files with kernels and weights
+	QFile f;
+
+	// For files contents
+	std::vector<std::vector<double>> vectors;
+
+//------------------------
+	// Loop for each dense
+	for (uint32_t num_dense_layers_i = 0;
+		 num_dense_layers_i < m_num_dense_layers;
+		 ++num_dense_layers_i)
+	{
+		// Load dense
+		//  File name with dense
+		QString fileName =   pathToModel + "/"
+						   + m_denses_names[num_dense_layers_i]
+						   + "/weights.txt";
+		f.setFileName(fileName);
+
+		//  Open file
+		if (f.open(QIODevice::ReadOnly) == false)
+		{
+			PRINT_ERR("Can't open a file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Read dense
+		if (readVectorsFromFile(f, vectors,
+								m_in_dense_size[num_dense_layers_i],
+								m_out_dense_size[num_dense_layers_i]) != 0)
+		{
+			PRINT_ERR("Can't read from file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Close file
+		f.close();
+
+		qDebug() << "================" << num_dense_layers_i;
+
+		// Get dense matrix
+		for (uint32_t row = 0; row < m_in_dense_size[num_dense_layers_i]; ++row)
+		{
+			for (uint32_t col = 0; col < m_out_dense_size[num_dense_layers_i]; ++col)
+			{
+				m_denses[num_dense_layers_i](row, col) = vectors[row][col];
+
+				qDebug() << row << col << m_denses[num_dense_layers_i](row, col);
+			}
+		}
+
+		// Clears vectors with file contents
+		vectors.clear();
+
+		// Load biases
+		//  File name with dense
+		fileName =   pathToModel + "/"
+				   + m_denses_names[num_dense_layers_i]
+				   + "/biases.txt";
+		f.setFileName(fileName);
+
+		//  Open file
+		if (f.open(QIODevice::ReadOnly) == false)
+		{
+			PRINT_ERR("Can't open a file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Read biases
+		if (readVectorsFromFile(f, vectors,
+								1,
+								m_out_dense_size[num_dense_layers_i]) != 0)
+		{
+			PRINT_ERR("Can't read from file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+
+		//  Close file
+		f.close();
+
+		// Get biases
+		m_dense_biases[num_dense_layers_i] = vectors[0];
+
+		qDebug() << "----- bias";
+		for (auto el : m_dense_biases[num_dense_layers_i])
+		{
+			qDebug() << el;
+		}
+
+		// Clears vectors with file contents
+		vectors.clear();
+	}
+
+//-------------------------------------
+	// Set flag (model has been loaded)
+	m_loaded = true;
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t DenseNeuralNetwork::getRecognitionLabel()
+{
+	// Check flag
+	if (false == m_loaded)
+	{
+		PRINT_ERR("Model has not been loaded");
+		return -1;
+	}
+
+	// Get start time
+	m_startTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+					  std::chrono::system_clock::now().time_since_epoch()).count();
+
+//------------------------
+	// Loop for each dense
+	for (uint32_t num_dense_layers_i = 0;
+		 num_dense_layers_i < m_num_dense_layers;
+		 ++num_dense_layers_i)
+	{
+		// Get a result
+		m_dense_out[num_dense_layers_i] = m_dense_in[num_dense_layers_i] *
+										  m_denses[num_dense_layers_i];
+
+		// Add biases
+		for (uint32_t bias_i = 0; bias_i < m_dense_out[num_dense_layers_i].cols(); ++bias_i)
+		{
+			m_dense_out[num_dense_layers_i](0, bias_i) +=
+					m_dense_biases[num_dense_layers_i][bias_i];
+		}
+
+		// Apply an activation function
+		if (num_dense_layers_i < m_num_dense_layers - 1)
+		{
+			// Satlins
+			satlins(m_dense_out[num_dense_layers_i].data(),
+					m_dense_out[num_dense_layers_i].size());
+
+			// Set an input from output
+			m_dense_in[num_dense_layers_i + 1] = m_dense_out[num_dense_layers_i];
+		}
+		else
+		{
+//			// Choice an activation function
+//			if (m_out_dense_size.back() == 1)
+//			{
+//				// Sigmoid
+//				sigmoid(m_dense_out[num_dense_layers_i].data(),
+//						m_dense_out[num_dense_layers_i].size());
+//			}
+//			else
+//			{
+//				// Softmax
+//				softmax(m_dense_out[num_dense_layers_i].data(),
+//						m_dense_out[num_dense_layers_i].size());
+//			}
+
+			PRINT_DBG(true, "Index of maximal element: %lu;  value: %f",
+					  static_cast<unsigned long>(
+						  maxArrayElementIndex(m_dense_out[num_dense_layers_i].data(),
+											   m_dense_out[num_dense_layers_i].size())),
+					  maxArrayElement(m_dense_out[num_dense_layers_i].data(),
+									  m_dense_out[num_dense_layers_i].size()));
+
+//			qDebug() << m_dense_out[num_dense_layers_i].data()[0];
+//			         << m_dense_out[num_dense_layers_i].data()[1]
+//			         << m_dense_out[num_dense_layers_i].data()[2];
+		}
+
+	} // Loop for each dense
+
+//--------------------
+	// Get finish time
+	m_finishTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+					   std::chrono::system_clock::now().time_since_epoch()).count();
+
+	// Get a recognition value
+	m_recognitionValue = maxArrayElement(m_dense_out[m_num_dense_layers - 1].data(),
+										 m_dense_out[m_num_dense_layers - 1].size());
+
+	return maxArrayElementIndex(m_dense_out[m_num_dense_layers - 1].data(),
+								m_dense_out[m_num_dense_layers - 1].size());
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t DenseNeuralNetwork::readParameters(const QString& pathToModel)
+{
+	// For files with network parameters
+	QFile f;
+
+	// Variable for file content
+	uint32_t var;
+
+	// --- Get network parameters ---
+
+	// Set a file name
+	QString fileName(pathToModel + "/parameters.txt");
+	f.setFileName(fileName);
+
+	// Open a file
+	if (f.open(QIODevice::ReadOnly) == false)
+	{
+		PRINT_ERR("Can't open a file %s", fileName.toStdString().c_str());
+		return -1;
+	}
+
+	// --- Get dense layers ---
+
+	// Read a number of dense layers
+	if (readVarFromFile(f, m_num_dense_layers) != 0)
+	{
+		PRINT_ERR("Can't read a m_num_dense_layers from file %s", fileName.toStdString().c_str());
+		return -1;
+	}
+	if (0 == m_num_dense_layers)
+	{
+		PRINT_ERR("m_num_dense_layers == 0");
+		return -1;
+	}
+
+	qDebug() << "m_num_dense_layers " << m_num_dense_layers;
+
+	// Read m_in_dense_size
+	for (uint32_t i = 0; i < m_num_dense_layers + 1; ++i)
+	{
+		if (readVarFromFile(f, var) != 0)
+		{
+			PRINT_ERR("Can't read a m_in_dense_size from file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+		m_in_dense_size.push_back(var);
+
+		qDebug() << "m_in_dense_size " << i << var;
+	}
+
+	// Get m_out_dense_size
+	std::copy(m_in_dense_size.begin() + 1, m_in_dense_size.end(),
+			  std::back_insert_iterator<std::vector<uint32_t>>(m_out_dense_size));
+
+	// Read m_out_dense_size last element
+	if (readVarFromFile(f, var) != 0)
+	{
+		PRINT_ERR("Can't read a m_out_dense_size from file %s", fileName.toStdString().c_str());
+		return -1;
+	}
+	m_out_dense_size.push_back(var);
+
+	for (uint32_t i = 0; i < m_out_dense_size.size(); ++i)
+	{
+		qDebug() << "m_out_dense_size " << i << m_out_dense_size[i];
+	}
+
+	// Read m_denses_names
+	for (uint32_t i = 0; i < m_num_dense_layers; ++i)
+	{
+		QString str;
+		if (readVarFromFile(f, str) != 0)
+		{
+			PRINT_ERR("Can't read m_denses_names from file %s", fileName.toStdString().c_str());
+			return -1;
+		}
+		m_denses_names.push_back(str);
+
+		qDebug() << "m_denses_names " << i << str;
+	}
+
+	m_dense_in = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
+	m_dense_out = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
+	m_denses = std::vector<Eigen::MatrixXd>(m_num_dense_layers);
+	m_dense_biases = std::vector<std::vector<double>>(m_num_dense_layers);
+
+	// Close file
+	f.close();
+
+	return 0;
+}
 //-------------------------------------------------------------------------------------------------
 } // namespace Sec_145

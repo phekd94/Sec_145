@@ -76,7 +76,7 @@ public:
 	{
 		if (m_in_conv_size.empty() == true)
 		{
-			PRINT_ERR(true, "m_in_conv_size is empty");
+			PRINT_ERR("m_in_conv_size is empty");
 			return -1;
 		}
 		else
@@ -133,6 +133,93 @@ private:
 
 	// Biases for convolute layers
 	std::vector<std::vector<double>> m_conv_biases;
+
+//-----------------
+	// Dense layers
+
+	// Number of dense layers
+	uint32_t m_num_dense_layers;
+
+	// Incoming size for dense layers
+	std::vector<uint32_t> m_in_dense_size;
+
+	// Outgoing size for dense layers
+	std::vector<uint32_t> m_out_dense_size;
+
+	// Names of denses layers
+	std::vector<QString> m_denses_names;
+
+	// Inputs for dense layers
+	std::vector<Eigen::MatrixXd> m_dense_in;
+
+	// Outputs for dense layers
+	std::vector<Eigen::MatrixXd> m_dense_out;
+
+	// Dense matrixes with weights
+	std::vector<Eigen::MatrixXd> m_denses;
+
+	// Biases for dense layers
+	std::vector<std::vector<double>> m_dense_biases;
+
+//------------------------------------------------
+	// Get a recognition label from neural network
+	int32_t getRecognitionLabel(); // noexcept
+
+	// Read neural network parameters
+	int32_t readParameters(const QString& pathToModel); // noexcept
+};
+
+//=================================================================================================
+class DenseNeuralNetwork
+{
+
+public:
+
+	// Load a neural network
+	// (exception from push_back() can be thrown (it is unlikely))
+	int32_t loadModel(const QString& pathToModel);
+
+	// ***********************
+	// ******* Getters *******
+	// ***********************
+
+	// Gets a recognition label from neural network
+	int32_t getRecognitionLabel(const double in) // noexcept
+	{
+		m_dense_in[0](0, 0) = in;
+
+		return getRecognitionLabel();
+	}
+
+	// Gets a recognition value from neural network
+	double getRecognitionValue() const noexcept
+	{
+		return m_recognitionValue;
+	}
+
+	// Gets start time
+	uint64_t getStartTime() const noexcept
+	{
+		return m_startTime;
+	}
+
+	// Gets finish time
+	uint64_t getFinishTime() const noexcept
+	{
+		return m_finishTime;
+	}
+
+private:
+
+	// Start and finish time
+	volatile uint64_t m_startTime {0};
+	volatile uint64_t m_finishTime {0};
+
+	// Recognition value
+	volatile double m_recognitionValue {0};
+
+	// Flag; model has been loaded
+	bool m_loaded {false};
 
 //-----------------
 	// Dense layers

@@ -20,7 +20,8 @@ NOTE:
 //-------------------------------------------------------------------------------------------------
 #include <cstdint>  // integer types
 #include <vector>   // std::vector template class
-#include <cmath>    // std::exp(); DBL_MIN
+#include <cmath>    // std::exp()
+#include <cfloat>   // DBL_MIN, DBL_MAX
 
 //-------------------------------------------------------------------------------------------------
 namespace Sec_145
@@ -31,7 +32,7 @@ namespace Sec_145
 template <typename Array>
 double maxArrayElement(Array* const array, const uint32_t size)
 {
-	double res = DBL_MIN;
+	double res = -DBL_MAX;
 	for (uint32_t i = 0; i < size; ++i) {
 		if (array[i] >= res)
 			res = array[i];
@@ -44,7 +45,7 @@ double maxArrayElement(Array* const array, const uint32_t size)
 template <typename Array>
 uint32_t maxArrayElementIndex(Array* const array, const uint32_t size)
 {
-	double max = DBL_MIN;
+	double max = -DBL_MAX;
 	uint32_t res = 0;
 	for (uint32_t i = 0; i < size; ++i) {
 		if (array[i] >= max) {
