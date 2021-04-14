@@ -259,7 +259,7 @@ receiveData() noexcept
 			// Receive data
 			uint32_t receiveBytes = m_socket.receive_from(
 			        boost::asio::buffer(m_bufferReceive, m_bufferSize), m_senderEndpoint);
-			        
+			
 			PRINT_DBG(m_debug, "Data is received from %s (size = %u)", 
 			                   m_senderEndpoint.address().to_string().c_str(), 
 			                   static_cast<unsigned int>(receiveBytes));

@@ -3,13 +3,13 @@
 
 //-------------------------------------------------------------------------------------------------
 /*
-DESCRITION: class for test a load
+DESCRITION: class for receive data
 TODO:
 FIXME:
 DANGER:
 NOTE:
 
-Sec_145::DSrv_Load class
+Sec_145::DSrv_Receiver class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
@@ -33,7 +33,7 @@ template <typename Storage,
           template <typename T> class Base,
           template <typename T_1, template <typename Y> class T_2> class Interface,
           typename KaitaiParser /*TODO: ...*/>
-class DSrv_Load : public Interface<Storage, Base>
+class DSrv_Receiver : public Interface<Storage, Base>
 {
 
 private:
@@ -41,29 +41,28 @@ private:
 	// Parser of the accepted data 
 	virtual int32_t dataParser(typename Base<Storage>::Data_parser data) noexcept
 	{
+		/*
 		for (uint32_t i = 0; i < data.second; ++i)
 			PRINT_DBG(true, "[%u]: %u ", 
 			                static_cast<unsigned int>(i),
 			                static_cast<unsigned int>(data.first[i]));
-	
+		*/
+		
 		if (Storage::setData(typename Storage::Data_set(data.first, data.second), true) != 0)
 		{
 			PRINT_ERR("setData()");
 			return -1;
 		}
 		
-		//std::unique_ptr<KaitaiParser> kaitaiParser;
-		
 		try
 		{
 			kaitai::kstream ks(Storage::getIstreamPointer());
 			
-			//kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&ks));
 			KaitaiParser kaitaiParser(&ks);
 			
-			std::cout << int(kaitaiParser.total_length()) << std::endl;
-		    std::cout << int(kaitaiParser.protocol()) << std::endl;
-		    std::cout << kaitaiParser._raw_body() << std::endl;
+			PRINT_DBG(true, "Length: %d", int(kaitaiParser.total_length()));
+			PRINT_DBG(true, "Protocol: %d", int(kaitaiParser.protocol()));
+			PRINT_DBG(true, "Data: %s", kaitaiParser._raw_body().c_str());
 		    
 		} catch (std::exception & ex)
 		{
@@ -82,20 +81,17 @@ private:
 			return -1;
 		}
 		
-		// Get data
-		/*typename Storage::Data_get_2 data_get_2;
-		Storage::getData(data_get_2);
-		for (uint8_t i = 0, SHIFT = 4; i < kaitaiParser->len(); ++i)
-		{
-			PRINT_DBG(true, "data: %u", unsigned(data_get_2.first[SHIFT + i]));
-		}*/
-		
 		return 0;
 	}
 	
 public:
 
-	DSrv_Load()
+	DSrv_Receiver()
+	{
+		PRINT_DBG(true, "");
+	}
+	
+	~DSrv_Receiver()
 	{
 		PRINT_DBG(true, "");
 	}
@@ -105,11 +101,6 @@ public:
 	{
 		// Start
 		Interface<Storage, Base>::start();
-		
-		// Send to itself
-		uint8_t data[] {'Q', 'w', 'E', '\0'};
-		Interface<Storage, Base>::sendData(
-		   typename Base<Storage>::Data_send(data, sizeof(data) / sizeof(uint8_t)), "0.0.0.0");
 		
 		// Receive
 		while (m_stopLoop == false)
