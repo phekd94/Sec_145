@@ -465,7 +465,7 @@ int32_t NeuralNetwork::getRecognitionLabel()
 
 	// Get start time
 	m_startTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-	                  std::chrono::system_clock::now().time_since_epoch()).count();
+	                  std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
 //------------------------------
 	// Loop for each convolution
@@ -623,7 +623,7 @@ int32_t NeuralNetwork::getRecognitionLabel()
 //--------------------
 	// Get finish time
 	m_finishTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-	                   std::chrono::system_clock::now().time_since_epoch()).count();
+	                   std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
 	// Get a recognition value
 	m_recognitionValue = maxArrayElement(m_dense_out[m_num_dense_layers - 1].data(),
@@ -976,7 +976,7 @@ int32_t DenseNeuralNetwork::getRecognitionLabel()
 
 	// Get start time
 	m_startTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-					  std::chrono::system_clock::now().time_since_epoch()).count();
+					  std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
 //------------------------
 	// Loop for each dense
@@ -1038,7 +1038,7 @@ int32_t DenseNeuralNetwork::getRecognitionLabel()
 //--------------------
 	// Get finish time
 	m_finishTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-					   std::chrono::system_clock::now().time_since_epoch()).count();
+					   std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
 	// Get a recognition value
 	m_recognitionValue = maxArrayElement(m_dense_out[m_num_dense_layers - 1].data(),
