@@ -20,6 +20,7 @@ Sec_145::DSrv_Load class
 
 //-------------------------------------------------------------------------------------------------
 #include <cstdint>                // integer types
+#include <chrono>                 // time library
 #include "kaitai/kaitaistream.h"  // kaitai::kstream
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
@@ -41,10 +42,10 @@ private:
 	// Parser of the accepted data 
 	virtual int32_t dataParser(typename Base<Storage>::Data_parser data) noexcept
 	{
-		for (uint32_t i = 0; i < data.second; ++i)
+		/*for (uint32_t i = 0; i < data.second; ++i)
 			PRINT_DBG(true, "[%u]: %u ", 
 			                static_cast<unsigned int>(i),
-			                static_cast<unsigned int>(data.first[i]));
+			                static_cast<unsigned int>(data.first[i]));*/
 	
 		if (Storage::setData(typename Storage::Data_set(data.first, data.second), true) != 0)
 		{
@@ -106,15 +107,34 @@ public:
 		// Start
 		Interface<Storage, Base>::start();
 		
-		// Send to itself
-		uint8_t data[] {'Q', 'w', 'E', '\0'};
-		Interface<Storage, Base>::sendData(
-		   typename Base<Storage>::Data_send(data, sizeof(data) / sizeof(uint8_t)), "0.0.0.0");
+		int i = 0;
 		
 		// Receive
 		while (m_stopLoop == false)
+		{
+			// Send to itself
+			uint8_t data[] {'Q', 'w', ' ', '1' + i++, '\0'};
+			Interface<Storage, Base>::sendData(
+			            typename Base<Storage>::Data_send(data, sizeof(data) / sizeof(uint8_t)), 
+			            "0.0.0.0");
+			
+			uint8_t data_2[] {'Q', 'w', ' ', '1' + i++, '\0'};
+			Interface<Storage, Base>::sendData(
+			            typename Base<Storage>::Data_send(data_2, sizeof(data_2) / sizeof(uint8_t)), 
+			            "0.0.0.0");
+			
+			auto start {std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count()};
+			
+			while (start + 5000 > 
+			       std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::high_resolution_clock::now().time_since_epoch()
+					).count());
+			
 			if (Interface<Storage, Base>::receiveData() < 0)
 				break;
+		}
 	}
 	
 	// Flag for stop the loop

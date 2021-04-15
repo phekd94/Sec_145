@@ -254,8 +254,12 @@ receiveData() noexcept
 {
 	try {
 		// Check of data availability
-		if (m_socket.available() != 0)
-		{
+		if (m_socket.available() == 0)
+			return 1;
+	
+		// Read all available packets
+		while (m_socket.available() != 0) 
+		{			
 			// Receive data
 			uint32_t receiveBytes = m_socket.receive_from(
 			        boost::asio::buffer(m_bufferReceive, m_bufferSize), m_senderEndpoint);
@@ -278,10 +282,7 @@ receiveData() noexcept
 				return -1;
 			}
 		}
-		else
-		{
-			return 1;
-		}
+		
 		return 0;
 	}
 	catch (std::exception & ex)
