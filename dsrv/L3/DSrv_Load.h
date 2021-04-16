@@ -102,7 +102,7 @@ public:
 	}
 
 	// Loop for the server
-	void loop() noexcept
+	void loop(std::chrono::milliseconds period) noexcept
 	{
 		// Start
 		Interface<Storage, Base>::start();
@@ -113,24 +113,23 @@ public:
 		while (m_stopLoop == false)
 		{
 			// Send to itself
-			uint8_t data[] {'Q', 'w', ' ', '1' + i++, '\0'};
+			uint8_t data_1[] {'Q', 'w', ' ', '1' + i++, '\0'};
 			Interface<Storage, Base>::sendData(
-			            typename Base<Storage>::Data_send(data, sizeof(data) / sizeof(uint8_t)), 
-			            "0.0.0.0");
+			         typename Base<Storage>::Data_send(data_1, sizeof(data_1) / sizeof(uint8_t)), 
+			         "0.0.0.0");
 			
 			uint8_t data_2[] {'Q', 'w', ' ', '1' + i++, '\0'};
 			Interface<Storage, Base>::sendData(
-			            typename Base<Storage>::Data_send(data_2, sizeof(data_2) / sizeof(uint8_t)), 
-			            "0.0.0.0");
+			         typename Base<Storage>::Data_send(data_2, sizeof(data_2) / sizeof(uint8_t)), 
+			         "0.0.0.0");
 			
 			auto start {std::chrono::duration_cast<std::chrono::milliseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
-				).count()};
+				)};
 			
-			while (start + 5000 > 
-			       std::chrono::duration_cast<std::chrono::milliseconds>(
+			while (std::chrono::duration_cast<std::chrono::milliseconds>(
 					std::chrono::high_resolution_clock::now().time_since_epoch()
-					).count());
+				   ) - start < period);
 			
 			if (Interface<Storage, Base>::receiveData() < 0)
 				break;
