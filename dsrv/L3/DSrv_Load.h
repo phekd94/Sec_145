@@ -21,6 +21,7 @@ Sec_145::DSrv_Load class
 //-------------------------------------------------------------------------------------------------
 #include <cstdint>                // integer types
 #include <chrono>                 // time library
+#include <memory>                 // std::unique_ptr<>
 #include "kaitai/kaitaistream.h"  // kaitai::kstream
 
 #include "Sec_145/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
@@ -53,26 +54,25 @@ private:
 			return -1;
 		}
 		
-		//std::unique_ptr<KaitaiParser> kaitaiParser;
+		std::unique_ptr<KaitaiParser> kaitaiParser;
 		
 		try
 		{
 			kaitai::kstream ks(Storage::getIstreamPointer());
 			
-			//kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&ks));
-			KaitaiParser kaitaiParser(&ks);
-			
-			std::cout << int(kaitaiParser.total_length()) << std::endl;
-		    std::cout << int(kaitaiParser.protocol()) << std::endl;
-		    std::cout << kaitaiParser._raw_body() << std::endl;
+			kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&ks));
 		    
 		} catch (std::exception & ex)
 		{
-			PRINT_ERR("KaitaiParser: %s", ex.what());
+			PRINT_ERR("KaitaiParser or new: %s", ex.what());
 			Storage::clearIstream();
 			Storage::clearData();
 			return -1;
 		}
+		
+		std::cout << int(kaitaiParser->total_length()) << std::endl;
+	    std::cout << int(kaitaiParser->protocol()) << std::endl;
+	    std::cout << kaitaiParser->_raw_body() << std::endl;
 		
 		PRINT_DBG(true, "OK");
 		

@@ -7,8 +7,8 @@ DESCRITION: class for storing data
 TODO:
  * mutex test
  * setData(): add parameter
- * smart pointers for data pointers
  * (char*) type cast to reinterpret_cast<>()
+ * move constructor
 FIXME:
 DANGER:
 NOTE:
@@ -29,6 +29,7 @@ Sec_145::DSrv_Storage_2_buffers class
 #include <utility>        // std::pair
 #include <streambuf>      // std::basic_streambuf
 #include <istream>        // std::basic_istream
+#include <memory>         // std::unique_ptr<>
 #include "boost/crc.hpp"  // Boost.CRC library
 
 //-------------------------------------------------------------------------------------------------
@@ -110,8 +111,8 @@ private:
 	std::istream m_istream;
 
 	// Pointers to the data
-	uint8_t * m_completeData {nullptr};
-	uint8_t * m_fillingData {nullptr};
+	std::unique_ptr<uint8_t []> m_completeData {nullptr};
+	std::unique_ptr<uint8_t []> m_fillingData {nullptr};
 
 	// Index in the array of filling data
 	uint32_t m_fillingIndex {0};

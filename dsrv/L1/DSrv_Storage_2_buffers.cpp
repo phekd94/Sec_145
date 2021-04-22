@@ -16,20 +16,22 @@ using namespace Sec_145;
 DSrv_Storage_2_buffers::DSrv_Storage_2_buffers() : m_istream(&m_streambuf)
 {
 	// Allocate a memory for the data
-	m_completeData = new (std::nothrow) uint8_t[MAX_DATA_SIZE];
-	if (nullptr == m_completeData)
+	m_completeData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[MAX_DATA_SIZE]);
+	if (nullptr == m_completeData.get())
 	{
 		PRINT_ERR("Can not allocate a memory (m_completeData)");
 		return;
 	}
-	m_fillingData = new (std::nothrow) uint8_t[MAX_DATA_SIZE];
-	if (nullptr == m_fillingData)
+	m_fillingData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[MAX_DATA_SIZE]);
+	if (nullptr == m_fillingData.get())
 	{
 		PRINT_ERR("Can not allocate a memory (m_fillingData)");
 		return;
 	}
 	
-	m_streambuf.setPointers((char*)m_fillingData, (char*)m_fillingData, (char*)m_fillingData);
+	m_streambuf.setPointers((char*)m_fillingData.get(), 
+	                        (char*)m_fillingData.get(), 
+	                        (char*)m_fillingData.get());
 
 	PRINT_DBG(m_debug, "");
 }
@@ -37,18 +39,6 @@ DSrv_Storage_2_buffers::DSrv_Storage_2_buffers() : m_istream(&m_streambuf)
 //-------------------------------------------------------------------------------------------------
 DSrv_Storage_2_buffers::~DSrv_Storage_2_buffers()
 {
-	// Delete a memory for the data
-	if (m_completeData != nullptr)
-	{
-		delete [] m_completeData;
-		m_completeData = nullptr;
-	}
-	if (m_fillingData != nullptr)
-	{
-		delete [] m_fillingData;
-		m_fillingData = nullptr;
-	}
-
 	PRINT_DBG(m_debug, "");
 }
 
@@ -91,7 +81,7 @@ int32_t DSrv_Storage_2_buffers::setData(Data_set data, const bool add) noexcept
 	}
 
 	// Check the data pointers
-	if (nullptr == m_completeData || nullptr == m_fillingData)
+	if (nullptr == m_completeData.get() || nullptr == m_fillingData.get())
 	{
 		PRINT_ERR("Memory for data have not been allocated");
 		return -1;
@@ -122,15 +112,16 @@ int32_t DSrv_Storage_2_buffers::setData(Data_set data, const bool add) noexcept
 	PRINT_DBG(m_debug, "Add the data(0x%p) with size(%5lu) to the 0x%p with size(%5lu)",
 	                   data.first,
 	                   static_cast<unsigned long>(data.second),
-	                   m_fillingData,
+	                   m_fillingData.get(),
 	                   static_cast<unsigned long>(m_fillingIndex));
 
 	// Add the data and add the size to the fillingIndex
-	std::memcpy(m_fillingData + m_fillingIndex, data.first, data.second);
+	std::memcpy(m_fillingData.get() + m_fillingIndex, data.first, data.second);
 	m_fillingIndex += data.second;
 	
-	m_streambuf.setPointers((char*)m_fillingData, (char*)m_fillingData, 
-	                        (char*)m_fillingData + m_fillingIndex);
+	m_streambuf.setPointers((char*)m_fillingData.get(), 
+	                        (char*)m_fillingData.get(), 
+	                        (char*)m_fillingData.get() + m_fillingIndex);
 	
 	return 0;
 }
@@ -151,7 +142,7 @@ int32_t DSrv_Storage_2_buffers::getData(Data_get data) noexcept
 	}
 
 	// Check the data pointers
-	if (nullptr == m_completeData || nullptr == m_fillingData)
+	if (nullptr == m_completeData.get() || nullptr == m_fillingData.get())
 	{
 		PRINT_ERR("Memory for data have not been allocated");
 		*data.first = nullptr;
@@ -170,11 +161,11 @@ int32_t DSrv_Storage_2_buffers::getData(Data_get data) noexcept
 	}
 
 	PRINT_DBG(m_debug, "Data for geter: 0x%p with size(%5lu)",
-	                    m_completeData,
+	                    m_completeData.get(),
 	                    static_cast<unsigned long>(m_completeSize));	
 	
 	// Set the data and the size
-	*data.first = m_completeData;
+	*data.first = m_completeData.get();
 	*data.second = m_completeSize;
 
 	return 0;
@@ -184,7 +175,7 @@ int32_t DSrv_Storage_2_buffers::getData(Data_get data) noexcept
 int32_t DSrv_Storage_2_buffers::getData(Data_get_2 & data) noexcept
 {
 	// Check the data pointers
-	if (nullptr == m_completeData || nullptr == m_fillingData)
+	if (nullptr == m_completeData.get() || nullptr == m_fillingData.get())
 	{
 		PRINT_ERR("Memory for data have not been allocated");
 		data.first = nullptr;
@@ -203,11 +194,11 @@ int32_t DSrv_Storage_2_buffers::getData(Data_get_2 & data) noexcept
 	}
 
 	PRINT_DBG(m_debug, "Data for geter: 0x%p with size(%5lu)",
-	                    m_completeData,
+	                    m_completeData.get(),
 	                    static_cast<unsigned long>(m_completeSize));	
 	
 	// Set the data and the size
-	data.first = m_completeData;
+	data.first = m_completeData.get();
 	data.second = m_completeSize;
 
 	return 0;
@@ -230,7 +221,9 @@ int32_t DSrv_Storage_2_buffers::clearData() noexcept
 	m_fillingIndex = 0;
 	m_completeSize = 0;
 	
-	m_streambuf.setPointers((char*)m_fillingData, (char*)m_fillingData, (char*)m_fillingData);
+	m_streambuf.setPointers((char*)m_fillingData.get(), 
+	                        (char*)m_fillingData.get(), 
+	                        (char*)m_fillingData.get());
 
 	PRINT_DBG(m_debug, "Data have cleared");
 
@@ -241,7 +234,7 @@ int32_t DSrv_Storage_2_buffers::clearData() noexcept
 int32_t DSrv_Storage_2_buffers::completeData() noexcept
 {
 	// Check the data pointers
-	if (nullptr == m_completeData || nullptr == m_fillingData)
+	if (nullptr == m_completeData.get() || nullptr == m_fillingData.get())
 	{
 		PRINT_ERR("Memory for data have not been allocated");
 		return -1;
@@ -266,10 +259,12 @@ int32_t DSrv_Storage_2_buffers::completeData() noexcept
 	// Set the fillingIndex to 0
 	m_fillingIndex = 0;
 	
-	m_streambuf.setPointers((char*)m_fillingData, (char*)m_fillingData, (char*)m_fillingData);
+	m_streambuf.setPointers((char*)m_fillingData.get(), 
+	                        (char*)m_fillingData.get(), 
+	                        (char*)m_fillingData.get());
 
 	PRINT_DBG(m_debug, "Data(0x%p) with size(%5lu) is complete",
-	                   m_completeData,
+	                   m_completeData.get(),
 	                   static_cast<unsigned long>(m_completeSize));
 
 	return 0;
@@ -278,7 +273,7 @@ int32_t DSrv_Storage_2_buffers::completeData() noexcept
 //-------------------------------------------------------------------------------------------------
 uint32_t DSrv_Storage_2_buffers::completeDataCRC()
 {
-	m_crc.process_bytes(m_completeData, m_completeSize);
+	m_crc.process_bytes(m_completeData.get(), m_completeSize);
 	return m_crc.checksum();
 }
 

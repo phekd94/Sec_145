@@ -5,6 +5,7 @@
 /*
 DESCRITION: test class for DSrv_Storage_2_buffers class
 TODO:
+ * test for move constructor
 FIXME:
 DANGER:
 NOTE:
@@ -33,7 +34,7 @@ public:
 	static int32_t data(DSrv_Storage_2_buffers & obj) noexcept;
 
 	// Tests a move constructor
-	static int32_t move() noexcept;
+	//static int32_t move() noexcept;
 	
 	// Test a CRC
 	static int32_t crc(DSrv_Storage_2_buffers & obj) noexcept;
