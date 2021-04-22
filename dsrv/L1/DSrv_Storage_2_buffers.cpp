@@ -29,9 +29,9 @@ DSrv_Storage_2_buffers::DSrv_Storage_2_buffers() : m_istream(&m_streambuf)
 		return;
 	}
 	
-	m_streambuf.setPointers((char*)m_fillingData.get(), 
-	                        (char*)m_fillingData.get(), 
-	                        (char*)m_fillingData.get());
+	m_streambuf.setPointers(reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get()));
 
 	PRINT_DBG(m_debug, "");
 }
@@ -119,9 +119,9 @@ int32_t DSrv_Storage_2_buffers::setData(Data_set data, const bool add) noexcept
 	std::memcpy(m_fillingData.get() + m_fillingIndex, data.first, data.second);
 	m_fillingIndex += data.second;
 	
-	m_streambuf.setPointers((char*)m_fillingData.get(), 
-	                        (char*)m_fillingData.get(), 
-	                        (char*)m_fillingData.get() + m_fillingIndex);
+	m_streambuf.setPointers(reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get() + m_fillingIndex));
 	
 	return 0;
 }
@@ -221,9 +221,9 @@ int32_t DSrv_Storage_2_buffers::clearData() noexcept
 	m_fillingIndex = 0;
 	m_completeSize = 0;
 	
-	m_streambuf.setPointers((char*)m_fillingData.get(), 
-	                        (char*)m_fillingData.get(), 
-	                        (char*)m_fillingData.get());
+	m_streambuf.setPointers(reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get()));
 
 	PRINT_DBG(m_debug, "Data have cleared");
 
@@ -259,9 +259,9 @@ int32_t DSrv_Storage_2_buffers::completeData() noexcept
 	// Set the fillingIndex to 0
 	m_fillingIndex = 0;
 	
-	m_streambuf.setPointers((char*)m_fillingData.get(), 
-	                        (char*)m_fillingData.get(), 
-	                        (char*)m_fillingData.get());
+	m_streambuf.setPointers(reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get()));
 
 	PRINT_DBG(m_debug, "Data(0x%p) with size(%5lu) is complete",
 	                   m_completeData.get(),

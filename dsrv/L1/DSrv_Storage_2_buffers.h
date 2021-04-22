@@ -7,7 +7,6 @@ DESCRITION: class for storing data
 TODO:
  * mutex test
  * setData(): add parameter
- * (char*) type cast to reinterpret_cast<>()
  * move constructor
 FIXME:
 DANGER:
