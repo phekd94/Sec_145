@@ -44,10 +44,10 @@ class DSrv : protected Storage
 public:
 
 	// Data type for send data method (pointer + size)
-	using Data_send = const std::pair<const uint8_t * const, const uint32_t>;
+	typedef  const std::pair<const uint8_t * const, const uint32_t>  Data_send;
 
 	// Data type for data parser method (pointer + size)
-	using Data_parser = std::pair<const uint8_t *, uint32_t>;
+	typedef  std::pair<const uint8_t *, uint32_t>  Data_parser;
 
 protected:
 

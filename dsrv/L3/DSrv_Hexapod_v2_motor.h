@@ -44,10 +44,10 @@ class DSrv_Hexapod_v2_motor : /*public QObject,*/ public DSrv_USART_QT<DSrv_Stor
 public:
 
 	// Data type for calculate CRC method (pointer + size)
-	using Data_crc = std::pair<const uint8_t *, uint8_t>;
+	typedef  std::pair<const uint8_t *, uint8_t>  Data_crc;
 
 	// Data type for send data method (pointer + size)
-	using Data_ctrl = const std::pair<const uint8_t * const, const uint32_t>;
+	typedef  const std::pair<const uint8_t * const, const uint32_t>  Data_ctrl;
 
 	// Oscillation direction
 	enum class OSC_DIR : uint8_t {

@@ -44,13 +44,13 @@ class DSrv_Storage_2_buffers
 public:
 	
 	// Data type for set method (pointer + size)
-	using Data_set = const std::pair<const uint8_t * const, const uint32_t>;
+	typedef  const std::pair<const uint8_t * const, const uint32_t>  Data_set;
 
 	// Data type for get method (pointer to pointer + pointer to size)
-	using Data_get = const std::pair<uint8_t ** const, uint32_t * const>;
+	typedef  const std::pair<uint8_t ** const, uint32_t * const>  Data_get;
 	
 	// Data type for get method (pointer + size)
-	using Data_get_2 = std::pair<const uint8_t *, uint32_t>;
+	typedef  std::pair<const uint8_t *, uint32_t>  Data_get_2;
 
 	DSrv_Storage_2_buffers();
 	virtual ~DSrv_Storage_2_buffers();

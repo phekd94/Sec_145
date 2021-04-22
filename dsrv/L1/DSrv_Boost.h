@@ -45,10 +45,10 @@ class DSrv_Boost : protected Storage
 public:
 
 	// Data type for send data method (pointer + size)
-	using Data_send = std::pair<const uint8_t *, uint32_t>;
+	typedef  std::pair<const uint8_t *, uint32_t>  Data_send;
 
 	// Data type for data parser method (pointer + size)
-	using Data_parser = Data_send;
+	typedef  Data_send  Data_parser;
 
 protected:
 
