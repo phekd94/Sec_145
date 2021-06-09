@@ -9,7 +9,7 @@ FIXME:
 DANGER:
 NOTE:
 
-Sec_145::DSrv_Load class
+Sec_145::DSrv_Loads class
 +---------------+------------+
 | thread safety | reentrance |
 +---------------+------------+
@@ -34,11 +34,52 @@ namespace Sec_145
 template <typename Storage, 
           template <typename T> class Base,
           template <typename T_1, template <typename Y> class T_2> class Interface,
-          typename KaitaiParser>
-class DSrv_Load : public Interface<Storage, Base>
+          typename... KaitaiParsers>
+class DSrv_Loads : public Interface<Storage, Base>
 {
 
 private:
+
+	int c {0};
+	
+	template <typename KaitaiParser>
+	void parser()
+	{ 
+		PRINT_DBG(true, "one; counter = %d", c);*/
+		
+		
+		/*std::unique_ptr<KaitaiParser> kaitaiParser;
+		
+		try
+		{
+			kaitai::kstream ks(Storage::getIstreamPointer());
+			
+			kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&ks));
+		    
+		} catch (std::exception & ex)
+		{
+			PRINT_ERR("p or new: %s", ex.what());
+			Storage::clearIstream();
+			//Storage::clearData();
+			//return 0;
+			
+			// parser()
+		}
+		
+		std::cout << int(kaitaiParser->total_length()) << std::endl;
+	    std::cout << int(kaitaiParser->protocol()) << std::endl;
+	    std::cout << kaitaiParser->_raw_body() << std::endl;
+		
+		PRINT_DBG(true, "OK");*/
+	}
+
+	template <typename KaitaiParser, typename... restKaitaiParsers>
+	void parser()
+	{
+		PRINT_DBG(true, "counter = %d", c++);
+		//parser<KaitaiParser>();
+		parser<restKaitaiParsers...>();
+	}
 
 	// Parser of the accepted data 
 	virtual int32_t dataParser(typename Base<Storage>::Data_parser data) noexcept
@@ -54,27 +95,8 @@ private:
 			return -1;
 		}
 		
-		std::unique_ptr<KaitaiParser> kaitaiParser;
-		
-		try
-		{
-			kaitai::kstream ks(Storage::getIstreamPointer());
-			
-			kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&ks));
-		    
-		} catch (std::exception & ex)
-		{
-			PRINT_ERR("KaitaiParser or new: %s", ex.what());
-			Storage::clearIstream();
-			Storage::clearData();
-			return 1;
-		}
-		
-		std::cout << int(kaitaiParser->total_length()) << std::endl;
-	    std::cout << int(kaitaiParser->protocol()) << std::endl;
-	    std::cout << kaitaiParser->_raw_body() << std::endl;
-		
-		PRINT_DBG(true, "OK");
+		c = 0;
+		parser<KaitaiParsers...>();
 		
 		// Complete data
 		if (Storage::completeData() != 0)
@@ -96,7 +118,7 @@ private:
 	
 public:
 
-	DSrv_Load()
+	DSrv_Loads()
 	{
 		PRINT_DBG(true, "");
 	}
